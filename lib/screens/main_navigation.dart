@@ -17,6 +17,7 @@ class MainNavigation extends ConsumerStatefulWidget {
 
 class _MainNavigationState extends ConsumerState<MainNavigation> {
   int _currentIndex = 0;
+  late PageController _pageController;
 
   final List<Widget> _screens = [
     const RemindersScreen(),
@@ -25,6 +26,18 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     const GuaranteesScreen(),
     const NotesScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +49,15 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: _screens[_currentIndex],
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          children: _screens,
+        ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.3),
@@ -57,6 +78,11 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
               setState(() {
                 _currentIndex = index;
               });
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
             },
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: const [
