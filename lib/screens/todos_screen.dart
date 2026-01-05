@@ -41,13 +41,26 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.filter_list),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               onSelected: (value) {
                 setState(() => _filter = value);
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'all', child: Text('All')),
-                const PopupMenuItem(value: 'pending', child: Text('Pending')),
-                const PopupMenuItem(value: 'completed', child: Text('Completed')),
+                PopupMenuItem(
+                  value: 'all',
+                  child: Text('All', style: TextStyle(color: Colors.black87)),
+                ),
+                PopupMenuItem(
+                  value: 'pending',
+                  child: Text('Pending', style: TextStyle(color: Colors.black87)),
+                ),
+                PopupMenuItem(
+                  value: 'completed',
+                  child: Text('Completed', style: TextStyle(color: Colors.black87)),
+                ),
               ],
             ),
           ],

@@ -29,19 +29,29 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           actions: [
             PopupMenuButton<ReminderType?>(
               icon: const Icon(Icons.filter_list),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               onSelected: (type) {
                 setState(() {
                   _selectedFilter = type;
                 });
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: null,
-                  child: Text('All'),
+                  child: Text(
+                    'All',
+                    style: TextStyle(color: Colors.black87),
+                  ),
                 ),
                 ...ReminderType.values.map((type) => PopupMenuItem(
                       value: type,
-                      child: Text(type.name.toUpperCase()),
+                      child: Text(
+                        type.name.toUpperCase(),
+                        style: TextStyle(color: Colors.black87),
+                      ),
                     )),
               ],
             ),

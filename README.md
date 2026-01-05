@@ -1,4 +1,4 @@
-# TodoLio
+# ToDoLio
 
 A beautiful, modern Flutter app for managing reminders, to-do lists, shopping lists, guarantee tracking, and notes. Built with a local-first architecture - all data is stored on your device with no cloud dependencies.
 

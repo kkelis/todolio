@@ -430,7 +430,15 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(guarantee.productName),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text(
+          guarantee.productName,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,13 +451,25 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
               if (guarantee.notes != null) _DetailRow('Notes', guarantee.notes!),
               if (guarantee.warrantyImagePath != null) ...[
                 const SizedBox(height: 16),
-                const Text('Warranty Photo:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'Warranty Photo:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Image.file(File(guarantee.warrantyImagePath!), height: 200),
               ],
               if (guarantee.receiptImagePath != null) ...[
                 const SizedBox(height: 16),
-                const Text('Receipt Photo:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'Receipt Photo:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Image.file(File(guarantee.receiptImagePath!), height: 200),
               ],
@@ -459,9 +479,16 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(
+              'Close',
+              style: TextStyle(color: Colors.grey[700]),
+            ),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               Navigator.pop(context);
               _showEditDialog(guarantee);
@@ -491,10 +518,18 @@ class _DetailRow extends StatelessWidget {
             width: 100,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.black87),
+            ),
+          ),
         ],
       ),
     );

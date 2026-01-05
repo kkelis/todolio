@@ -1,4 +1,4 @@
-# TodoLio Implementation Summary
+# ToDoLio Implementation Summary
 
 ## ✅ Completed Features
 

@@ -27,18 +27,18 @@ void main() async {
       overrides: [
         localStorageServiceProvider.overrideWithValue(localStorageService),
       ],
-      child: const TodoLioApp(),
+      child: const ToDoLioApp(),
     ),
   );
 }
 
-class TodoLioApp extends StatelessWidget {
-  const TodoLioApp({super.key});
+class ToDoLioApp extends StatelessWidget {
+  const ToDoLioApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TodoLio',
+      title: 'ToDoLio',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
