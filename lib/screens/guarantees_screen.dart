@@ -108,8 +108,6 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
   void _showEditDialog(Guarantee? guarantee) async {
     final productNameController =
         TextEditingController(text: guarantee?.productName ?? '');
-    final storageLocationController =
-        TextEditingController(text: guarantee?.storageLocation ?? '');
     final notesController = TextEditingController(text: guarantee?.notes ?? '');
     DateTime purchaseDate = guarantee?.purchaseDate ?? DateTime.now();
     DateTime expiryDate = guarantee?.expiryDate ?? DateTime.now().add(const Duration(days: 365));
@@ -334,30 +332,6 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                     Text('Receipt photo captured', style: TextStyle(color: Colors.green[700])),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: storageLocationController,
-                    style: const TextStyle(color: Colors.black87),
-                    decoration: InputDecoration(
-                      labelText: 'Storage Location',
-                      labelStyle: TextStyle(color: Colors.grey.shade700),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.all(16),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
                     controller: notesController,
                     style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
@@ -398,9 +372,6 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                           expiryDate: expiryDate,
                           warrantyImagePath: warrantyImagePath,
                           receiptImagePath: receiptImagePath,
-                          storageLocation: storageLocationController.text.isEmpty
-                              ? null
-                              : storageLocationController.text,
                           notes: notesController.text.isEmpty ? null : notesController.text,
                           createdAt: guarantee?.createdAt ?? DateTime.now(),
                         );
@@ -446,8 +417,6 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
             children: [
               _DetailRow('Purchase Date', DateFormat('MMM d, yyyy').format(guarantee.purchaseDate)),
               _DetailRow('Expiry Date', DateFormat('MMM d, yyyy').format(guarantee.expiryDate)),
-              if (guarantee.storageLocation != null)
-                _DetailRow('Storage', guarantee.storageLocation!),
               if (guarantee.notes != null) _DetailRow('Notes', guarantee.notes!),
               if (guarantee.warrantyImagePath != null) ...[
                 const SizedBox(height: 16),

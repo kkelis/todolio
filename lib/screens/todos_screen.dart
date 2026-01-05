@@ -95,7 +95,12 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               );
             }
 
-            final grouped = _groupByPriority(filteredTodos);
+            // Separate completed and uncompleted items
+            final uncompletedTodos = filteredTodos.where((t) => !t.isCompleted).toList();
+            final completedTodos = filteredTodos.where((t) => t.isCompleted).toList();
+
+            final grouped = _groupByPriority(uncompletedTodos);
+            final completedGrouped = _groupByPriority(completedTodos);
 
             return RefreshIndicator(
               onRefresh: () async {
@@ -104,58 +109,102 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               color: Theme.of(context).colorScheme.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: grouped.length,
+                itemCount: grouped.length + (completedGrouped.values.any((list) => list.isNotEmpty) ? 1 : 0),
                 itemBuilder: (context, index) {
-                  final entry = grouped.entries.elementAt(index);
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: _getPriorityColor(entry.key),
-                                shape: BoxShape.circle,
+                  // Show uncompleted items first
+                  if (index < grouped.length) {
+                    final entry = grouped.entries.elementAt(index);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: _getPriorityColor(entry.key),
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              entry.key.name.toUpperCase(),
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Text(
+                                entry.key.name.toUpperCase(),
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.9),
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      ...entry.value.map((todo) => _TodoCard(
-                            todo: todo,
-                            onTap: () => _showEditDialog(todo),
-                            onToggle: (value) {
-                              final notifier = ref.read(remindersNotifierProvider.notifier);
-                              notifier.updateReminder(
-                                todo.copyWith(isCompleted: value),
-                              );
-                            },
-                            onDelete: () async {
-                              final confirmed = await showDeleteConfirmationDialog(
-                                context,
-                                title: 'Delete To-Do',
-                                message: 'Are you sure you want to delete "${todo.title}"?',
-                              );
-                              if (confirmed == true && context.mounted) {
+                        ...entry.value.map((todo) => _TodoCard(
+                              todo: todo,
+                              onTap: () => _showEditDialog(todo),
+                              onToggle: (value) {
                                 final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.deleteReminder(todo.id);
-                              }
-                            },
-                          )),
-                    ],
-                  );
+                                notifier.updateReminder(
+                                  todo.copyWith(isCompleted: value),
+                                );
+                              },
+                              onDelete: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete To-Do',
+                                  message: 'Are you sure you want to delete "${todo.title}"?',
+                                );
+                                if (confirmed == true && context.mounted) {
+                                  final notifier = ref.read(remindersNotifierProvider.notifier);
+                                  notifier.deleteReminder(todo.id);
+                                }
+                              },
+                            )),
+                      ],
+                    );
+                  } else {
+                    // Show completed section
+                    final allCompleted = completedGrouped.values.expand((list) => list).toList();
+                    if (allCompleted.isEmpty) return const SizedBox.shrink();
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                          child: Text(
+                            'Completed',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                          ),
+                        ),
+                        ...allCompleted.map((todo) => _TodoCard(
+                              todo: todo,
+                              onTap: () => _showEditDialog(todo),
+                              onToggle: (value) {
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.updateReminder(
+                                  todo.copyWith(isCompleted: value),
+                                );
+                              },
+                              onDelete: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete To-Do',
+                                  message: 'Are you sure you want to delete "${todo.title}"?',
+                                );
+                                if (confirmed == true && context.mounted) {
+                                  final notifier = ref.read(remindersNotifierProvider.notifier);
+                                  notifier.deleteReminder(todo.id);
+                                }
+                              },
+                            )),
+                      ],
+                    );
+                  }
                 },
               ),
             );
@@ -294,7 +343,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                       controller: textController,
                       style: const TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'First line will be the title\nRest will be description',
+                        hintText: 'Add your to-do here',
                         hintStyle: TextStyle(color: Colors.grey.shade600),
                         border: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -571,16 +620,61 @@ class _TodoCard extends StatelessWidget {
     final theme = Theme.of(context);
     final priorityColor = _getPriorityColor();
 
-    return GlassmorphicCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: todo.isCompleted 
+            ? theme.colorScheme.primary
+            : Colors.white,
+        border: todo.isCompleted
+            ? Border.all(color: Colors.white, width: 1.5)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
         children: [
           // Checkbox
-          Checkbox(
-            value: todo.isCompleted,
-            onChanged: (value) => onToggle(value ?? false),
+          CheckboxTheme(
+            data: CheckboxThemeData(
+              side: todo.isCompleted
+                  ? const BorderSide(color: Colors.white, width: 2)
+                  : const BorderSide(color: Colors.grey, width: 2),
+              fillColor: WidgetStateProperty.resolveWith((states) {
+                if (todo.isCompleted && states.contains(WidgetState.selected)) {
+                  return Colors.white; // White fill for completed items
+                }
+                return null; // Use theme default
+              }),
+              checkColor: WidgetStateProperty.resolveWith((states) {
+                if (todo.isCompleted && states.contains(WidgetState.selected)) {
+                  return theme.colorScheme.primary; // Primary color checkmark on white
+                }
+                return Colors.white; // White checkmark on primary
+              }),
+            ),
+            child: Checkbox(
+              value: todo.isCompleted,
+              onChanged: (value) => onToggle(value ?? false),
+            ),
           ),
           const SizedBox(width: 12),
           // Priority icon with gradient effect
@@ -597,13 +691,17 @@ class _TodoCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: priorityColor.withOpacity(0.4),
+                color: todo.isCompleted
+                    ? Colors.white
+                    : priorityColor.withOpacity(0.4),
                 width: 1.5,
               ),
             ),
             child: Icon(
               Icons.check_circle_outline,
-              color: priorityColor.withOpacity(1.0),
+              color: todo.isCompleted
+                  ? Colors.white
+                  : priorityColor.withOpacity(1.0),
               size: 22,
             ),
           ),
@@ -621,7 +719,7 @@ class _TodoCard extends StatelessWidget {
                             ? TextDecoration.lineThrough
                             : null,
                         color: todo.isCompleted
-                            ? Colors.grey[600]
+                            ? Colors.white
                             : Colors.black87,
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -636,16 +734,20 @@ class _TodoCard extends StatelessWidget {
                       Icon(
                         Icons.access_time,
                         size: 13,
-                        color: Colors.grey[600],
+                        color: todo.isCompleted
+                            ? Colors.white.withOpacity(0.9)
+                            : Colors.grey[600],
                       ),
                       const SizedBox(width: 6),
                       Text(
                         DateFormat('MMM d').format(todo.dateTime!),
                         style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          color: todo.isCompleted
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(width: 12),
                     ],
@@ -683,6 +785,8 @@ class _TodoCard extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
         ],
+          ),
+        ),
       ),
     );
   }

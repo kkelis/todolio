@@ -470,37 +470,90 @@ class _ShoppingListDetailScreenState
                 ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _currentList.items.length,
-              itemBuilder: (context, index) {
-                final item = _currentList.items[index];
-                final theme = Theme.of(context);
-                final iconColor = theme.colorScheme.primary;
+          : Builder(
+              builder: (context) {
+                // Separate completed and uncompleted items, move completed to end
+                final uncompletedItems = _currentList.items.where((i) => !i.isCompleted).toList();
+                final completedItems = _currentList.items.where((i) => i.isCompleted).toList();
+                final sortedItems = [...uncompletedItems, ...completedItems];
                 
-                return GlassmorphicCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: sortedItems.length,
+                  itemBuilder: (context, index) {
+                    final item = sortedItems[index];
+                    final theme = Theme.of(context);
+                    final iconColor = theme.colorScheme.primary;
+                
+                return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  child: Row(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: item.isCompleted 
+                        ? theme.colorScheme.primary
+                        : Colors.white,
+                    border: item.isCompleted
+                        ? Border.all(color: Colors.white, width: 1.5)
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    onTap: () => _showEditItemDialog(item),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
                     children: [
                       // Checkbox
-                      Checkbox(
-                        value: item.isCompleted,
-                        onChanged: (value) {
-                          final updatedItems = _currentList.items.map((i) {
-                            if (i.id == item.id) {
-                              return i.copyWith(isCompleted: value ?? false);
+                      CheckboxTheme(
+                        data: CheckboxThemeData(
+                          side: item.isCompleted
+                              ? const BorderSide(color: Colors.white, width: 2)
+                              : const BorderSide(color: Colors.grey, width: 2),
+                          fillColor: WidgetStateProperty.resolveWith((states) {
+                            if (item.isCompleted && states.contains(WidgetState.selected)) {
+                              return Colors.white; // White fill for completed items
                             }
-                            return i;
-                          }).toList();
+                            return null; // Use theme default
+                          }),
+                          checkColor: WidgetStateProperty.resolveWith((states) {
+                            if (item.isCompleted && states.contains(WidgetState.selected)) {
+                              return theme.colorScheme.primary; // Primary color checkmark on white
+                            }
+                            return Colors.white; // White checkmark on primary
+                          }),
+                        ),
+                        child: Checkbox(
+                          value: item.isCompleted,
+                          onChanged: (value) {
+                            final updatedItems = _currentList.items.map((i) {
+                              if (i.id == item.id) {
+                                return i.copyWith(isCompleted: value ?? false);
+                              }
+                              return i;
+                            }).toList();
 
-                          setState(() {
-                            _currentList = _currentList.copyWith(items: updatedItems);
-                          });
+                            setState(() {
+                              _currentList = _currentList.copyWith(items: updatedItems);
+                            });
 
-                          final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-                          notifier.updateShoppingList(_currentList);
-                        },
+                            final notifier = ref.read(shoppingListsNotifierProvider.notifier);
+                            notifier.updateShoppingList(_currentList);
+                          },
+                        ),
                       ),
                       const SizedBox(width: 12),
                       // Icon with gradient effect
@@ -517,13 +570,17 @@ class _ShoppingListDetailScreenState
                           ),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: iconColor.withOpacity(0.4),
+                            color: item.isCompleted
+                                ? Colors.white
+                                : iconColor.withOpacity(0.4),
                             width: 1.5,
                           ),
                         ),
                         child: Icon(
                           Icons.shopping_bag,
-                          color: iconColor.withOpacity(1.0),
+                          color: item.isCompleted
+                              ? Colors.white
+                              : iconColor.withOpacity(1.0),
                           size: 22,
                         ),
                       ),
@@ -541,7 +598,7 @@ class _ShoppingListDetailScreenState
                                     ? TextDecoration.lineThrough
                                     : null,
                                 color: item.isCompleted
-                                    ? Colors.grey[600]
+                                    ? Colors.white
                                     : Colors.black87,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
@@ -553,13 +610,17 @@ class _ShoppingListDetailScreenState
                                 Icon(
                                   Icons.numbers,
                                   size: 13,
-                                  color: Colors.grey[600],
+                                  color: item.isCompleted
+                                      ? Colors.white.withOpacity(0.9)
+                                      : Colors.grey[600],
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Quantity: ${item.quantity}',
+                                  'Quantity: ${item.quantity} ${item.unit.displayName}',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey[600],
+                                    color: item.isCompleted
+                                        ? Colors.white.withOpacity(0.9)
+                                        : Colors.grey[600],
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -599,7 +660,11 @@ class _ShoppingListDetailScreenState
                         constraints: const BoxConstraints(),
                       ),
                     ],
+                      ),
+                    ),
                   ),
+                );
+                  },
                 );
               },
             ),
@@ -620,23 +685,28 @@ class _ShoppingListDetailScreenState
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+      builder: (context) {
+        ShoppingUnit selectedUnit = ShoppingUnit.piece;
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.9,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -707,6 +777,47 @@ class _ShoppingListDetailScreenState
                     fillColor: Colors.white,
                   ),
                 ),
+                const SizedBox(height: 16),
+                Text(
+                  'Unit',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ShoppingUnit.values.map((unit) {
+                    final isSelected = selectedUnit == unit;
+                    return ChoiceChip(
+                      label: Text(
+                        unit.displayName.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.primary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() => selectedUnit = unit);
+                      },
+                      selectedColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: Colors.white,
+                      side: BorderSide(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey.shade300,
+                        width: isSelected ? 2 : 1,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    );
+                  }).toList(),
+                ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -728,12 +839,14 @@ class _ShoppingListDetailScreenState
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
                         name: nameController.text,
                         quantity: int.tryParse(quantityController.text) ?? 1,
+                        unit: selectedUnit,
                         addedBy: 'local',
                       );
 
                       final updatedItems = [..._currentList.items, newItem];
 
-                      setState(() {
+                      // Use the parent setState to update the list
+                      this.setState(() {
                         _currentList = _currentList.copyWith(items: updatedItems);
                       });
 
@@ -746,10 +859,207 @@ class _ShoppingListDetailScreenState
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditItemDialog(ShoppingItem item) {
+    final nameController = TextEditingController(text: item.name);
+    final quantityController = TextEditingController(text: item.quantity.toString());
+    ShoppingUnit selectedUnit = item.unit;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.9,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Edit Item',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      Divider(color: Colors.grey.shade300),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: nameController,
+                        style: const TextStyle(color: Colors.black87),
+                        decoration: InputDecoration(
+                          labelText: 'Item Name',
+                          labelStyle: TextStyle(color: Colors.grey.shade700),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.all(16),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        autofocus: true,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: quantityController,
+                        style: const TextStyle(color: Colors.black87),
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Quantity',
+                          labelStyle: TextStyle(color: Colors.grey.shade700),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.all(16),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Unit',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: ShoppingUnit.values.map((unit) {
+                          final isSelected = selectedUnit == unit;
+                          return ChoiceChip(
+                            label: Text(
+                              unit.displayName.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.primary,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() => selectedUnit = unit);
+                            },
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: () {
+                            if (nameController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please enter an item name')),
+                              );
+                              return;
+                            }
+
+                            final updatedItem = item.copyWith(
+                              name: nameController.text,
+                              quantity: int.tryParse(quantityController.text) ?? 1,
+                              unit: selectedUnit,
+                            );
+
+                            final updatedItems = _currentList.items.map((i) {
+                              if (i.id == item.id) {
+                                return updatedItem;
+                              }
+                              return i;
+                            }).toList();
+
+                            this.setState(() {
+                              _currentList = _currentList.copyWith(items: updatedItems);
+                            });
+
+                            final notifier = ref.read(shoppingListsNotifierProvider.notifier);
+                            notifier.updateShoppingList(_currentList);
+
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Save'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -91,7 +91,12 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             );
           }
 
-          final grouped = _groupByTimePeriod(filteredReminders);
+          // Separate completed and uncompleted items
+          final uncompletedReminders = filteredReminders.where((r) => !r.isCompleted).toList();
+          final completedReminders = filteredReminders.where((r) => r.isCompleted).toList();
+
+          final grouped = _groupByTimePeriod(uncompletedReminders);
+          final completedGrouped = _groupByTimePeriod(completedReminders);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -100,45 +105,86 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             color: Theme.of(context).colorScheme.primary,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: grouped.length,
+              itemCount: grouped.length + (completedGrouped.isNotEmpty ? 1 : 0),
               itemBuilder: (context, index) {
-                final entry = grouped.entries.elementAt(index);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                      child: Text(
-                        entry.key,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
+                // Show uncompleted items first
+                if (index < grouped.length) {
+                  final entry = grouped.entries.elementAt(index);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                        child: Text(
+                          entry.key,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                        ),
                       ),
-                    ),
-                    ...entry.value.map((reminder) => _ReminderCard(
-                          reminder: reminder,
-                          onTap: () => _showEditDialog(reminder),
-                          onToggle: (value) {
-                            final notifier = ref.read(remindersNotifierProvider.notifier);
-                            notifier.updateReminder(
-                              reminder.copyWith(isCompleted: value),
-                            );
-                          },
-                          onDelete: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
-                              context,
-                              title: 'Delete Reminder',
-                              message: 'Are you sure you want to delete "${reminder.title}"?',
-                            );
-                            if (confirmed == true && context.mounted) {
+                      ...entry.value.map((reminder) => _ReminderCard(
+                            reminder: reminder,
+                            onTap: () => _showEditDialog(reminder),
+                            onToggle: (value) {
                               final notifier = ref.read(remindersNotifierProvider.notifier);
-                              notifier.deleteReminder(reminder.id);
-                            }
-                          },
-                        )),
-                  ],
-                );
+                              notifier.updateReminder(
+                                reminder.copyWith(isCompleted: value),
+                              );
+                            },
+                            onDelete: () async {
+                              final confirmed = await showDeleteConfirmationDialog(
+                                context,
+                                title: 'Delete Reminder',
+                                message: 'Are you sure you want to delete "${reminder.title}"?',
+                              );
+                              if (confirmed == true && context.mounted) {
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.deleteReminder(reminder.id);
+                              }
+                            },
+                          )),
+                    ],
+                  );
+                } else {
+                  // Show completed section
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                        child: Text(
+                          'Completed',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                        ),
+                      ),
+                      ...completedGrouped.values.expand((list) => list).map((reminder) => _ReminderCard(
+                            reminder: reminder,
+                            onTap: () => _showEditDialog(reminder),
+                            onToggle: (value) {
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.updateReminder(
+                                reminder.copyWith(isCompleted: value),
+                              );
+                            },
+                            onDelete: () async {
+                              final confirmed = await showDeleteConfirmationDialog(
+                                context,
+                                title: 'Delete Reminder',
+                                message: 'Are you sure you want to delete "${reminder.title}"?',
+                              );
+                              if (confirmed == true && context.mounted) {
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.deleteReminder(reminder.id);
+                              }
+                            },
+                          )),
+                    ],
+                  );
+                }
               },
             ),
           );
@@ -284,7 +330,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       controller: textController,
                       style: const TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'First line will be the title\nRest will be description',
+                        hintText: 'Add your reminder here',
                         hintStyle: TextStyle(color: Colors.grey.shade600),
                         border: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -668,16 +714,61 @@ class _ReminderCard extends StatelessWidget {
     final theme = Theme.of(context);
     final typeColor = _getTypeColor(reminder.type);
     
-    return GlassmorphicCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: reminder.isCompleted 
+            ? theme.colorScheme.primary
+            : Colors.white,
+        border: reminder.isCompleted
+            ? Border.all(color: Colors.white, width: 1.5)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
         children: [
           // Checkbox
-          Checkbox(
-            value: reminder.isCompleted,
-            onChanged: (value) => onToggle(value ?? false),
+          CheckboxTheme(
+            data: CheckboxThemeData(
+              side: reminder.isCompleted
+                  ? const BorderSide(color: Colors.white, width: 2)
+                  : const BorderSide(color: Colors.grey, width: 2),
+              fillColor: WidgetStateProperty.resolveWith((states) {
+                if (reminder.isCompleted && states.contains(WidgetState.selected)) {
+                  return Colors.white; // White fill for completed items
+                }
+                return null; // Use theme default
+              }),
+              checkColor: WidgetStateProperty.resolveWith((states) {
+                if (reminder.isCompleted && states.contains(WidgetState.selected)) {
+                  return Theme.of(context).colorScheme.primary; // Primary color checkmark on white
+                }
+                return Colors.white; // White checkmark on primary
+              }),
+            ),
+            child: Checkbox(
+              value: reminder.isCompleted,
+              onChanged: (value) => onToggle(value ?? false),
+            ),
           ),
           const SizedBox(width: 12),
           // Type icon with gradient effect
@@ -694,13 +785,17 @@ class _ReminderCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: typeColor.withOpacity(0.4),
+                color: reminder.isCompleted
+                    ? Colors.white
+                    : typeColor.withOpacity(0.4),
                 width: 1.5,
               ),
             ),
             child: Icon(
               _getTypeIcon(reminder.type),
-              color: typeColor.withOpacity(1.0), // Full opacity for visibility
+              color: reminder.isCompleted
+                  ? Colors.white
+                  : typeColor.withOpacity(1.0), // Full opacity for visibility
               size: 22,
             ),
           ),
@@ -718,7 +813,7 @@ class _ReminderCard extends StatelessWidget {
                         ? TextDecoration.lineThrough
                         : null,
                     color: reminder.isCompleted
-                        ? Colors.grey[600]
+                        ? Colors.white
                         : Colors.black87,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -733,13 +828,17 @@ class _ReminderCard extends StatelessWidget {
                       Icon(
                         Icons.access_time,
                         size: 13,
-                        color: Colors.grey[600],
+                        color: reminder.isCompleted
+                            ? Colors.white.withOpacity(0.9)
+                            : Colors.grey[600],
                       ),
                       const SizedBox(width: 6),
                       Text(
                         DateFormat('MMM d, h:mm a').format(reminder.dateTime!),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
+                          color: reminder.isCompleted
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.grey[600],
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -761,6 +860,8 @@ class _ReminderCard extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
         ],
+          ),
+        ),
       ),
     );
   }

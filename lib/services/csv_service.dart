@@ -29,14 +29,15 @@ class CsvService {
     final buffer = StringBuffer();
     
     // Header
-    buffer.writeln('Item Name,Quantity,Completed');
+    buffer.writeln('Item Name,Quantity,Unit,Completed');
     
     // Items
     for (final item in list.items) {
       final name = _escapeCsvField(item.name);
       final quantity = item.quantity.toString();
+      final unit = item.unit.displayName;
       final completed = item.isCompleted ? 'Yes' : 'No';
-      buffer.writeln('$name,$quantity,$completed');
+      buffer.writeln('$name,$quantity,$unit,$completed');
     }
     
     return buffer.toString();
@@ -115,10 +116,14 @@ class CsvService {
 
     // Skip header if present
     int startIndex = 0;
+    bool hasUnitColumn = false;
+    
     if (lines[0].toLowerCase().contains('item') || 
         lines[0].toLowerCase().contains('name') ||
         lines[0].toLowerCase().contains('quantity')) {
       startIndex = 1;
+      // Detect if CSV has unit column (new format) or not (old format)
+      hasUnitColumn = lines[0].toLowerCase().contains('unit');
     }
 
     final items = <ShoppingItem>[];
@@ -135,14 +140,30 @@ class CsvService {
           if (name.isEmpty) continue;
 
           final quantity = int.tryParse(fields[1].trim()) ?? 1;
-          final completed = fields.length >= 3 
-              ? fields[2].trim().toLowerCase() == 'yes' || fields[2].trim() == '1'
+          
+          // Parse unit (if present) or default to piece
+          ShoppingUnit unit = ShoppingUnit.piece;
+          int completedIndex = 2;
+          
+          if (hasUnitColumn && fields.length >= 3) {
+            final unitStr = fields[2].trim().toLowerCase();
+            unit = ShoppingUnit.values.firstWhere(
+              (u) => u.displayName.toLowerCase() == unitStr,
+              orElse: () => ShoppingUnit.piece,
+            );
+            completedIndex = 3;
+          }
+          
+          final completed = fields.length > completedIndex
+              ? fields[completedIndex].trim().toLowerCase() == 'yes' || 
+                fields[completedIndex].trim() == '1'
               : false;
 
           items.add(ShoppingItem(
             id: DateTime.now().millisecondsSinceEpoch.toString() + '_$i',
             name: name,
             quantity: quantity,
+            unit: unit,
             addedBy: 'imported',
             isCompleted: completed,
           ));

@@ -387,7 +387,10 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     trailing: Switch(
                       value: isPinned,
                       onChanged: (value) => setState(() => isPinned = value),
-                      activeColor: Theme.of(context).colorScheme.primary,
+                      activeTrackColor: Theme.of(context).colorScheme.primary,
+                      activeThumbColor: Colors.white,
+                      inactiveTrackColor: Colors.grey.shade300,
+                      inactiveThumbColor: Colors.white,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -404,26 +407,58 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
                       ChoiceChip(
-                        label: const Text('None'),
+                        label: Text(
+                          'None',
+                          style: TextStyle(
+                            color: selectedColor == null
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         selected: selectedColor == null,
+                        selectedColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Colors.white,
+                        side: BorderSide(
+                          color: selectedColor == null
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey.shade300,
+                          width: selectedColor == null ? 2 : 1,
+                        ),
                         onSelected: (selected) {
                           setState(() => selectedColor = null);
                         },
                       ),
                       ...AppConstants.noteColors.map((color) {
+                        final isSelected = selectedColor == color;
                         return ChoiceChip(
                           label: const SizedBox.shrink(),
-                          selected: selectedColor == color,
+                          selected: isSelected,
+                          selectedColor: Color(color),
+                          backgroundColor: Colors.white,
                           avatar: Container(
-                            width: 24,
-                            height: 24,
+                            width: 32,
+                            height: 32,
                             decoration: BoxDecoration(
                               color: Color(color),
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.black87
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
+                              ),
                             ),
+                          ),
+                          side: BorderSide(
+                            color: isSelected
+                                ? Color(color)
+                                : Colors.grey.shade300,
+                            width: isSelected ? 2 : 1,
                           ),
                           onSelected: (selected) {
                             setState(() => selectedColor = selected ? color : null);
@@ -498,14 +533,37 @@ class _NoteListCard extends StatelessWidget {
     final theme = Theme.of(context);
     final noteColor = note.color != null ? Color(note.color!) : null;
     
-    final iconColor = noteColor ?? theme.colorScheme.tertiary;
+    final iconColor = noteColor ?? theme.colorScheme.primary;
     
-    return GlassmorphicCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      color: noteColor?.withOpacity(0.3),
-      child: Row(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        border: noteColor != null
+            ? Border.all(color: noteColor, width: 3)
+            : Border.all(color: Colors.grey.shade200, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
         children: [
           // Icon with gradient effect
           Container(
@@ -582,6 +640,8 @@ class _NoteListCard extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
         ],
+          ),
+        ),
       ),
     );
   }
@@ -603,12 +663,35 @@ class _NoteGridCard extends StatelessWidget {
     final theme = Theme.of(context);
     final noteColor = note.color != null ? Color(note.color!) : null;
     
-    return GlassmorphicCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(12),
+    return Container(
       margin: const EdgeInsets.all(4),
-      color: noteColor?.withOpacity(0.3),
-      child: Column(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        border: noteColor != null
+            ? Border.all(color: noteColor, width: 3)
+            : Border.all(color: Colors.grey.shade200, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -682,6 +765,8 @@ class _NoteGridCard extends StatelessWidget {
             ),
           ],
         ],
+          ),
+        ),
       ),
     );
   }

@@ -5,7 +5,6 @@ class Guarantee {
   final DateTime expiryDate;
   final String? warrantyImagePath;
   final String? receiptImagePath;
-  final String? storageLocation;
   final String? notes;
   final DateTime createdAt;
 
@@ -16,7 +15,6 @@ class Guarantee {
     required this.expiryDate,
     this.warrantyImagePath,
     this.receiptImagePath,
-    this.storageLocation,
     this.notes,
     required this.createdAt,
   });
@@ -29,7 +27,6 @@ class Guarantee {
       'expiryDate': expiryDate.toIso8601String(),
       'warrantyImagePath': warrantyImagePath,
       'receiptImagePath': receiptImagePath,
-      'storageLocation': storageLocation,
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -47,7 +44,6 @@ class Guarantee {
           : (map['expiryDate'] as DateTime),
       warrantyImagePath: map['warrantyImagePath'],
       receiptImagePath: map['receiptImagePath'],
-      storageLocation: map['storageLocation'],
       notes: map['notes'],
       createdAt: map['createdAt'] is String
           ? DateTime.parse(map['createdAt'])
@@ -62,7 +58,6 @@ class Guarantee {
     DateTime? expiryDate,
     String? warrantyImagePath,
     String? receiptImagePath,
-    String? storageLocation,
     String? notes,
     DateTime? createdAt,
   }) {
@@ -73,7 +68,6 @@ class Guarantee {
       expiryDate: expiryDate ?? this.expiryDate,
       warrantyImagePath: warrantyImagePath ?? this.warrantyImagePath,
       receiptImagePath: receiptImagePath ?? this.receiptImagePath,
-      storageLocation: storageLocation ?? this.storageLocation,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
     );
