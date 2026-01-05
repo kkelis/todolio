@@ -31,13 +31,15 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       await storageService.createReminder(reminder);
       
       // Schedule notification if not completed and date is in the future
-      if (!reminder.isCompleted && reminder.dateTime.isAfter(DateTime.now())) {
+      if (!reminder.isCompleted && 
+          reminder.dateTime != null && 
+          reminder.dateTime!.isAfter(DateTime.now())) {
         final notificationService = ref.read(notificationServiceProvider);
         await notificationService.scheduleReminderNotification(
           id: reminder.id.hashCode,
           title: reminder.title,
           body: reminder.description ?? 'Reminder',
-          scheduledDate: reminder.dateTime,
+          scheduledDate: reminder.dateTime!,
         );
       }
       
@@ -55,7 +57,9 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       
       // Update notification
       final notificationService = ref.read(notificationServiceProvider);
-      if (reminder.isCompleted || reminder.dateTime.isBefore(DateTime.now())) {
+      if (reminder.isCompleted || 
+          reminder.dateTime == null || 
+          reminder.dateTime!.isBefore(DateTime.now())) {
         await notificationService.cancelNotification(reminder.id.hashCode);
       } else {
         await notificationService.cancelNotification(reminder.id.hashCode);
@@ -63,7 +67,7 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
           id: reminder.id.hashCode,
           title: reminder.title,
           body: reminder.description ?? 'Reminder',
-          scheduledDate: reminder.dateTime,
+          scheduledDate: reminder.dateTime!,
         );
       }
       

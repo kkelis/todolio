@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/todo_item.dart';
+import '../models/reminder.dart';
 import 'reminders_provider.dart';
 
-final todosProvider = StreamProvider<List<TodoItem>>((ref) {
+// Todos are now part of reminders, filtered by type
+final todosProvider = StreamProvider<List<Reminder>>((ref) {
   final storageService = ref.watch(localStorageServiceProvider);
-  return storageService.getTodoItems();
+  return storageService.getReminders().map((reminders) {
+    return reminders.where((r) => r.type == ReminderType.todo).toList();
+  });
 });
 
 final todosNotifierProvider = NotifierProvider<TodosNotifier, AsyncValue<void>>(() {
@@ -15,37 +18,22 @@ class TodosNotifier extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 
-  Future<void> createTodoItem(TodoItem todo) async {
-    state = const AsyncValue.loading();
-    try {
-      final storageService = ref.read(localStorageServiceProvider);
-      await storageService.createTodoItem(todo);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+  Future<void> createTodoItem(Reminder reminder) async {
+    // Use reminders notifier to create
+    final notifier = ref.read(remindersNotifierProvider.notifier);
+    await notifier.createReminder(reminder);
   }
 
-  Future<void> updateTodoItem(TodoItem todo) async {
-    state = const AsyncValue.loading();
-    try {
-      final storageService = ref.read(localStorageServiceProvider);
-      await storageService.updateTodoItem(todo);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+  Future<void> updateTodoItem(Reminder reminder) async {
+    // Use reminders notifier to update
+    final notifier = ref.read(remindersNotifierProvider.notifier);
+    await notifier.updateReminder(reminder);
   }
 
   Future<void> deleteTodoItem(String id) async {
-    state = const AsyncValue.loading();
-    try {
-      final storageService = ref.read(localStorageServiceProvider);
-      await storageService.deleteTodoItem(id);
-      state = const AsyncValue.data(null);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    // Use reminders notifier to delete
+    final notifier = ref.read(remindersNotifierProvider.notifier);
+    await notifier.deleteReminder(id);
   }
 }
 

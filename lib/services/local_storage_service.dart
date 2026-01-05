@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/models.dart';
+import '../models/todo_item.dart' as todo_item; // For migration only
 
 class LocalStorageService {
   static const String remindersBox = 'reminders';
@@ -11,7 +12,7 @@ class LocalStorageService {
 
   // Stream controllers for real-time updates
   final _remindersController = StreamController<List<Reminder>>.broadcast();
-  final _todosController = StreamController<List<TodoItem>>.broadcast();
+  final _todosController = StreamController<List<todo_item.TodoItem>>.broadcast();
   final _shoppingListsController = StreamController<List<ShoppingList>>.broadcast();
   final _guaranteesController = StreamController<List<Guarantee>>.broadcast();
   final _notesController = StreamController<List<Note>>.broadcast();
@@ -37,15 +38,59 @@ class LocalStorageService {
     final guaranteesBoxInstance = await Hive.openBox(guaranteesBox);
     final notesBoxInstance = await Hive.openBox(notesBox);
     
+    // Migrate todos to reminders (one-time migration)
+    await _migrateTodosToReminders(remindersBoxInstance, todosBoxInstance);
+    
     // Emit initial data immediately (synchronously after boxes are open)
     // Use the opened box instances directly
     _remindersController.add(_getRemindersFromBox(remindersBoxInstance));
-    _todosController.add(_getTodosFromBox(todosBoxInstance));
+    _todosController.add([]); // Todos are now part of reminders
     _shoppingListsController.add(_getShoppingListsFromBox(shoppingListsBoxInstance));
     _guaranteesController.add(_getGuaranteesFromBox(guaranteesBoxInstance));
     _notesController.add(_getNotesFromBox(notesBoxInstance));
     
     _initialized = true;
+  }
+
+  Future<void> _migrateTodosToReminders(Box remindersBox, Box todosBox) async {
+    final todos = _getTodosFromBox(todosBox);
+    if (todos.isEmpty) return;
+    
+    final reminders = _getRemindersFromBox(remindersBox);
+    final existingIds = reminders.map((r) => r.id).toSet();
+    
+    // Convert todos to reminders
+    for (final todo in todos) {
+      if (existingIds.contains(todo.id)) continue; // Skip if already migrated
+      
+      // Convert Priority from todo_item.dart to reminder.dart Priority
+      // Use fully qualified name to avoid ambiguity
+      final todoPriority = todo.priority; // This is todo_item.Priority
+      final priority = Priority.values.firstWhere(
+        (p) => p.name == todoPriority.name,
+        orElse: () => Priority.medium,
+      );
+      
+      final reminder = Reminder(
+        id: todo.id,
+        title: todo.title,
+        description: todo.description,
+        dateTime: todo.dueDate,
+        type: ReminderType.todo,
+        priority: priority,
+        isCompleted: todo.isCompleted,
+        createdAt: todo.createdAt,
+      );
+      reminders.add(reminder);
+    }
+    
+    // Save migrated reminders
+    await remindersBox.put('reminders', reminders.map((r) => r.toMap()).toList());
+    
+    // Clear todos box after migration
+    await todosBox.clear();
+    
+    _emitReminders();
   }
 
   // Reminders
@@ -93,7 +138,17 @@ class LocalStorageService {
       return data
           .map((map) => Reminder.fromMap(Map<String, dynamic>.from(map)))
           .toList()
-        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        ..sort((a, b) {
+          // Sort by dateTime if both have it, otherwise by createdAt
+          if (a.dateTime != null && b.dateTime != null) {
+            return a.dateTime!.compareTo(b.dateTime!);
+          } else if (a.dateTime != null) {
+            return -1;
+          } else if (b.dateTime != null) {
+            return 1;
+          }
+          return a.createdAt.compareTo(b.createdAt);
+        });
     }
     return [];
   }
@@ -103,18 +158,21 @@ class LocalStorageService {
     _remindersController.add(_getRemindersFromBox(box));
   }
 
-  // TodoItems
-  Stream<List<TodoItem>> getTodoItems() async* {
+  // TodoItems - DEPRECATED: Todos are now part of Reminder model
+  // These methods are kept for migration purposes only
+  @Deprecated('Use remindersProvider instead. Todos are now part of Reminder model.')
+  Stream<List<todo_item.TodoItem>> getTodoItems() async* {
     try {
       final box = Hive.box(todosBox);
       yield _getTodosFromBox(box);
     } catch (_) {
-      yield <TodoItem>[];
+      yield <todo_item.TodoItem>[];
     }
     yield* _todosController.stream;
   }
 
-  Future<void> createTodoItem(TodoItem todo) async {
+  @Deprecated('Use createReminder instead. Todos are now part of Reminder model.')
+  Future<void> createTodoItem(todo_item.TodoItem todo) async {
     final box = await Hive.openBox(todosBox);
     final todos = _getTodosFromBox(box);
     todos.add(todo);
@@ -122,7 +180,8 @@ class LocalStorageService {
     _emitTodos();
   }
 
-  Future<void> updateTodoItem(TodoItem todo) async {
+  @Deprecated('Use updateReminder instead. Todos are now part of Reminder model.')
+  Future<void> updateTodoItem(todo_item.TodoItem todo) async {
     final box = await Hive.openBox(todosBox);
     final todos = _getTodosFromBox(box);
     final index = todos.indexWhere((t) => t.id == todo.id);
@@ -133,6 +192,7 @@ class LocalStorageService {
     }
   }
 
+  @Deprecated('Use deleteReminder instead. Todos are now part of Reminder model.')
   Future<void> deleteTodoItem(String id) async {
     final box = await Hive.openBox(todosBox);
     final todos = _getTodosFromBox(box);
@@ -141,11 +201,11 @@ class LocalStorageService {
     _emitTodos();
   }
 
-  List<TodoItem> _getTodosFromBox(Box box) {
+  List<todo_item.TodoItem> _getTodosFromBox(Box box) {
     final data = box.get('todos') as List<dynamic>?;
     if (data != null) {
       return data
-          .map((map) => TodoItem.fromMap(Map<String, dynamic>.from(map)))
+          .map((map) => todo_item.TodoItem.fromMap(Map<String, dynamic>.from(map)))
           .toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }

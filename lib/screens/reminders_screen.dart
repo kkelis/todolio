@@ -49,9 +49,15 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         ),
         body: remindersAsync.when(
         data: (reminders) {
+          // Filter to only show items with dateTime
+          final remindersWithDate = reminders
+              .where((r) => r.dateTime != null)
+              .toList();
+
+          // Apply type filter if selected
           final filteredReminders = _selectedFilter == null
-              ? reminders
-              : reminders.where((r) => r.type == _selectedFilter).toList();
+              ? remindersWithDate
+              : remindersWithDate.where((r) => r.type == _selectedFilter).toList();
 
           if (filteredReminders.isEmpty) {
             return Center(
@@ -75,7 +81,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             );
           }
 
-          final grouped = _groupByDate(filteredReminders);
+          final grouped = _groupByTimePeriod(filteredReminders);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -93,7 +99,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                       child: Text(
-                        _formatDate(entry.key),
+                        entry.key,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.white.withOpacity(0.9),
@@ -149,33 +155,50 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     );
   }
 
-  Map<DateTime, List<Reminder>> _groupByDate(List<Reminder> reminders) {
-    final map = <DateTime, List<Reminder>>{};
-    for (final reminder in reminders) {
-      final date = DateTime(
-        reminder.dateTime.year,
-        reminder.dateTime.month,
-        reminder.dateTime.day,
-      );
-      map.putIfAbsent(date, () => []).add(reminder);
-    }
-    return map;
-  }
-
-  String _formatDate(DateTime date) {
+  Map<String, List<Reminder>> _groupByTimePeriod(List<Reminder> reminders) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final dateOnly = DateTime(date.year, date.month, date.day);
+    final nextWeek = today.add(const Duration(days: 7));
 
-    if (dateOnly == today) {
-      return 'Today';
-    } else if (dateOnly == today.add(const Duration(days: 1))) {
-      return 'Tomorrow';
-    } else if (dateOnly == today.subtract(const Duration(days: 1))) {
-      return 'Yesterday';
-    } else {
-      return DateFormat('MMM d, yyyy').format(date);
+    final todayList = <Reminder>[];
+    final next7DaysList = <Reminder>[];
+    final restList = <Reminder>[];
+
+    for (final reminder in reminders) {
+      if (reminder.dateTime == null) continue;
+      
+      final reminderDate = DateTime(
+        reminder.dateTime!.year,
+        reminder.dateTime!.month,
+        reminder.dateTime!.day,
+      );
+
+      if (reminderDate == today) {
+        todayList.add(reminder);
+      } else if (reminderDate.isAfter(today) && reminderDate.isBefore(nextWeek)) {
+        next7DaysList.add(reminder);
+      } else {
+        restList.add(reminder);
+      }
     }
+
+    // Sort each group by dateTime
+    todayList.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
+    next7DaysList.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
+    restList.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
+
+    final map = <String, List<Reminder>>{};
+    if (todayList.isNotEmpty) {
+      map['Today'] = todayList;
+    }
+    if (next7DaysList.isNotEmpty) {
+      map['Next 7 Days'] = next7DaysList;
+    }
+    if (restList.isNotEmpty) {
+      map['Later'] = restList;
+    }
+
+    return map;
   }
 
   void _showEditDialog(Reminder? reminder) {
@@ -188,8 +211,13 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
       }
     }
     final textController = TextEditingController(text: initialText);
-    DateTime selectedDate = reminder?.dateTime ?? DateTime.now();
+    DateTime? selectedDate = reminder?.dateTime;
+    TimeOfDay? selectedTime;
+    if (selectedDate != null) {
+      selectedTime = TimeOfDay.fromDateTime(selectedDate);
+    }
     ReminderType selectedType = reminder?.type ?? ReminderType.other;
+    Priority? selectedPriority = reminder?.priority ?? (selectedType == ReminderType.todo ? Priority.medium : null);
 
     showModalBottomSheet(
       context: context,
@@ -281,12 +309,34 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       ),
                     ),
                     subtitle: Text(
-                      DateFormat('MMM d, yyyy h:mm a').format(selectedDate),
-                      style: const TextStyle(color: Colors.black87),
+                      selectedDate != null
+                          ? DateFormat('MMM d, yyyy h:mm a').format(selectedDate!)
+                          : 'Not set',
+                      style: TextStyle(
+                        color: selectedDate != null ? Colors.black87 : Colors.grey.shade600,
+                      ),
                     ),
-                    trailing: Icon(
-                      Icons.calendar_today,
-                      color: Theme.of(context).colorScheme.primary,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selectedDate != null)
+                          IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                selectedDate = null;
+                                selectedTime = null;
+                              });
+                            },
+                          ),
+                        Icon(
+                          Icons.calendar_today,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ],
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -295,7 +345,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     onTap: () async {
                       final date = await showDatePicker(
                         context: context,
-                        initialDate: selectedDate,
+                        initialDate: selectedDate ?? DateTime.now(),
                         firstDate: DateTime.now(),
                         lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
                         builder: (context, child) {
@@ -315,7 +365,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       if (date != null) {
                         final time = await showTimePicker(
                           context: context,
-                          initialTime: TimeOfDay.fromDateTime(selectedDate),
+                          initialTime: selectedTime ?? TimeOfDay.now(),
                           builder: (context, child) {
                             return Theme(
                               data: Theme.of(context).copyWith(
@@ -332,6 +382,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         );
                         if (time != null) {
                           setState(() {
+                            selectedTime = time;
                             selectedDate = DateTime(
                               date.year,
                               date.month,
@@ -387,7 +438,15 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                             ),
                             selected: isSelected,
                             onSelected: (selected) {
-                              setState(() => selectedType = type);
+                              setState(() {
+                                selectedType = type;
+                                // Set default priority for todo type
+                                if (type == ReminderType.todo && selectedPriority == null) {
+                                  selectedPriority = Priority.medium;
+                                } else if (type != ReminderType.todo) {
+                                  selectedPriority = null;
+                                }
+                              });
                             },
                             selectedColor: Theme.of(context).colorScheme.primary,
                             backgroundColor: Colors.white,
@@ -403,6 +462,69 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       );
                     }).toList(),
                   ),
+                  // Priority selection (only for todo type)
+                  if (selectedType == ReminderType.todo) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Priority',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Column(
+                      children: Priority.values.map((priority) {
+                        final isSelected = selectedPriority == priority;
+                        final priorityColor = _getPriorityColor(priority);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: priorityColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    priority.name.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Theme.of(context).colorScheme.primary,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() => selectedPriority = priority);
+                              },
+                              selectedColor: priorityColor,
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: isSelected
+                                    ? priorityColor
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   // Save button
                   SizedBox(
@@ -441,6 +563,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                           description: description?.isEmpty ?? true ? null : description,
                           dateTime: selectedDate,
                           type: selectedType,
+                          priority: selectedType == ReminderType.todo ? selectedPriority : null,
                           isCompleted: reminder?.isCompleted ?? false,
                           createdAt: reminder?.createdAt ?? DateTime.now(),
                         );
@@ -466,12 +589,25 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     );
   }
 
+  Color _getPriorityColor(Priority priority) {
+    switch (priority) {
+      case Priority.high:
+        return Colors.red;
+      case Priority.medium:
+        return Colors.orange;
+      case Priority.low:
+        return Colors.green;
+    }
+  }
+
   IconData _getTypeIcon(ReminderType type) {
     switch (type) {
       case ReminderType.birthday:
         return Icons.cake;
       case ReminderType.appointment:
         return Icons.event;
+      case ReminderType.todo:
+        return Icons.check_circle_outline;
       case ReminderType.other:
         return Icons.notifications;
     }
@@ -497,6 +633,8 @@ class _ReminderCard extends StatelessWidget {
         return Icons.cake;
       case ReminderType.appointment:
         return Icons.event;
+      case ReminderType.todo:
+        return Icons.check_circle_outline;
       case ReminderType.other:
         return Icons.notifications;
     }
@@ -508,6 +646,8 @@ class _ReminderCard extends StatelessWidget {
         return const Color(0xFFEC4899); // Pink-500
       case ReminderType.appointment:
         return const Color(0xFF6366F1); // Indigo-500
+      case ReminderType.todo:
+        return const Color(0xFF10B981); // Green-500
       case ReminderType.other:
         return const Color(0xFF8B5CF6); // Purple-500
     }
@@ -577,24 +717,25 @@ class _ReminderCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 13,
-                      color: Colors.grey[600],
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      DateFormat('MMM d, h:mm a').format(reminder.dateTime),
-                      style: theme.textTheme.bodySmall?.copyWith(
+                if (reminder.dateTime != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 13,
                         color: Colors.grey[600],
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 6),
+                      Text(
+                        DateFormat('MMM d, h:mm a').format(reminder.dateTime!),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
