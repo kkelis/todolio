@@ -78,7 +78,9 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 
 ## 📄 License
 
-This project is private and proprietary.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2026 Karlo Keliš
 
 ## 📝 Documentation
 
