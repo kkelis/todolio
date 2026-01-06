@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/main_navigation.dart';
@@ -31,6 +32,18 @@ void main() async {
     // This will be handled by the provider after the app starts
     _handleNotificationAction(reminderId, action, localStorageService);
   };
+  
+  // Set up method channel for native notification actions
+  const platform = MethodChannel('com.todolio.todolio/notification_actions');
+  platform.setMethodCallHandler((call) async {
+    if (call.method == 'handleAction') {
+      final action = call.arguments['action'] as String;
+      final notificationId = call.arguments['notificationId'] as String;
+      print('📱 Native notification action: $action for notification $notificationId');
+      // Call the handler (it's async but we don't need to await it)
+      _handleNotificationAction(notificationId, action, localStorageService);
+    }
+  });
 
   runApp(
     ProviderScope(
@@ -98,6 +111,38 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
       await storageService.updateReminder(reminder.copyWith(isCompleted: true));
       await notificationService.cancelNotification(reminder.id.hashCode);
       print('✅ Reminder marked as done: ${reminder.title}');
+      
+      // If reminder has repeat, create next occurrence
+      if (reminder.repeatType != RepeatType.none) {
+        final nextOccurrence = reminder.getNextOccurrence();
+        if (nextOccurrence != null) {
+          final nextReminder = Reminder(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: reminder.title,
+            description: reminder.description,
+            originalDateTime: nextOccurrence,
+            snoozeDateTime: null,
+            dateTime: nextOccurrence,
+            type: reminder.type,
+            priority: reminder.priority,
+            repeatType: reminder.repeatType,
+            isCompleted: false,
+            createdAt: DateTime.now(),
+          );
+          
+          await storageService.createReminder(nextReminder);
+          
+          // Schedule notification for next occurrence
+          await notificationService.scheduleReminderNotification(
+            id: nextReminder.id.hashCode,
+            title: nextReminder.title,
+            body: nextReminder.description ?? 'Reminder',
+            scheduledDate: nextOccurrence,
+          );
+          
+          print('🔄 Created next occurrence: ${reminder.title} for ${nextOccurrence}');
+        }
+      }
     } else if (action.startsWith('snooze_')) {
       // Parse snooze duration
       Duration snoozeDuration;
@@ -105,23 +150,36 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
         snoozeDuration = const Duration(minutes: 5);
       } else if (action == 'snooze_15min') {
         snoozeDuration = const Duration(minutes: 15);
+      } else if (action == 'snooze_30min') {
+        snoozeDuration = const Duration(minutes: 30);
       } else if (action == 'snooze_1h') {
         snoozeDuration = const Duration(hours: 1);
       } else {
         return;
       }
       
-      // Cancel current notification and reschedule
+      // Cancel current notification
       await notificationService.cancelNotification(reminder.id.hashCode);
-      final newDateTime = DateTime.now().add(snoozeDuration);
-      await storageService.updateReminder(reminder.copyWith(dateTime: newDateTime));
+      
+      // Set snooze time (preserves originalDateTime for repeats)
+      final snoozeTime = DateTime.now().add(snoozeDuration);
+      final updatedReminder = reminder.copyWith(
+        snoozeDateTime: snoozeTime,
+        dateTime: snoozeTime, // Keep dateTime for backward compatibility
+      );
+      
+      await storageService.updateReminder(updatedReminder);
+      
+      // Schedule notification for snooze time
       await notificationService.scheduleReminderNotification(
         id: reminder.id.hashCode,
         title: reminder.title,
         body: reminder.description ?? 'Reminder',
-        scheduledDate: newDateTime,
+        scheduledDate: snoozeTime,
       );
+      
       print('⏰ Reminder snoozed: ${reminder.title} for ${snoozeDuration.inMinutes} minutes');
+      print('   Original time preserved: ${reminder.originalDateTime}');
     }
   } catch (e, stack) {
     print('❌ Error handling notification action: $e');

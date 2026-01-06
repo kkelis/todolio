@@ -59,9 +59,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         ),
         body: remindersAsync.when(
         data: (reminders) {
-          // Filter to only show items with dateTime
+          // Filter to only show items with effectiveDateTime
           final remindersWithDate = reminders
-              .where((r) => r.dateTime != null)
+              .where((r) => r.effectiveDateTime != null)
               .toList();
 
           // Apply type filter if selected
@@ -94,14 +94,19 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           // Separate overdue, upcoming, and completed items
           final now = DateTime.now();
           final overdueReminders = filteredReminders
-              .where((r) => !r.isCompleted && 
-                           r.dateTime != null && 
-                           r.dateTime!.isBefore(now))
+              .where((r) {
+                final effectiveDateTime = r.effectiveDateTime;
+                return !r.isCompleted && 
+                       effectiveDateTime != null && 
+                       effectiveDateTime.isBefore(now);
+              })
               .toList();
           final upcomingReminders = filteredReminders
-              .where((r) => !r.isCompleted && 
-                           r.dateTime != null && 
-                           r.dateTime!.isAfter(now))
+              .where((r) {
+                final effectiveDateTime = r.effectiveDateTime;
+                return !r.isCompleted && 
+                       (effectiveDateTime == null || effectiveDateTime.isAfter(now));
+              })
               .toList();
           final completedReminders = filteredReminders.where((r) => r.isCompleted).toList();
 
@@ -278,12 +283,13 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     final restList = <Reminder>[];
 
     for (final reminder in reminders) {
-      if (reminder.dateTime == null) continue;
+      final effectiveDateTime = reminder.effectiveDateTime;
+      if (effectiveDateTime == null) continue;
       
       final reminderDate = DateTime(
-        reminder.dateTime!.year,
-        reminder.dateTime!.month,
-        reminder.dateTime!.day,
+        effectiveDateTime.year,
+        effectiveDateTime.month,
+        effectiveDateTime.day,
       );
 
       if (reminderDate == today) {
@@ -295,10 +301,22 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
       }
     }
 
-    // Sort each group by dateTime
-    todayList.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
-    next7DaysList.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
-    restList.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
+    // Sort each group by effectiveDateTime
+    todayList.sort((a, b) {
+      final aTime = a.effectiveDateTime ?? DateTime(0);
+      final bTime = b.effectiveDateTime ?? DateTime(0);
+      return aTime.compareTo(bTime);
+    });
+    next7DaysList.sort((a, b) {
+      final aTime = a.effectiveDateTime ?? DateTime(0);
+      final bTime = b.effectiveDateTime ?? DateTime(0);
+      return aTime.compareTo(bTime);
+    });
+    restList.sort((a, b) {
+      final aTime = a.effectiveDateTime ?? DateTime(0);
+      final bTime = b.effectiveDateTime ?? DateTime(0);
+      return aTime.compareTo(bTime);
+    });
 
     final map = <String, List<Reminder>>{};
     if (todayList.isNotEmpty) {
@@ -324,13 +342,18 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
       }
     }
     final textController = TextEditingController(text: initialText);
-    DateTime? selectedDate = reminder?.dateTime;
+    // Use originalDateTime if available, otherwise dateTime
+    DateTime? selectedDate = reminder?.originalDateTime ?? reminder?.dateTime;
     TimeOfDay? selectedTime;
     if (selectedDate != null) {
       selectedTime = TimeOfDay.fromDateTime(selectedDate);
     }
     ReminderType selectedType = reminder?.type ?? ReminderType.other;
     Priority? selectedPriority = reminder?.priority ?? (selectedType == ReminderType.todo ? Priority.medium : null);
+    RepeatType selectedRepeat = reminder?.repeatType ?? RepeatType.none;
+    bool isTypeExpanded = false;
+    bool isPriorityExpanded = false;
+    bool isRepeatExpanded = false;
 
     showModalBottomSheet(
       context: context,
@@ -518,78 +541,52 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Column(
-                    children: ReminderType.values.map((type) {
-                      final isSelected = selectedType == type;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ChoiceChip(
-                            label: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  _getTypeIcon(type),
-                                  size: 24,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Theme.of(context).colorScheme.primary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  type.name.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Theme.of(context).colorScheme.primary,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
+                  if (!isTypeExpanded)
+                    // Show only selected option when collapsed
+                    SizedBox(
+                      width: double.infinity,
+                      child: ChoiceChip(
+                        label: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _getTypeIcon(selectedType),
+                              size: 24,
+                              color: Colors.white,
                             ),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                selectedType = type;
-                                // Set default priority for todo type
-                                if (type == ReminderType.todo && selectedPriority == null) {
-                                  selectedPriority = Priority.medium;
-                                } else if (type != ReminderType.todo) {
-                                  selectedPriority = null;
-                                }
-                              });
-                            },
-                            selectedColor: Theme.of(context).colorScheme.primary,
-                            backgroundColor: Colors.white,
-                            side: BorderSide(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey.shade300,
-                              width: isSelected ? 2 : 1,
+                            const SizedBox(width: 8),
+                            Text(
+                              selectedType.name.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  // Priority selection (only for todo type)
-                  if (selectedType == ReminderType.todo) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      'Priority',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+                        selected: true,
+                        onSelected: (selected) {
+                          setState(() => isTypeExpanded = true);
+                        },
+                        selectedColor: Theme.of(context).colorScheme.primary,
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                    )
+                  else
+                    // Show all options when expanded
                     Column(
-                      children: Priority.values.map((priority) {
-                        final isSelected = selectedPriority == priority;
-                        final priorityColor = _getPriorityColor(priority);
+                      children: ReminderType.values.map((type) {
+                        final isSelected = selectedType == type;
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: SizedBox(
@@ -598,17 +595,16 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                               label: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color: priorityColor,
-                                      shape: BoxShape.circle,
-                                    ),
+                                  Icon(
+                                    _getTypeIcon(type),
+                                    size: 24,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    priority.name.toUpperCase(),
+                                    type.name.toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: isSelected
@@ -621,13 +617,22 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                               ),
                               selected: isSelected,
                               onSelected: (selected) {
-                                setState(() => selectedPriority = priority);
+                                setState(() {
+                                  selectedType = type;
+                                  isTypeExpanded = false; // Collapse after selection
+                                  // Set default priority for todo type
+                                  if (type == ReminderType.todo && selectedPriority == null) {
+                                    selectedPriority = Priority.medium;
+                                  } else if (type != ReminderType.todo) {
+                                    selectedPriority = null;
+                                  }
+                                });
                               },
-                              selectedColor: priorityColor,
+                              selectedColor: Theme.of(context).colorScheme.primary,
                               backgroundColor: Colors.white,
                               side: BorderSide(
                                 color: isSelected
-                                    ? priorityColor
+                                    ? Theme.of(context).colorScheme.primary
                                     : Colors.grey.shade300,
                                 width: isSelected ? 2 : 1,
                               ),
@@ -637,7 +642,283 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         );
                       }).toList(),
                     ),
+                  // Priority selection (only for todo type)
+                  if (selectedType == ReminderType.todo) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Priority',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (!isPriorityExpanded)
+                      // Show only selected option when collapsed
+                      Builder(
+                        builder: (context) {
+                          final priority = selectedPriority ?? Priority.medium;
+                          final priorityColor = _getPriorityColor(priority);
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    priority.name.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                              selected: true,
+                              onSelected: (selected) {
+                                setState(() => isPriorityExpanded = true);
+                              },
+                              selectedColor: priorityColor,
+                              side: BorderSide(
+                                color: priorityColor,
+                                width: 2,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          );
+                        },
+                      )
+                    else
+                      // Show all options when expanded
+                      Column(
+                        children: Priority.values.map((priority) {
+                          final isSelected = selectedPriority == priority;
+                          final priorityColor = _getPriorityColor(priority);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ChoiceChip(
+                                label: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : priorityColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      priority.name.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Theme.of(context).colorScheme.primary,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    selectedPriority = priority;
+                                    isPriorityExpanded = false; // Collapse after selection
+                                  });
+                                },
+                                selectedColor: priorityColor,
+                                backgroundColor: Colors.white,
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? priorityColor
+                                      : Colors.grey.shade300,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                   ],
+                  // Repeat selection
+                  const SizedBox(height: 16),
+                  Text(
+                    'Repeat',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (!isRepeatExpanded)
+                    // Show only selected option when collapsed
+                    Builder(
+                      builder: (context) {
+                        String label;
+                        IconData icon;
+                        switch (selectedRepeat) {
+                          case RepeatType.none:
+                            label = 'None';
+                            icon = Icons.close;
+                            break;
+                          case RepeatType.daily:
+                            label = 'Daily';
+                            icon = Icons.today;
+                            break;
+                          case RepeatType.weekly:
+                            label = 'Weekly';
+                            icon = Icons.date_range;
+                            break;
+                          case RepeatType.monthly:
+                            label = 'Monthly';
+                            icon = Icons.calendar_month;
+                            break;
+                          case RepeatType.yearly:
+                            label = 'Yearly';
+                            icon = Icons.calendar_today;
+                            break;
+                        }
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ChoiceChip(
+                            label: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  icon,
+                                  size: 24,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  label.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                            selected: true,
+                            onSelected: (selected) {
+                              setState(() => isRepeatExpanded = true);
+                            },
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        );
+                      },
+                    )
+                  else
+                    // Show all options when expanded
+                    Column(
+                      children: RepeatType.values.map((repeatType) {
+                        final isSelected = selectedRepeat == repeatType;
+                        String label;
+                        IconData icon;
+                        switch (repeatType) {
+                          case RepeatType.none:
+                            label = 'None';
+                            icon = Icons.close;
+                            break;
+                          case RepeatType.daily:
+                            label = 'Daily';
+                            icon = Icons.today;
+                            break;
+                          case RepeatType.weekly:
+                            label = 'Weekly';
+                            icon = Icons.date_range;
+                            break;
+                          case RepeatType.monthly:
+                            label = 'Monthly';
+                            icon = Icons.calendar_month;
+                            break;
+                          case RepeatType.yearly:
+                            label = 'Yearly';
+                            icon = Icons.calendar_today;
+                            break;
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    icon,
+                                    size: 24,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    label.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Theme.of(context).colorScheme.primary,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  selectedRepeat = repeatType;
+                                  isRepeatExpanded = false; // Collapse after selection
+                                });
+                              },
+                              selectedColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   const SizedBox(height: 24),
                   // Save button
                   SizedBox(
@@ -670,13 +951,33 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                           return;
                         }
 
+                        // Set originalDateTime and dateTime properly
+                        // If editing and date changed, update originalDateTime; otherwise preserve it
+                        final originalDateTime = (reminder != null && 
+                                                 reminder.originalDateTime != null &&
+                                                 selectedDate != null &&
+                                                 reminder.originalDateTime != selectedDate)
+                            ? selectedDate // Date was changed, update original
+                            : (reminder?.originalDateTime ?? selectedDate); // Preserve or set new
+                        
+                        // Clear snooze if date was changed in edit dialog
+                        final snoozeDateTime = (reminder != null && 
+                                                reminder.originalDateTime != null &&
+                                                selectedDate != null &&
+                                                reminder.originalDateTime != selectedDate)
+                            ? null // Clear snooze if original date was changed
+                            : reminder?.snoozeDateTime; // Preserve snooze otherwise
+                        
                         final newReminder = Reminder(
                           id: reminder?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
                           title: title,
                           description: description?.isEmpty ?? true ? null : description,
-                          dateTime: selectedDate,
+                          dateTime: selectedDate, // Keep for backward compatibility
+                          originalDateTime: originalDateTime, // Original scheduled time
+                          snoozeDateTime: snoozeDateTime, // Snoozed time (if any)
                           type: selectedType,
                           priority: selectedType == ReminderType.todo ? selectedPriority : null,
+                          repeatType: selectedRepeat,
                           isCompleted: reminder?.isCompleted ?? false,
                           createdAt: reminder?.createdAt ?? DateTime.now(),
                         );
@@ -879,29 +1180,44 @@ class _ReminderCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                if (reminder.dateTime != null)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 13,
-                        color: reminder.isCompleted
-                            ? Colors.white.withOpacity(0.9)
-                            : Colors.grey[600],
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        DateFormat('MMM d, HH:mm').format(reminder.dateTime!),
-                        style: theme.textTheme.bodySmall?.copyWith(
+                Builder(
+                  builder: (context) {
+                    final effectiveDateTime = reminder.effectiveDateTime;
+                    if (effectiveDateTime == null) return const SizedBox.shrink();
+                    return Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 13,
                           color: reminder.isCompleted
                               ? Colors.white.withOpacity(0.9)
                               : Colors.grey[600],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 6),
+                        Text(
+                          DateFormat('MMM d, HH:mm').format(effectiveDateTime),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: reminder.isCompleted
+                                ? Colors.white.withOpacity(0.9)
+                                : Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (reminder.repeatType != RepeatType.none) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.repeat,
+                            size: 13,
+                            color: reminder.isCompleted
+                                ? Colors.white.withOpacity(0.9)
+                                : Colors.grey[600],
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -923,4 +1239,5 @@ class _ReminderCard extends StatelessWidget {
     );
   }
 }
+
 

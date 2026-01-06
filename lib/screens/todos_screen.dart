@@ -341,13 +341,17 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
       }
     }
     final textController = TextEditingController(text: initialText);
-    DateTime? selectedDate = todo?.dateTime;
+    // Use originalDateTime if available, otherwise dateTime
+    DateTime? selectedDate = todo?.originalDateTime ?? todo?.dateTime;
     TimeOfDay? selectedTime;
     if (selectedDate != null) {
       selectedTime = TimeOfDay.fromDateTime(selectedDate);
     }
     // Always todo type for todos screen
     Priority? selectedPriority = todo?.priority ?? Priority.medium;
+    RepeatType selectedRepeat = todo?.repeatType ?? RepeatType.none;
+    bool isPriorityExpanded = false;
+    bool isRepeatExpanded = false;
 
     showModalBottomSheet(
       context: context,
@@ -535,13 +539,13 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         ),
                   ),
                   const SizedBox(height: 8),
-                  Column(
-                    children: Priority.values.map((priority) {
-                      final isSelected = selectedPriority == priority;
-                      final priorityColor = _getPriorityColor(priority);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: SizedBox(
+                  if (!isPriorityExpanded)
+                    // Show only selected option when collapsed
+                    Builder(
+                      builder: (context) {
+                        final priority = selectedPriority ?? Priority.medium;
+                        final priorityColor = _getPriorityColor(priority);
+                        return SizedBox(
                           width: double.infinity,
                           child: ChoiceChip(
                             label: Row(
@@ -551,41 +555,255 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                                   width: 10,
                                   height: 10,
                                   decoration: BoxDecoration(
-                                    color: priorityColor,
+                                    color: Colors.white,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   priority.name.toUpperCase(),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 16,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Theme.of(context).colorScheme.primary,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
                                   ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
                                 ),
                               ],
                             ),
-                            selected: isSelected,
+                            selected: true,
                             onSelected: (selected) {
-                              setState(() => selectedPriority = priority);
+                              setState(() => isPriorityExpanded = true);
                             },
                             selectedColor: priorityColor,
-                            backgroundColor: Colors.white,
                             side: BorderSide(
-                              color: isSelected
-                                  ? priorityColor
-                                  : Colors.grey.shade300,
-                              width: isSelected ? 2 : 1,
+                              color: priorityColor,
+                              width: 2,
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      },
+                    )
+                  else
+                    // Show all options when expanded
+                    Column(
+                      children: Priority.values.map((priority) {
+                        final isSelected = selectedPriority == priority;
+                        final priorityColor = _getPriorityColor(priority);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : priorityColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    priority.name.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Theme.of(context).colorScheme.primary,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  selectedPriority = priority;
+                                  isPriorityExpanded = false; // Collapse after selection
+                                });
+                              },
+                              selectedColor: priorityColor,
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: isSelected
+                                    ? priorityColor
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  // Repeat selection
+                  const SizedBox(height: 16),
+                  Text(
+                    'Repeat',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  const SizedBox(height: 8),
+                  if (!isRepeatExpanded)
+                    // Show only selected option when collapsed
+                    Builder(
+                      builder: (context) {
+                        String label;
+                        IconData icon;
+                        switch (selectedRepeat) {
+                          case RepeatType.none:
+                            label = 'None';
+                            icon = Icons.close;
+                            break;
+                          case RepeatType.daily:
+                            label = 'Daily';
+                            icon = Icons.today;
+                            break;
+                          case RepeatType.weekly:
+                            label = 'Weekly';
+                            icon = Icons.date_range;
+                            break;
+                          case RepeatType.monthly:
+                            label = 'Monthly';
+                            icon = Icons.calendar_month;
+                            break;
+                          case RepeatType.yearly:
+                            label = 'Yearly';
+                            icon = Icons.calendar_today;
+                            break;
+                        }
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ChoiceChip(
+                            label: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  icon,
+                                  size: 24,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  label.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                            selected: true,
+                            onSelected: (selected) {
+                              setState(() => isRepeatExpanded = true);
+                            },
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        );
+                      },
+                    )
+                  else
+                    // Show all options when expanded
+                    Column(
+                      children: RepeatType.values.map((repeatType) {
+                        final isSelected = selectedRepeat == repeatType;
+                        String label;
+                        IconData icon;
+                        switch (repeatType) {
+                          case RepeatType.none:
+                            label = 'None';
+                            icon = Icons.close;
+                            break;
+                          case RepeatType.daily:
+                            label = 'Daily';
+                            icon = Icons.today;
+                            break;
+                          case RepeatType.weekly:
+                            label = 'Weekly';
+                            icon = Icons.date_range;
+                            break;
+                          case RepeatType.monthly:
+                            label = 'Monthly';
+                            icon = Icons.calendar_month;
+                            break;
+                          case RepeatType.yearly:
+                            label = 'Yearly';
+                            icon = Icons.calendar_today;
+                            break;
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ChoiceChip(
+                              label: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    icon,
+                                    size: 24,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    label.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Theme.of(context).colorScheme.primary,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  selectedRepeat = repeatType;
+                                  isRepeatExpanded = false; // Collapse after selection
+                                });
+                              },
+                              selectedColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   const SizedBox(height: 24),
                   // Save button
                   SizedBox(
@@ -618,13 +836,33 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                           return;
                         }
 
+                        // Set originalDateTime and dateTime properly
+                        // If editing and date changed, update originalDateTime; otherwise preserve it
+                        final originalDateTime = (todo != null && 
+                                                 todo.originalDateTime != null &&
+                                                 selectedDate != null &&
+                                                 todo.originalDateTime != selectedDate)
+                            ? selectedDate // Date was changed, update original
+                            : (todo?.originalDateTime ?? selectedDate); // Preserve or set new
+                        
+                        // Clear snooze if date was changed in edit dialog
+                        final snoozeDateTime = (todo != null && 
+                                                todo.originalDateTime != null &&
+                                                selectedDate != null &&
+                                                todo.originalDateTime != selectedDate)
+                            ? null // Clear snooze if original date was changed
+                            : todo?.snoozeDateTime; // Preserve snooze otherwise
+                        
                         final newReminder = Reminder(
                           id: todo?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
                           title: title,
                           description: description?.isEmpty ?? true ? null : description,
-                          dateTime: selectedDate,
+                          dateTime: selectedDate, // Keep for backward compatibility
+                          originalDateTime: originalDateTime, // Original scheduled time
+                          snoozeDateTime: snoozeDateTime, // Snoozed time (if any)
                           type: ReminderType.todo,
                           priority: selectedPriority,
+                          repeatType: selectedRepeat,
                           isCompleted: todo?.isCompleted ?? false,
                           createdAt: todo?.createdAt ?? DateTime.now(),
                         );
@@ -852,3 +1090,4 @@ class _TodoCard extends StatelessWidget {
     );
   }
 }
+

@@ -40,12 +40,18 @@ class NotificationService {
   }
 
   Future<void> _createNotificationChannels() async {
-    // Create reminders channel
+    final androidImplementation = _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    
+    if (androidImplementation == null) return;
+    
+    // Create reminders channel with maximum importance and bypass DND
     const remindersChannel = AndroidNotificationChannel(
       'reminders',
       'Reminders',
       description: 'Notifications for reminders',
-      importance: Importance.high,
+      importance: Importance.max, // Changed to max for better reliability
       playSound: true,
       enableVibration: true,
     );
@@ -55,20 +61,15 @@ class NotificationService {
       'guarantees',
       'Guarantee Expiries',
       description: 'Notifications for guarantee expiries',
-      importance: Importance.high,
+      importance: Importance.max, // Changed to max for better reliability
       playSound: true,
       enableVibration: true,
     );
 
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(remindersChannel);
-
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(guaranteesChannel);
+    await androidImplementation.createNotificationChannel(remindersChannel);
+    await androidImplementation.createNotificationChannel(guaranteesChannel);
+    
+    print('✅ Notification channels created');
   }
 
   Future<void> _createNotificationCategories() async {
@@ -202,6 +203,32 @@ class NotificationService {
     return false;
   }
 
+  /// Check if notifications are enabled and working
+  Future<Map<String, dynamic>> checkNotificationStatus() async {
+    final status = <String, dynamic>{};
+    
+    final androidImplementation = _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    
+    if (androidImplementation != null) {
+      final enabled = await androidImplementation.areNotificationsEnabled();
+      status['notificationsEnabled'] = enabled ?? false;
+      
+      // Check pending notifications
+      final pending = await _notifications.pendingNotificationRequests();
+      status['pendingCount'] = pending.length;
+      status['pendingNotifications'] = pending.map((n) => {
+        'id': n.id,
+        'title': n.title,
+        'body': n.body,
+        'scheduledDate': n.payload,
+      }).toList();
+    }
+    
+    return status;
+  }
+
   /// Test notification - shows immediately for testing
   Future<void> showTestNotification() async {
     await _notifications.show(
@@ -213,9 +240,11 @@ class NotificationService {
           'reminders',
           'Reminders',
           channelDescription: 'Notifications for reminders',
-          importance: Importance.high,
-          priority: Priority.high,
+          importance: Importance.max, // Use max for test
+          priority: Priority.max, // Use max for test
           showWhen: true,
+          enableVibration: true,
+          playSound: true,
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
@@ -224,6 +253,7 @@ class NotificationService {
         ),
       ),
     );
+    print('✅ Test notification sent');
   }
 
   void _onNotificationTapped(NotificationResponse response) {
@@ -252,12 +282,20 @@ class NotificationService {
     if (actionId == 'done') {
       // Mark reminder as completed
       onNotificationAction?.call(reminderId, 'done');
+    } else if (actionId == 'snooze') {
+      // Show snooze options notification
+      if (notificationId != null) {
+        _showSnoozeOptionsNotification(reminderId, notificationId);
+      }
     } else if (actionId == 'snooze_5min') {
       // Snooze for 5 minutes
       onNotificationAction?.call(reminderId, 'snooze_5min');
     } else if (actionId == 'snooze_15min') {
       // Snooze for 15 minutes
       onNotificationAction?.call(reminderId, 'snooze_15min');
+    } else if (actionId == 'snooze_30min') {
+      // Snooze for 30 minutes
+      onNotificationAction?.call(reminderId, 'snooze_30min');
     } else if (actionId == 'snooze_1h') {
       // Snooze for 1 hour
       onNotificationAction?.call(reminderId, 'snooze_1h');
@@ -266,6 +304,52 @@ class NotificationService {
       // Could navigate to the reminder screen
       print('📱 Notification tapped: $reminderId');
     }
+  }
+
+  Future<void> _showSnoozeOptionsNotification(String reminderId, int originalNotificationId) async {
+      // Create snooze duration action buttons (only 3 options to fit on screen)
+      final snoozeActions = <AndroidNotificationAction>[
+        const AndroidNotificationAction(
+          'snooze_5min',
+          '5 min',
+          showsUserInterface: false,
+        ),
+        const AndroidNotificationAction(
+          'snooze_15min',
+          '15 min',
+          showsUserInterface: false,
+        ),
+        const AndroidNotificationAction(
+          'snooze_30min',
+          '30 min',
+          showsUserInterface: false,
+        ),
+      ];
+
+    // Show a new notification with snooze options
+    await _notifications.show(
+      originalNotificationId + 2000, // Different ID to avoid conflicts
+      'Snooze Reminder',
+      'Select snooze duration',
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminders',
+          'Reminders',
+          channelDescription: 'Notifications for reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: false,
+          actions: snoozeActions,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          categoryIdentifier: 'reminder_category',
+        ),
+      ),
+      payload: reminderId, // Pass reminder ID so actions can find it
+    );
   }
 
   Future<void> scheduleReminderNotification({
@@ -287,7 +371,8 @@ class NotificationService {
       print('   Time until: ${timeUntilNotification.inMinutes} minutes (${timeUntilNotification.inSeconds} seconds)');
       print('   Notification ID: $id');
       
-      // Create action buttons (reusable for all notifications)
+      // Create action buttons - only Done and Snooze
+      // When Snooze is clicked, a follow-up notification will show duration options
       final androidActions = <AndroidNotificationAction>[
         const AndroidNotificationAction(
           'done',
@@ -295,23 +380,14 @@ class NotificationService {
           showsUserInterface: false,
         ),
         const AndroidNotificationAction(
-          'snooze_5min',
-          'Snooze 5min',
-          showsUserInterface: false,
-        ),
-        const AndroidNotificationAction(
-          'snooze_15min',
-          'Snooze 15min',
-          showsUserInterface: false,
-        ),
-        const AndroidNotificationAction(
-          'snooze_1h',
-          'Snooze 1h',
+          'snooze',
+          'Snooze',
           showsUserInterface: false,
         ),
       ];
 
       // If the notification is in the past or less than 1 second away, show it immediately
+      // Otherwise, always schedule it properly using setAlarmClock()
       if (timeUntilNotification.isNegative || timeUntilNotification.inSeconds <= 0) {
         print('⚠️ Notification time is in the past or immediate, showing now...');
         await _notifications.show(
@@ -323,8 +399,8 @@ class NotificationService {
               'reminders',
               'Reminders',
               channelDescription: 'Notifications for reminders',
-              importance: Importance.high,
-              priority: Priority.high,
+              importance: Importance.max,
+              priority: Priority.max,
               showWhen: true,
               enableVibration: true,
               playSound: true,
@@ -343,54 +419,17 @@ class NotificationService {
         return;
       }
       
-      // For very short delays (less than 1 minute), also show immediately
-      // as scheduled notifications might not fire reliably for such short times
-      if (timeUntilNotification.inSeconds < 60) {
-        print('⚠️ Notification is less than 1 minute away, showing immediately...');
-        await _notifications.show(
-          id,
-          title,
-          body,
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              'reminders',
-              'Reminders',
-              channelDescription: 'Notifications for reminders',
-              importance: Importance.high,
-              priority: Priority.high,
-              showWhen: true,
-              enableVibration: true,
-              playSound: true,
-              actions: androidActions,
-            ),
-            iOS: const DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-              categoryIdentifier: 'reminder_category',
-            ),
-          ),
-          payload: id.toString(),
-        );
-        print('✅ Immediate notification shown (short delay)');
-        return;
-      }
+      // Use setAlarmClock() for better reliability - it's designed for user-visible alarms
+      // This method shows an alarm icon in the status bar and is exempt from battery optimization
+      print('   Using setAlarmClock() for maximum reliability');
       
-      // Use inexact scheduling by default for better reliability
-      // Exact alarms on Android 12+ require manual permission grant in system settings
-      // Inexact alarms are more reliable and don't require special permissions
+      // Get Android implementation for checking permissions
       final androidImplementation = _notifications
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       
-      // Use inexact scheduling - it's more reliable and doesn't require special permissions
-      // Inexact alarms can be off by a few minutes but are much more likely to fire
-      AndroidScheduleMode scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
-      print('   Using schedule mode: inexactAllowWhileIdle (more reliable)');
-      
-      // Note: If you need exact timing, enable "Alarms & reminders" permission in:
-      // Settings > Apps > ToDoLio > Special app access > Alarms & reminders
-
+      // First, schedule the notification using zonedSchedule
+      // Then use setAlarmClock() to ensure it fires reliably
       await _notifications.zonedSchedule(
         id,
         title,
@@ -401,12 +440,16 @@ class NotificationService {
             'reminders',
             'Reminders',
             channelDescription: 'Notifications for reminders',
-            importance: Importance.high,
-            priority: Priority.high,
+            importance: Importance.max, // Use max importance for better reliability
+            priority: Priority.max, // Use max priority
             showWhen: true,
             enableVibration: true,
             playSound: true,
             actions: androidActions,
+            fullScreenIntent: false,
+            ongoing: false,
+            autoCancel: true,
+            styleInformation: BigTextStyleInformation(body),
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
@@ -415,9 +458,24 @@ class NotificationService {
             categoryIdentifier: 'reminder_category',
           ),
         ),
-        androidScheduleMode: scheduleMode,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Use exact for alarm clock
         payload: id.toString(), // Store reminder ID in payload
       );
+      
+      // Now use setAlarmClock() via platform channel for maximum reliability
+      try {
+        const platform = MethodChannel('com.todolio.todolio/alarm');
+        await platform.invokeMethod('setAlarmClock', {
+          'id': id,
+          'triggerTime': scheduledDate.millisecondsSinceEpoch,
+          'title': title,
+          'body': body,
+        });
+        print('✅ Alarm clock set successfully using setAlarmClock()');
+      } catch (e) {
+        print('⚠️ Could not set alarm clock: $e');
+        print('   Notification still scheduled via zonedSchedule');
+      }
       
       print('✅ Notification scheduled successfully!');
       
@@ -426,8 +484,21 @@ class NotificationService {
       final scheduled = pendingNotifications.where((n) => n.id == id).isNotEmpty;
       if (scheduled) {
         print('✅ Verified: Notification is in pending list');
+        final notification = pendingNotifications.firstWhere((n) => n.id == id);
+        print('   Scheduled for: ${notification.body}');
       } else {
         print('⚠️ Warning: Notification not found in pending list');
+        print('   This might indicate a scheduling issue');
+        print('   Total pending notifications: ${pendingNotifications.length}');
+      }
+      
+      // Additional debugging: check if notifications are enabled
+      if (androidImplementation != null) {
+        final enabled = await androidImplementation.areNotificationsEnabled();
+        print('   Notifications enabled: ${enabled ?? "unknown"}');
+        if (enabled == false) {
+          print('   ⚠️ WARNING: Notifications are disabled!');
+        }
       }
     } catch (e, stack) {
       print('❌ Error scheduling notification: $e');
@@ -553,6 +624,15 @@ class NotificationService {
 
   Future<void> cancelNotification(int id) async {
     await _notifications.cancel(id);
+    
+    // Also cancel the alarm clock
+    try {
+      const platform = MethodChannel('com.todolio.todolio/alarm');
+      await platform.invokeMethod('cancelAlarm', {'id': id});
+      print('✅ Alarm clock cancelled for notification ID: $id');
+    } catch (e) {
+      print('⚠️ Could not cancel alarm clock: $e');
+    }
   }
 
   /// Reschedule a notification with snooze

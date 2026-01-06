@@ -30,16 +30,17 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       final storageService = ref.read(localStorageServiceProvider);
       await storageService.createReminder(reminder);
       
-      // Schedule notification if not completed and date is in the future
+      // Schedule notification if not completed and effective dateTime is in the future
+      final effectiveDateTime = reminder.effectiveDateTime;
       if (!reminder.isCompleted && 
-          reminder.dateTime != null && 
-          reminder.dateTime!.isAfter(DateTime.now())) {
+          effectiveDateTime != null && 
+          effectiveDateTime.isAfter(DateTime.now())) {
         final notificationService = ref.read(notificationServiceProvider);
         await notificationService.scheduleReminderNotification(
           id: reminder.id.hashCode,
           title: reminder.title,
           body: reminder.description ?? 'Reminder',
-          scheduledDate: reminder.dateTime!,
+          scheduledDate: effectiveDateTime,
         );
       }
       
@@ -53,13 +54,51 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final storageService = ref.read(localStorageServiceProvider);
+      final wasCompleted = (await storageService.getReminders().first)
+          .firstWhere((r) => r.id == reminder.id, orElse: () => reminder)
+          .isCompleted;
+      
       await storageService.updateReminder(reminder);
+      
+      // If reminder was just marked as completed and has repeat, create next occurrence
+      if (!wasCompleted && reminder.isCompleted && reminder.repeatType != RepeatType.none) {
+        final nextOccurrence = reminder.getNextOccurrence();
+        if (nextOccurrence != null) {
+          final nextReminder = Reminder(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: reminder.title,
+            description: reminder.description,
+            originalDateTime: nextOccurrence,
+            snoozeDateTime: null,
+            dateTime: nextOccurrence,
+            type: reminder.type,
+            priority: reminder.priority,
+            repeatType: reminder.repeatType,
+            isCompleted: false,
+            createdAt: DateTime.now(),
+          );
+          
+          await storageService.createReminder(nextReminder);
+          
+          // Schedule notification for next occurrence
+          final notificationService = ref.read(notificationServiceProvider);
+          await notificationService.scheduleReminderNotification(
+            id: nextReminder.id.hashCode,
+            title: nextReminder.title,
+            body: nextReminder.description ?? 'Reminder',
+            scheduledDate: nextOccurrence,
+          );
+          
+          print('🔄 Created next occurrence: ${reminder.title} for $nextOccurrence');
+        }
+      }
       
       // Update notification
       final notificationService = ref.read(notificationServiceProvider);
+      final effectiveDateTime = reminder.effectiveDateTime;
       if (reminder.isCompleted || 
-          reminder.dateTime == null || 
-          reminder.dateTime!.isBefore(DateTime.now())) {
+          effectiveDateTime == null || 
+          effectiveDateTime.isBefore(DateTime.now())) {
         await notificationService.cancelNotification(reminder.id.hashCode);
       } else {
         // Cancel old notification first
@@ -71,7 +110,7 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
           id: reminder.id.hashCode,
           title: reminder.title,
           body: reminder.description ?? 'Reminder',
-          scheduledDate: reminder.dateTime!,
+          scheduledDate: effectiveDateTime,
         );
       }
       
@@ -117,12 +156,13 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       await notificationService.cancelAllNotifications();
       print('🗑️ Cancelled all existing notifications');
       
-      // Filter valid reminders
-      final validReminders = reminders.where((r) => 
-        !r.isCompleted && 
-        r.dateTime != null && 
-        r.dateTime!.isAfter(DateTime.now())
-      ).toList();
+      // Filter valid reminders (use effectiveDateTime)
+      final validReminders = reminders.where((r) {
+        final effectiveDateTime = r.effectiveDateTime;
+        return !r.isCompleted && 
+               effectiveDateTime != null && 
+               effectiveDateTime.isAfter(DateTime.now());
+      }).toList();
       
       print('✅ Found ${validReminders.length} reminders to schedule');
       
@@ -132,13 +172,16 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       
       for (final reminder in validReminders) {
         try {
-          await notificationService.scheduleReminderNotification(
-            id: reminder.id.hashCode,
-            title: reminder.title,
-            body: reminder.description ?? 'Reminder',
-            scheduledDate: reminder.dateTime!,
-          );
-          scheduledCount++;
+          final effectiveDateTime = reminder.effectiveDateTime;
+          if (effectiveDateTime != null) {
+            await notificationService.scheduleReminderNotification(
+              id: reminder.id.hashCode,
+              title: reminder.title,
+              body: reminder.description ?? 'Reminder',
+              scheduledDate: effectiveDateTime,
+            );
+            scheduledCount++;
+          }
         } catch (e) {
           errorCount++;
           print('❌ Error scheduling notification for reminder "${reminder.title}" (${reminder.id}): $e');

@@ -209,25 +209,49 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.list),
-                  title: const Text('Check Scheduled Notifications'),
-                  subtitle: const Text('View all pending notifications'),
+                  title: const Text('Check Notification Status'),
+                  subtitle: const Text('View notification status and pending notifications'),
                   onTap: () async {
                     Navigator.pop(context);
                     final notificationService = NotificationService();
+                    final status = await notificationService.checkNotificationStatus();
                     final pending = await notificationService.getPendingNotifications();
+                    
                     if (context.mounted) {
+                      final enabled = status['notificationsEnabled'] ?? false;
+                      final pendingCount = status['pendingCount'] ?? 0;
+                      
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Pending Notifications'),
+                          title: const Text('Notification Status'),
                           content: SingleChildScrollView(
-                            child: Text(
-                              pending.isEmpty
-                                  ? 'No pending notifications'
-                                  : 'Found ${pending.length} pending notification(s):\n\n' +
-                                      pending.map((n) => 
-                                        '• ${n.title}\n  ID: ${n.id}\n  Body: ${n.body}'
-                                      ).join('\n\n'),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Notifications Enabled: ${enabled ? "✅ Yes" : "❌ No"}'),
+                                const SizedBox(height: 8),
+                                Text('Pending Notifications: $pendingCount'),
+                                if (pending.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  const Text('Pending:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  ...pending.take(5).map((n) => Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: Text('• ${n.title ?? "No title"} (ID: ${n.id})'),
+                                  )),
+                                  if (pending.length > 5)
+                                    Text('... and ${pending.length - 5} more'),
+                                ],
+                                if (!enabled) ...[
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    '⚠️ Notifications are disabled. Please enable them in Settings.',
+                                    style: TextStyle(color: Colors.orange),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           actions: [
