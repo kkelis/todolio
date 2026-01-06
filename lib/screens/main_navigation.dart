@@ -165,7 +165,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                     },
                     children: screens,
                   ),
-            bottomNavigationBar: screens.isEmpty
+            bottomNavigationBar: screens.isEmpty || destinations.length < 2
                 ? null
                 : Container(
                     decoration: BoxDecoration(
