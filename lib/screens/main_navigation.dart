@@ -7,6 +7,7 @@ import 'guarantees_screen.dart';
 import 'notes_screen.dart';
 import '../widgets/gradient_background.dart';
 import '../services/notification_service.dart';
+import '../providers/reminders_provider.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -31,6 +32,15 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+    
+    // Reschedule all existing reminders for notifications after a short delay
+    // This ensures the app is fully initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        final remindersNotifier = ref.read(remindersNotifierProvider.notifier);
+        remindersNotifier.rescheduleAllReminders();
+      });
+    });
   }
 
   @override
@@ -192,6 +202,40 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                                 : 'Notification permissions denied. Please enable in settings.',
                           ),
                           duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.list),
+                  title: const Text('Check Scheduled Notifications'),
+                  subtitle: const Text('View all pending notifications'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final notificationService = NotificationService();
+                    final pending = await notificationService.getPendingNotifications();
+                    if (context.mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Pending Notifications'),
+                          content: SingleChildScrollView(
+                            child: Text(
+                              pending.isEmpty
+                                  ? 'No pending notifications'
+                                  : 'Found ${pending.length} pending notification(s):\n\n' +
+                                      pending.map((n) => 
+                                        '• ${n.title}\n  ID: ${n.id}\n  Body: ${n.body}'
+                                      ).join('\n\n'),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('OK'),
+                            ),
+                          ],
                         ),
                       );
                     }

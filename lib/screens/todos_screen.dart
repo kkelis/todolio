@@ -95,12 +95,32 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               );
             }
 
-            // Separate completed and uncompleted items
-            final uncompletedTodos = filteredTodos.where((t) => !t.isCompleted).toList();
+            // Separate overdue, upcoming, and completed items
+            final now = DateTime.now();
+            final overdueTodos = filteredTodos
+                .where((t) => !t.isCompleted && 
+                             t.dateTime != null && 
+                             t.dateTime!.isBefore(now))
+                .toList();
+            final upcomingTodos = filteredTodos
+                .where((t) => !t.isCompleted && 
+                             (t.dateTime == null || t.dateTime!.isAfter(now)))
+                .toList();
             final completedTodos = filteredTodos.where((t) => t.isCompleted).toList();
 
-            final grouped = _groupByPriority(uncompletedTodos);
+            // Sort overdue by date (oldest first)
+            overdueTodos.sort((a, b) {
+              if (a.dateTime == null && b.dateTime == null) return 0;
+              if (a.dateTime == null) return 1;
+              if (b.dateTime == null) return -1;
+              return a.dateTime!.compareTo(b.dateTime!);
+            });
+
+            final grouped = _groupByPriority(upcomingTodos);
             final completedGrouped = _groupByPriority(completedTodos);
+
+            final hasOverdue = overdueTodos.isNotEmpty;
+            final hasCompleted = completedGrouped.values.any((list) => list.isNotEmpty);
 
             return RefreshIndicator(
               onRefresh: () async {
@@ -109,11 +129,52 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               color: Theme.of(context).colorScheme.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: grouped.length + (completedGrouped.values.any((list) => list.isNotEmpty) ? 1 : 0),
+                itemCount: (hasOverdue ? 1 : 0) + grouped.length + (hasCompleted ? 1 : 0),
                 itemBuilder: (context, index) {
-                  // Show uncompleted items first
-                  if (index < grouped.length) {
-                    final entry = grouped.entries.elementAt(index);
+                  // Show overdue section first
+                  if (hasOverdue && index == 0) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                          child: Text(
+                            'Overdue',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red.withOpacity(0.9),
+                                ),
+                          ),
+                        ),
+                        ...overdueTodos.map((todo) => _TodoCard(
+                              todo: todo,
+                              onTap: () => _showEditDialog(todo),
+                              onToggle: (value) {
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.updateReminder(
+                                  todo.copyWith(isCompleted: value),
+                                );
+                              },
+                              onDelete: () async {
+                                final confirmed = await showDeleteConfirmationDialog(
+                                  context,
+                                  title: 'Delete To-Do',
+                                  message: 'Are you sure you want to delete "${todo.title}"?',
+                                );
+                                if (confirmed == true && context.mounted) {
+                                  final notifier = ref.read(remindersNotifierProvider.notifier);
+                                  notifier.deleteReminder(todo.id);
+                                }
+                              },
+                            )),
+                      ],
+                    );
+                  }
+                  
+                  // Show upcoming items (grouped by priority)
+                  final upcomingIndex = hasOverdue ? index - 1 : index;
+                  if (upcomingIndex < grouped.length) {
+                    final entry = grouped.entries.elementAt(upcomingIndex);
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -163,48 +224,48 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                             )),
                       ],
                     );
-                  } else {
-                    // Show completed section
-                    final allCompleted = completedGrouped.values.expand((list) => list).toList();
-                    if (allCompleted.isEmpty) return const SizedBox.shrink();
-                    
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                          child: Text(
-                            'Completed',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
-                          ),
-                        ),
-                        ...allCompleted.map((todo) => _TodoCard(
-                              todo: todo,
-                              onTap: () => _showEditDialog(todo),
-                              onToggle: (value) {
-                                final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.updateReminder(
-                                  todo.copyWith(isCompleted: value),
-                                );
-                              },
-                              onDelete: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete To-Do',
-                                  message: 'Are you sure you want to delete "${todo.title}"?',
-                                );
-                                if (confirmed == true && context.mounted) {
-                                  final notifier = ref.read(remindersNotifierProvider.notifier);
-                                  notifier.deleteReminder(todo.id);
-                                }
-                              },
-                            )),
-                      ],
-                    );
                   }
+                  
+                  // Show completed section last
+                  final allCompleted = completedGrouped.values.expand((list) => list).toList();
+                  if (allCompleted.isEmpty) return const SizedBox.shrink();
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                        child: Text(
+                          'Completed',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                        ),
+                      ),
+                      ...allCompleted.map((todo) => _TodoCard(
+                            todo: todo,
+                            onTap: () => _showEditDialog(todo),
+                            onToggle: (value) {
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.updateReminder(
+                                todo.copyWith(isCompleted: value),
+                              );
+                            },
+                            onDelete: () async {
+                              final confirmed = await showDeleteConfirmationDialog(
+                                context,
+                                title: 'Delete To-Do',
+                                message: 'Are you sure you want to delete "${todo.title}"?',
+                              );
+                              if (confirmed == true && context.mounted) {
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.deleteReminder(todo.id);
+                              }
+                            },
+                          )),
+                    ],
+                  );
                 },
               ),
             );
@@ -379,7 +440,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                     ),
                     subtitle: Text(
                       selectedDate != null
-                          ? DateFormat('MMM d, yyyy h:mm a').format(selectedDate!)
+                          ? DateFormat('MMM d, yyyy HH:mm').format(selectedDate!)
                           : 'Not set',
                       style: TextStyle(
                         color: selectedDate != null ? Colors.black87 : Colors.grey.shade600,

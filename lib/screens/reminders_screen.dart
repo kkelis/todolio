@@ -91,12 +91,28 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             );
           }
 
-          // Separate completed and uncompleted items
-          final uncompletedReminders = filteredReminders.where((r) => !r.isCompleted).toList();
+          // Separate overdue, upcoming, and completed items
+          final now = DateTime.now();
+          final overdueReminders = filteredReminders
+              .where((r) => !r.isCompleted && 
+                           r.dateTime != null && 
+                           r.dateTime!.isBefore(now))
+              .toList();
+          final upcomingReminders = filteredReminders
+              .where((r) => !r.isCompleted && 
+                           r.dateTime != null && 
+                           r.dateTime!.isAfter(now))
+              .toList();
           final completedReminders = filteredReminders.where((r) => r.isCompleted).toList();
 
-          final grouped = _groupByTimePeriod(uncompletedReminders);
+          // Sort overdue by date (oldest first)
+          overdueReminders.sort((a, b) => a.dateTime!.compareTo(b.dateTime!));
+          
+          final grouped = _groupByTimePeriod(upcomingReminders);
           final completedGrouped = _groupByTimePeriod(completedReminders);
+
+          final hasOverdue = overdueReminders.isNotEmpty;
+          final hasCompleted = completedGrouped.values.any((list) => list.isNotEmpty);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -105,11 +121,52 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             color: Theme.of(context).colorScheme.primary,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: grouped.length + (completedGrouped.isNotEmpty ? 1 : 0),
+              itemCount: (hasOverdue ? 1 : 0) + grouped.length + (hasCompleted ? 1 : 0),
               itemBuilder: (context, index) {
-                // Show uncompleted items first
-                if (index < grouped.length) {
-                  final entry = grouped.entries.elementAt(index);
+                // Show overdue section first
+                if (hasOverdue && index == 0) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                        child: Text(
+                          'Overdue',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.withOpacity(0.9),
+                              ),
+                        ),
+                      ),
+                      ...overdueReminders.map((reminder) => _ReminderCard(
+                            reminder: reminder,
+                            onTap: () => _showEditDialog(reminder),
+                            onToggle: (value) {
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.updateReminder(
+                                reminder.copyWith(isCompleted: value),
+                              );
+                            },
+                            onDelete: () async {
+                              final confirmed = await showDeleteConfirmationDialog(
+                                context,
+                                title: 'Delete Reminder',
+                                message: 'Are you sure you want to delete "${reminder.title}"?',
+                              );
+                              if (confirmed == true && context.mounted) {
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.deleteReminder(reminder.id);
+                              }
+                            },
+                          )),
+                    ],
+                  );
+                }
+                
+                // Show upcoming items (grouped by time period)
+                final upcomingIndex = hasOverdue ? index - 1 : index;
+                if (upcomingIndex < grouped.length) {
+                  final entry = grouped.entries.elementAt(upcomingIndex);
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -146,45 +203,45 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                           )),
                     ],
                   );
-                } else {
-                  // Show completed section
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                        child: Text(
-                          'Completed',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white.withOpacity(0.9),
-                              ),
-                        ),
-                      ),
-                      ...completedGrouped.values.expand((list) => list).map((reminder) => _ReminderCard(
-                            reminder: reminder,
-                            onTap: () => _showEditDialog(reminder),
-                            onToggle: (value) {
-                              final notifier = ref.read(remindersNotifierProvider.notifier);
-                              notifier.updateReminder(
-                                reminder.copyWith(isCompleted: value),
-                              );
-                            },
-                            onDelete: () async {
-                              final confirmed = await showDeleteConfirmationDialog(
-                                context,
-                                title: 'Delete Reminder',
-                                message: 'Are you sure you want to delete "${reminder.title}"?',
-                              );
-                              if (confirmed == true && context.mounted) {
-                                final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.deleteReminder(reminder.id);
-                              }
-                            },
-                          )),
-                    ],
-                  );
                 }
+                
+                // Show completed section last
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                      child: Text(
+                        'Completed',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                      ),
+                    ),
+                    ...completedGrouped.values.expand((list) => list).map((reminder) => _ReminderCard(
+                          reminder: reminder,
+                          onTap: () => _showEditDialog(reminder),
+                          onToggle: (value) {
+                            final notifier = ref.read(remindersNotifierProvider.notifier);
+                            notifier.updateReminder(
+                              reminder.copyWith(isCompleted: value),
+                            );
+                          },
+                          onDelete: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete Reminder',
+                              message: 'Are you sure you want to delete "${reminder.title}"?',
+                            );
+                            if (confirmed == true && context.mounted) {
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.deleteReminder(reminder.id);
+                            }
+                          },
+                        )),
+                  ],
+                );
               },
             ),
           );
@@ -366,7 +423,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     ),
                     subtitle: Text(
                       selectedDate != null
-                          ? DateFormat('MMM d, yyyy h:mm a').format(selectedDate!)
+                          ? DateFormat('MMM d, yyyy HH:mm').format(selectedDate!)
                           : 'Not set',
                       style: TextStyle(
                         color: selectedDate != null ? Colors.black87 : Colors.grey.shade600,
@@ -834,7 +891,7 @@ class _ReminderCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        DateFormat('MMM d, h:mm a').format(reminder.dateTime!),
+                        DateFormat('MMM d, HH:mm').format(reminder.dateTime!),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: reminder.isCompleted
                               ? Colors.white.withOpacity(0.9)
