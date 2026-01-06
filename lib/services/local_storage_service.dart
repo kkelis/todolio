@@ -415,9 +415,9 @@ class LocalStorageService {
   // App Settings
   Future<AppSettings> getAppSettings() async {
     final box = await Hive.openBox(settingsBox);
-    final data = box.get('settings') as Map<String, dynamic>?;
+    final data = box.get('settings');
     if (data != null) {
-      return AppSettings.fromMap(data);
+      return AppSettings.fromMap(Map<String, dynamic>.from(data));
     }
     return AppSettings(); // Return default settings
   }
