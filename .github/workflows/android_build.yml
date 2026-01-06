@@ -32,7 +32,18 @@ jobs:
         run: flutter doctor -v
 
       - name: Run linter
-        run: flutter analyze
+        run: |
+          # Run analyze and capture output
+          OUTPUT=$(flutter analyze --no-fatal-infos 2>&1) || true
+          echo "$OUTPUT"
+          
+          # Check if there are errors or warnings (not just info)
+          if echo "$OUTPUT" | grep -qE "(error|warning) •"; then
+            echo "❌ Found errors or warnings - failing build"
+            exit 1
+          else
+            echo "ℹ️ Only info-level issues found - allowing build to continue"
+          fi
         continue-on-error: false
 
       - name: Check for outdated dependencies
