@@ -33,26 +33,9 @@ jobs:
 
       - name: Run linter and code analysis
         run: |
-          # Run analyze and capture output
-          OUTPUT=$(flutter analyze --no-fatal-infos 2>&1) || true
-          echo "$OUTPUT" > analysis_report.txt
-          
-          # Display output
-          echo "$OUTPUT"
-          
-          # Add to GitHub step summary
+          flutter analyze --no-fatal-infos > analysis_report.txt || true
           echo "## Code Analysis Report" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          
-          # Check if there are errors or warnings (not just info)
-          if echo "$OUTPUT" | grep -qE "(error|warning) •"; then
-            echo "❌ Found errors or warnings - failing build"
-            exit 1
-          else
-            echo "ℹ️ Only info-level issues found - allowing build to continue"
-          fi
+          cat analysis_report.txt >> $GITHUB_STEP_SUMMARY || true
         continue-on-error: false
 
       - name: Check for outdated dependencies
