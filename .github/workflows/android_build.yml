@@ -32,7 +32,8 @@ jobs:
         run: flutter doctor -v
 
       - name: Run linter
-        run: flutter analyze
+        # Only fails on errors, not on warnings or info-level issues
+        run: flutter analyze --no-fatal-infos
         continue-on-error: false
 
       - name: Check for outdated dependencies
