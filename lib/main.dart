@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -141,7 +140,7 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
             scheduledDate: nextOccurrence,
           );
           
-          debugPrint('🔄 Created next occurrence: ${reminder.title} for ${nextOccurrence}');
+          debugPrint('🔄 Created next occurrence: ${reminder.title} for $nextOccurrence');
         }
       }
     } else if (action.startsWith('snooze_')) {

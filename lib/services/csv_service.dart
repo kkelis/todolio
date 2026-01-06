@@ -18,6 +18,8 @@ class CsvService {
     final file = File('${tempDir.path}/$fileName');
     await file.writeAsString(csvContent);
     
+    // TODO: Update when share_plus provides replacement for deprecated shareXFiles
+    // ignore: deprecated_member_use
     final result = await Share.shareXFiles(
       [XFile(file.path)],
       text: 'Shopping List: ${list.name}',
@@ -164,7 +166,7 @@ class CsvService {
               : false;
 
           items.add(ShoppingItem(
-            id: DateTime.now().millisecondsSinceEpoch.toString() + '_$i',
+            id: '${DateTime.now().millisecondsSinceEpoch}_$i',
             name: name,
             quantity: quantity,
             unit: unit,

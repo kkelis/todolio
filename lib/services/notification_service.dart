@@ -359,7 +359,6 @@ class NotificationService {
     required DateTime scheduledDate,
   }) async {
     try {
-      final now = DateTime.now();
       final scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
       final nowTZ = tz.TZDateTime.now(tz.local);
       final timeUntilNotification = scheduledTZ.difference(nowTZ);
