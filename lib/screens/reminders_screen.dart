@@ -510,6 +510,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         },
                       );
                       if (date != null) {
+                        if (!mounted) return;
                         final time = await showTimePicker(
                           context: context,
                           initialTime: selectedTime ?? TimeOfDay.now(),

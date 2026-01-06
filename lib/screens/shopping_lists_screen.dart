@@ -124,7 +124,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
       final notifier = ref.read(shoppingListsNotifierProvider.notifier);
       final importedList = await notifier.importShoppingList();
       
-      if (importedList != null && context.mounted) {
+      if (importedList != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -138,7 +138,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
       }
       // Don't show anything if user cancelled - it's a normal action, not an error
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -159,7 +159,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
       final notifier = ref.read(shoppingListsNotifierProvider.notifier);
       final success = await notifier.exportShoppingList(list);
       
-      if (context.mounted) {
+      if (mounted) {
         if (success) {
           // Only show success message if user actually shared
           ScaffoldMessenger.of(context).showSnackBar(
@@ -176,7 +176,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
         // Don't show anything if user cancelled - it's a normal action
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

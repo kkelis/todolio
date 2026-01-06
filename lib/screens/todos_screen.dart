@@ -508,6 +508,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         },
                       );
                       if (date != null) {
+                        if (!mounted) return;
                         final time = await showTimePicker(
                           context: context,
                           initialTime: selectedTime ?? TimeOfDay.now(),
