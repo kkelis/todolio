@@ -54,7 +54,7 @@ class SettingsScreen extends ConsumerWidget {
           Text(
             'Select which sections you want to see in the app',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 24),
@@ -123,9 +123,9 @@ class SettingsScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: Colors.orange.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [
@@ -169,7 +169,7 @@ class SettingsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -190,8 +190,8 @@ class SettingsScreen extends ConsumerWidget {
         trailing: Switch(
           value: value,
           onChanged: (enabledCount == 1 && value) ? null : onChanged,
-          activeTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-          activeColor: Theme.of(context).colorScheme.primary,
+          activeTrackColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          activeThumbColor: Theme.of(context).colorScheme.primary,
           inactiveTrackColor: Colors.grey.shade300,
           inactiveThumbColor: Colors.grey.shade400,
         ),

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/models.dart';
 import '../models/todo_item.dart' as todo_item; // For migration only
-import '../models/app_settings.dart';
 
 class LocalStorageService {
   static const String remindersBox = 'reminders';

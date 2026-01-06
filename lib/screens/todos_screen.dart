@@ -5,7 +5,6 @@ import '../models/reminder.dart';
 import '../providers/todos_provider.dart';
 import '../providers/reminders_provider.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
 import 'settings_screen.dart';
 
@@ -93,13 +92,13 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                     Icon(
                       Icons.check_circle_outline,
                       size: 80,
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                     ),
                     const SizedBox(height: 24),
                     Text(
                       'No to-dos',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                           ),
                     ),
                   ],
@@ -154,7 +153,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                             'Overdue',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red.withOpacity(0.9),
+                                  color: Colors.red.withValues(alpha: 0.9),
                                 ),
                           ),
                         ),
@@ -207,7 +206,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                                 entry.key.name.toUpperCase(),
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: Colors.white.withValues(alpha: 0.9),
                                     ),
                               ),
                             ],
@@ -251,7 +250,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                           'Completed',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                               ),
                         ),
                       ),
@@ -943,13 +942,13 @@ class _TodoCard extends StatelessWidget {
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -994,8 +993,8 @@ class _TodoCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  priorityColor.withOpacity(0.2),
-                  priorityColor.withOpacity(0.1),
+                  priorityColor.withValues(alpha: 0.2),
+                  priorityColor.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -1004,7 +1003,7 @@ class _TodoCard extends StatelessWidget {
               border: Border.all(
                 color: todo.isCompleted
                     ? Colors.white
-                    : priorityColor.withOpacity(0.4),
+                    : priorityColor.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -1012,7 +1011,7 @@ class _TodoCard extends StatelessWidget {
               Icons.check_circle_outline,
               color: todo.isCompleted
                   ? Colors.white
-                  : priorityColor.withOpacity(1.0),
+                  : priorityColor.withValues(alpha: 1.0),
               size: 22,
             ),
           ),
@@ -1046,7 +1045,7 @@ class _TodoCard extends StatelessWidget {
                         Icons.access_time,
                         size: 13,
                         color: todo.isCompleted
-                            ? Colors.white.withOpacity(0.9)
+                            ? Colors.white.withValues(alpha: 0.9)
                             : Colors.grey[600],
                       ),
                       const SizedBox(width: 6),
@@ -1054,7 +1053,7 @@ class _TodoCard extends StatelessWidget {
                         DateFormat('MMM d').format(todo.dateTime!),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: todo.isCompleted
-                              ? Colors.white.withOpacity(0.9)
+                              ? Colors.white.withValues(alpha: 0.9)
                               : Colors.grey[600],
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

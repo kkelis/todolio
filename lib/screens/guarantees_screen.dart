@@ -52,13 +52,13 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   Icon(
                     Icons.verified_outlined,
                     size: 80,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 24),
                   Text(
                     'No guarantees',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                   ),
                 ],
@@ -403,8 +403,8 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                             });
                           }
                         },
-                        activeTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                        activeColor: Theme.of(context).colorScheme.primary,
+                        activeTrackColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                        activeThumbColor: Theme.of(context).colorScheme.primary,
                         inactiveTrackColor: Colors.grey.shade300,
                         inactiveThumbColor: Colors.grey.shade400,
                       ),
@@ -690,21 +690,21 @@ class _GuaranteeCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  statusColor.withOpacity(0.2),
-                  statusColor.withOpacity(0.1),
+                  statusColor.withValues(alpha: 0.2),
+                  statusColor.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: statusColor.withOpacity(0.4),
+                color: statusColor.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
             child: Icon(
               isExpired ? Icons.warning : Icons.verified,
-              color: statusColor.withOpacity(1.0),
+              color: statusColor.withValues(alpha: 1.0),
               size: 22,
             ),
           ),

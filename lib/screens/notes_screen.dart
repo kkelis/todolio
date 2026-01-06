@@ -5,7 +5,6 @@ import '../models/note.dart';
 import '../providers/notes_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
 import 'settings_screen.dart';
 
@@ -114,13 +113,13 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                         Icon(
                           Icons.note_outlined,
                           size: 80,
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                         ),
                         const SizedBox(height: 24),
                         Text(
                           'No notes',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Colors.white.withOpacity(0.6),
+                                color: Colors.white.withValues(alpha: 0.6),
                               ),
                         ),
                       ],
@@ -557,13 +556,13 @@ class _NoteListCard extends StatelessWidget {
             : Border.all(color: Colors.grey.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
             spreadRadius: 0,
@@ -583,21 +582,21 @@ class _NoteListCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  iconColor.withOpacity(0.2),
-                  iconColor.withOpacity(0.1),
+                  iconColor.withValues(alpha: 0.2),
+                  iconColor.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: iconColor.withOpacity(0.4),
+                color: iconColor.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
             child: Icon(
               note.isPinned ? Icons.push_pin : Icons.note,
-              color: iconColor.withOpacity(1.0),
+              color: iconColor.withValues(alpha: 1.0),
               size: 22,
             ),
           ),
@@ -685,13 +684,13 @@ class _NoteGridCard extends StatelessWidget {
             : Border.all(color: Colors.grey.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
             spreadRadius: 0,

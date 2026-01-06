@@ -30,13 +30,13 @@ class GlassmorphicCard extends StatelessWidget {
         color: cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:  0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:  0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
             spreadRadius: 0,

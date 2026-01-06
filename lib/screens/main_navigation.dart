@@ -124,20 +124,20 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                         Icon(
                           Icons.settings,
                           size: 80,
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                         ),
                         const SizedBox(height: 24),
                         Text(
                           'No sections enabled',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Enable at least one section in Settings',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -169,17 +169,17 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ? null
                 : Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       border: Border(
                         top: BorderSide(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           width: 1,
                         ),
                       ),
                     ),
                     child: NavigationBar(
                       backgroundColor: Colors.transparent,
-                      indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      indicatorColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                       elevation: 0,
                       height: 70,
                       selectedIndex: _currentIndex.clamp(0, destinations.length - 1),

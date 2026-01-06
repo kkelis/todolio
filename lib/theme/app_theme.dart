@@ -48,14 +48,12 @@ class AppTheme {
         secondary: secondaryColor,
         tertiary: accentColor,
         surface: surfaceColor,
-        background: backgroundColor,
         error: const Color(0xFFEF4444),
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,
-        onBackground: Colors.white,
         onError: Colors.white,
-        surfaceVariant: const Color(0xFF1E1B2E), // Solid dark surface for dialogs
+        surfaceContainerHighest: const Color(0xFF1E1B2E), // Solid dark surface for dialogs
         onSurfaceVariant: Colors.white,
       ),
       scaffoldBackgroundColor: backgroundColor,
@@ -78,7 +76,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -87,11 +85,11 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

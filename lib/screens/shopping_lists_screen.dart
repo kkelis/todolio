@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_item.dart';
@@ -59,13 +58,13 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
                       Icon(
                         Icons.shopping_cart_outlined,
                         size: 80,
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 24),
                       Text(
                         'No shopping lists',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                             ),
                       ),
                     ],
@@ -345,21 +344,21 @@ class _ShoppingListCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  iconColor.withOpacity(0.2),
-                  iconColor.withOpacity(0.1),
+                  iconColor.withValues(alpha: 0.2),
+                  iconColor.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: iconColor.withOpacity(0.4),
+                color: iconColor.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
             child: Icon(
               Icons.shopping_cart,
-              color: iconColor.withOpacity(1.0),
+              color: iconColor.withValues(alpha: 1.0),
               size: 22,
             ),
           ),
@@ -474,13 +473,13 @@ class _ShoppingListDetailScreenState
                   Icon(
                     Icons.shopping_bag_outlined,
                     size: 80,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 24),
                   Text(
                     'No items',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                   ),
                 ],
@@ -513,13 +512,13 @@ class _ShoppingListDetailScreenState
                         : null,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 5,
                         offset: const Offset(0, 2),
                         spreadRadius: 0,
@@ -578,8 +577,8 @@ class _ShoppingListDetailScreenState
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              iconColor.withOpacity(0.2),
-                              iconColor.withOpacity(0.1),
+                              iconColor.withValues(alpha: 0.2),
+                              iconColor.withValues(alpha: 0.1),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -588,7 +587,7 @@ class _ShoppingListDetailScreenState
                           border: Border.all(
                             color: item.isCompleted
                                 ? Colors.white
-                                : iconColor.withOpacity(0.4),
+                                : iconColor.withValues(alpha: 0.4),
                             width: 1.5,
                           ),
                         ),
@@ -596,7 +595,7 @@ class _ShoppingListDetailScreenState
                           Icons.shopping_bag,
                           color: item.isCompleted
                               ? Colors.white
-                              : iconColor.withOpacity(1.0),
+                              : iconColor.withValues(alpha: 1.0),
                           size: 22,
                         ),
                       ),
@@ -627,7 +626,7 @@ class _ShoppingListDetailScreenState
                                   Icons.numbers,
                                   size: 13,
                                   color: item.isCompleted
-                                      ? Colors.white.withOpacity(0.9)
+                                      ? Colors.white.withValues(alpha: 0.9)
                                       : Colors.grey[600],
                                 ),
                                 const SizedBox(width: 6),
@@ -635,7 +634,7 @@ class _ShoppingListDetailScreenState
                                   'Quantity: ${item.quantity} ${item.unit.displayName}',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: item.isCompleted
-                                        ? Colors.white.withOpacity(0.9)
+                                        ? Colors.white.withValues(alpha: 0.9)
                                         : Colors.grey[600],
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
