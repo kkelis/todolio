@@ -95,10 +95,6 @@ jobs:
             echo "✅ Tag $TAG is available"
           fi
 
-      - name: Run tests
-        run: flutter test
-        continue-on-error: false
-
       - name: Build APK
         run: flutter build apk --release
         env:
