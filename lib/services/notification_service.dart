@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -68,7 +69,7 @@ class NotificationService {
     await androidImplementation.createNotificationChannel(remindersChannel);
     await androidImplementation.createNotificationChannel(guaranteesChannel);
     
-    print('✅ Notification channels created');
+    debugPrint('✅ Notification channels created');
   }
 
   Future<void> _createNotificationCategories() async {
@@ -137,7 +138,7 @@ class NotificationService {
         // Users must grant it manually in Settings > Apps > [App] > Special app access > Alarms & reminders
         return true; // Permission is declared in manifest
       } catch (e) {
-        print('Error checking exact alarm permission: $e');
+        debugPrint('Error checking exact alarm permission: $e');
         return false;
       }
     }
@@ -153,7 +154,7 @@ class NotificationService {
       // For now, we'll use a simpler approach: try inexact first, then exact if needed
       return true; // Assume available, will fall back if not
     } catch (e) {
-      print('⚠️ Exact alarms not available: $e');
+      debugPrint('⚠️ Exact alarms not available: $e');
       return false;
     }
   }
@@ -164,13 +165,13 @@ class NotificationService {
       const platform = MethodChannel('com.todolio.todolio/settings');
       await platform.invokeMethod('openExactAlarmSettings');
     } catch (e) {
-      print('Could not open exact alarm settings: $e');
+      debugPrint('Could not open exact alarm settings: $e');
       // Fallback: try to open general app settings
       try {
         const platform = MethodChannel('com.todolio.todolio/settings');
         await platform.invokeMethod('openAppSettings');
       } catch (e2) {
-        print('Could not open app settings: $e2');
+        debugPrint('Could not open app settings: $e2');
       }
     }
   }
@@ -252,7 +253,7 @@ class NotificationService {
         ),
       ),
     );
-    print('✅ Test notification sent');
+    debugPrint('✅ Test notification sent');
   }
 
   void _onNotificationTapped(NotificationResponse response) {
@@ -264,7 +265,7 @@ class NotificationService {
     // This is called when the app is in the background
     // We need to use a top-level function or method channel to handle this
     // For now, we'll handle it the same way as foreground
-    print('📱 Background notification action: ${response.actionId} for notification ${response.id}');
+    debugPrint('📱 Background notification action: ${response.actionId} for notification ${response.id}');
     // The actual handling will be done through the callback set in main.dart
   }
 
@@ -276,7 +277,7 @@ class NotificationService {
     // Use notification ID as reminder ID (it's the hash of reminder.id)
     final reminderId = payload ?? notificationId.toString();
     
-    print('📱 Notification action: actionId=$actionId, payload=$payload, id=$notificationId');
+    debugPrint('📱 Notification action: actionId=$actionId, payload=$payload, id=$notificationId');
     
     if (actionId == 'done') {
       // Mark reminder as completed
@@ -301,7 +302,7 @@ class NotificationService {
     } else if (actionId == null) {
       // Notification was tapped (not an action button)
       // Could navigate to the reminder screen
-      print('📱 Notification tapped: $reminderId');
+      debugPrint('📱 Notification tapped: $reminderId');
     }
   }
 
@@ -363,12 +364,12 @@ class NotificationService {
       final nowTZ = tz.TZDateTime.now(tz.local);
       final timeUntilNotification = scheduledTZ.difference(nowTZ);
       
-      print('📅 Scheduling notification:');
-      print('   Title: $title');
-      print('   Scheduled for: $scheduledTZ');
-      print('   Current time: $nowTZ');
-      print('   Time until: ${timeUntilNotification.inMinutes} minutes (${timeUntilNotification.inSeconds} seconds)');
-      print('   Notification ID: $id');
+      debugPrint('📅 Scheduling notification:');
+      debugPrint('   Title: $title');
+      debugPrint('   Scheduled for: $scheduledTZ');
+      debugPrint('   Current time: $nowTZ');
+      debugPrint('   Time until: ${timeUntilNotification.inMinutes} minutes (${timeUntilNotification.inSeconds} seconds)');
+      debugPrint('   Notification ID: $id');
       
       // Create action buttons - only Done and Snooze
       // When Snooze is clicked, a follow-up notification will show duration options
@@ -388,7 +389,7 @@ class NotificationService {
       // If the notification is in the past or less than 1 second away, show it immediately
       // Otherwise, always schedule it properly using setAlarmClock()
       if (timeUntilNotification.isNegative || timeUntilNotification.inSeconds <= 0) {
-        print('⚠️ Notification time is in the past or immediate, showing now...');
+        debugPrint('⚠️ Notification time is in the past or immediate, showing now...');
         await _notifications.show(
           id,
           title,
@@ -414,13 +415,13 @@ class NotificationService {
           ),
           payload: id.toString(),
         );
-        print('✅ Immediate notification shown');
+        debugPrint('✅ Immediate notification shown');
         return;
       }
       
       // Use setAlarmClock() for better reliability - it's designed for user-visible alarms
       // This method shows an alarm icon in the status bar and is exempt from battery optimization
-      print('   Using setAlarmClock() for maximum reliability');
+      debugPrint('   Using setAlarmClock() for maximum reliability');
       
       // Get Android implementation for checking permissions
       final androidImplementation = _notifications
@@ -470,42 +471,42 @@ class NotificationService {
           'title': title,
           'body': body,
         });
-        print('✅ Alarm clock set successfully using setAlarmClock()');
+        debugPrint('✅ Alarm clock set successfully using setAlarmClock()');
       } catch (e) {
-        print('⚠️ Could not set alarm clock: $e');
-        print('   Notification still scheduled via zonedSchedule');
+        debugPrint('⚠️ Could not set alarm clock: $e');
+        debugPrint('   Notification still scheduled via zonedSchedule');
       }
       
-      print('✅ Notification scheduled successfully!');
+      debugPrint('✅ Notification scheduled successfully!');
       
       // Verify the notification was scheduled
       final pendingNotifications = await _notifications.pendingNotificationRequests();
       final scheduled = pendingNotifications.where((n) => n.id == id).isNotEmpty;
       if (scheduled) {
-        print('✅ Verified: Notification is in pending list');
+        debugPrint('✅ Verified: Notification is in pending list');
         final notification = pendingNotifications.firstWhere((n) => n.id == id);
-        print('   Scheduled for: ${notification.body}');
+        debugPrint('   Scheduled for: ${notification.body}');
       } else {
-        print('⚠️ Warning: Notification not found in pending list');
-        print('   This might indicate a scheduling issue');
-        print('   Total pending notifications: ${pendingNotifications.length}');
+        debugPrint('⚠️ Warning: Notification not found in pending list');
+        debugPrint('   This might indicate a scheduling issue');
+        debugPrint('   Total pending notifications: ${pendingNotifications.length}');
       }
       
       // Additional debugging: check if notifications are enabled
       if (androidImplementation != null) {
         final enabled = await androidImplementation.areNotificationsEnabled();
-        print('   Notifications enabled: ${enabled ?? "unknown"}');
+        debugPrint('   Notifications enabled: ${enabled ?? "unknown"}');
         if (enabled == false) {
-          print('   ⚠️ WARNING: Notifications are disabled!');
+          debugPrint('   ⚠️ WARNING: Notifications are disabled!');
         }
       }
     } catch (e, stack) {
-      print('❌ Error scheduling notification: $e');
-      print('Stack trace: $stack');
+      debugPrint('❌ Error scheduling notification: $e');
+      debugPrint('Stack trace: $stack');
       
       // Try to schedule with inexact mode as fallback
       try {
-        print('🔄 Attempting fallback with inexact scheduling...');
+        debugPrint('🔄 Attempting fallback with inexact scheduling...');
         final scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
         await _notifications.zonedSchedule(
           id,
@@ -529,12 +530,12 @@ class NotificationService {
           ),
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
-        print('✅ Fallback scheduling successful');
+        debugPrint('✅ Fallback scheduling successful');
       } catch (fallbackError) {
-        print('❌ Fallback scheduling also failed: $fallbackError');
+        debugPrint('❌ Fallback scheduling also failed: $fallbackError');
         // As last resort, try to show immediately
         try {
-          print('🔄 Last resort: showing notification immediately...');
+          debugPrint('🔄 Last resort: showing notification immediately...');
           // Create action buttons for fallback notification
           final androidActions = <AndroidNotificationAction>[
             const AndroidNotificationAction(
@@ -581,9 +582,9 @@ class NotificationService {
             ),
             payload: id.toString(),
           );
-          print('✅ Immediate notification shown as fallback');
+          debugPrint('✅ Immediate notification shown as fallback');
         } catch (immediateError) {
-          print('❌ All notification methods failed: $immediateError');
+          debugPrint('❌ All notification methods failed: $immediateError');
           rethrow;
         }
       }
@@ -628,9 +629,9 @@ class NotificationService {
     try {
       const platform = MethodChannel('com.todolio.todolio/alarm');
       await platform.invokeMethod('cancelAlarm', {'id': id});
-      print('✅ Alarm clock cancelled for notification ID: $id');
+      debugPrint('✅ Alarm clock cancelled for notification ID: $id');
     } catch (e) {
-      print('⚠️ Could not cancel alarm clock: $e');
+      debugPrint('⚠️ Could not cancel alarm clock: $e');
     }
   }
 
@@ -648,7 +649,7 @@ class NotificationService {
       body: body,
       scheduledDate: newScheduledTime,
     );
-    print('⏰ Notification snoozed for ${snoozeDuration.inMinutes} minutes');
+    debugPrint('⏰ Notification snoozed for ${snoozeDuration.inMinutes} minutes');
   }
 
   Future<void> cancelAllNotifications() async {

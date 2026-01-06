@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/reminder.dart';
 import '../services/local_storage_service.dart';
@@ -89,7 +90,7 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
             scheduledDate: nextOccurrence,
           );
           
-          print('🔄 Created next occurrence: ${reminder.title} for $nextOccurrence');
+          debugPrint('🔄 Created next occurrence: ${reminder.title} for $nextOccurrence');
         }
       }
       
@@ -140,21 +141,21 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
   /// This should be called on app startup to ensure all reminders have notifications
   Future<void> rescheduleAllReminders() async {
     try {
-      print('🔄 Starting to reschedule all reminders...');
+      debugPrint('🔄 Starting to reschedule all reminders...');
       final storageService = ref.read(localStorageServiceProvider);
       final notificationService = ref.read(notificationServiceProvider);
       
       // Get all reminders
       final reminders = await storageService.getReminders().first;
-      print('📋 Found ${reminders.length} total reminders');
+      debugPrint('📋 Found ${reminders.length} total reminders');
       
       // Get pending notifications before canceling
       final pendingBefore = await notificationService.getPendingNotifications();
-      print('📬 Current pending notifications: ${pendingBefore.length}');
+      debugPrint('📬 Current pending notifications: ${pendingBefore.length}');
       
       // Cancel all existing notifications first
       await notificationService.cancelAllNotifications();
-      print('🗑️ Cancelled all existing notifications');
+      debugPrint('🗑️ Cancelled all existing notifications');
       
       // Filter valid reminders (use effectiveDateTime)
       final validReminders = reminders.where((r) {
@@ -164,7 +165,7 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
                effectiveDateTime.isAfter(DateTime.now());
       }).toList();
       
-      print('✅ Found ${validReminders.length} reminders to schedule');
+      debugPrint('✅ Found ${validReminders.length} reminders to schedule');
       
       // Schedule notifications for all valid reminders
       int scheduledCount = 0;
@@ -184,20 +185,20 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
           }
         } catch (e) {
           errorCount++;
-          print('❌ Error scheduling notification for reminder "${reminder.title}" (${reminder.id}): $e');
+          debugPrint('❌ Error scheduling notification for reminder "${reminder.title}" (${reminder.id}): $e');
         }
       }
       
-      print('📊 Rescheduling complete:');
-      print('   Scheduled: $scheduledCount');
-      print('   Errors: $errorCount');
+      debugPrint('📊 Rescheduling complete:');
+      debugPrint('   Scheduled: $scheduledCount');
+      debugPrint('   Errors: $errorCount');
       
       // Verify final count
       final pendingAfter = await notificationService.getPendingNotifications();
-      print('📬 Final pending notifications: ${pendingAfter.length}');
+      debugPrint('📬 Final pending notifications: ${pendingAfter.length}');
     } catch (e, stack) {
-      print('❌ Error rescheduling reminders: $e');
-      print('Stack trace: $stack');
+      debugPrint('❌ Error rescheduling reminders: $e');
+      debugPrint('Stack trace: $stack');
     }
   }
 }

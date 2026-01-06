@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +40,7 @@ void main() async {
     if (call.method == 'handleAction') {
       final action = call.arguments['action'] as String;
       final notificationId = call.arguments['notificationId'] as String;
-      print('📱 Native notification action: $action for notification $notificationId');
+      debugPrint('📱 Native notification action: $action for notification $notificationId');
       // Call the handler (it's async but we don't need to await it)
       _handleNotificationAction(notificationId, action, localStorageService);
     }
@@ -74,7 +75,7 @@ class ToDoLioApp extends StatelessWidget {
 // Handle notification actions (called from background or foreground)
 void _handleNotificationAction(String reminderId, String action, LocalStorageService storageService) async {
   try {
-    print('🔔 Handling notification action: reminderId=$reminderId, action=$action');
+    debugPrint('🔔 Handling notification action: reminderId=$reminderId, action=$action');
     final reminders = await storageService.getReminders().first;
     
     // Try to find reminder by notification ID (hashCode) or by actual ID
@@ -94,13 +95,13 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
           (r) => r.id == reminderId,
         );
       } catch (e2) {
-        print('❌ Could not find reminder with ID: $reminderId');
+        debugPrint('❌ Could not find reminder with ID: $reminderId');
         return;
       }
     }
 
     if (reminder == null) {
-      print('❌ Reminder not found: $reminderId');
+      debugPrint('❌ Reminder not found: $reminderId');
       return;
     }
 
@@ -110,7 +111,7 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
       // Mark as completed
       await storageService.updateReminder(reminder.copyWith(isCompleted: true));
       await notificationService.cancelNotification(reminder.id.hashCode);
-      print('✅ Reminder marked as done: ${reminder.title}');
+      debugPrint('✅ Reminder marked as done: ${reminder.title}');
       
       // If reminder has repeat, create next occurrence
       if (reminder.repeatType != RepeatType.none) {
@@ -140,7 +141,7 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
             scheduledDate: nextOccurrence,
           );
           
-          print('🔄 Created next occurrence: ${reminder.title} for ${nextOccurrence}');
+          debugPrint('🔄 Created next occurrence: ${reminder.title} for ${nextOccurrence}');
         }
       }
     } else if (action.startsWith('snooze_')) {
@@ -178,11 +179,11 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
         scheduledDate: snoozeTime,
       );
       
-      print('⏰ Reminder snoozed: ${reminder.title} for ${snoozeDuration.inMinutes} minutes');
-      print('   Original time preserved: ${reminder.originalDateTime}');
+      debugPrint('⏰ Reminder snoozed: ${reminder.title} for ${snoozeDuration.inMinutes} minutes');
+      debugPrint('   Original time preserved: ${reminder.originalDateTime}');
     }
   } catch (e, stack) {
-    print('❌ Error handling notification action: $e');
-    print('Stack trace: $stack');
+    debugPrint('❌ Error handling notification action: $e');
+    debugPrint('Stack trace: $stack');
   }
 }
