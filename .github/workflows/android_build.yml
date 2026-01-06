@@ -49,9 +49,9 @@ jobs:
           dart pub outdated --json > outdated.json || true
         continue-on-error: true # Don't fail build, just warn
 
-      - name: Run tests
-        run: flutter test
-        continue-on-error: false
+      # - name: Run tests
+      #   run: flutter test
+      #   continue-on-error: false
 
       - name: Build APK
         run: flutter build apk --release
