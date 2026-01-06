@@ -31,11 +31,20 @@ jobs:
       - name: Verify Flutter setup
         run: flutter doctor -v
 
-      - name: Run linter
+      - name: Run linter and code analysis
         run: |
           # Run analyze and capture output
           OUTPUT=$(flutter analyze --no-fatal-infos 2>&1) || true
+          echo "$OUTPUT" > analysis_report.txt
+          
+          # Display output
           echo "$OUTPUT"
+          
+          # Add to GitHub step summary
+          echo "## Code Analysis Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           
           # Check if there are errors or warnings (not just info)
           if echo "$OUTPUT" | grep -qE "(error|warning) •"; then
@@ -56,12 +65,6 @@ jobs:
           # Check if packages have known security issues
           dart pub outdated --json > outdated.json || true
         continue-on-error: true # Don't fail build, just warn
-
-      - name: Code analysis report
-        run: |
-          flutter analyze --no-fatal-infos > analysis_report.txt || true
-          echo "## Code Analysis Report" >> $GITHUB_STEP_SUMMARY
-          cat analysis_report.txt >> $GITHUB_STEP_SUMMARY || true
 
       - name: Run tests
         run: flutter test
