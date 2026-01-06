@@ -113,6 +113,11 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
     DateTime expiryDate = guarantee?.expiryDate ?? DateTime.now().add(const Duration(days: 365));
     String? warrantyImagePath = guarantee?.warrantyImagePath;
     String? receiptImagePath = guarantee?.receiptImagePath;
+    bool reminderEnabled = guarantee?.reminderEnabled ?? false;
+    int reminderMonthsBefore = guarantee?.reminderMonthsBefore ?? 1;
+    bool isReminderMonthsExpanded = false;
+    final scrollController = ScrollController();
+    final reminderOptionsKey = GlobalKey();
 
     showModalBottomSheet(
       context: context,
@@ -134,6 +139,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
             ),
             padding: const EdgeInsets.all(16),
             child: SingleChildScrollView(
+              controller: scrollController,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -355,6 +361,136 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                     ),
                     maxLines: 3,
                   ),
+                  const SizedBox(height: 16),
+                  // Reminder settings
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Set Reminder',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: reminderEnabled,
+                        onChanged: (value) {
+                          setState(() => reminderEnabled = value);
+                          // Scroll to show reminder options when enabled
+                          if (value) {
+                            Future.delayed(const Duration(milliseconds: 100), () {
+                              if (reminderOptionsKey.currentContext != null) {
+                                Scrollable.ensureVisible(
+                                  reminderOptionsKey.currentContext!,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
+                            });
+                          }
+                        },
+                        activeTrackColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                        activeColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Colors.grey.shade300,
+                        inactiveThumbColor: Colors.grey.shade400,
+                      ),
+                    ],
+                  ),
+                  if (reminderEnabled) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Remind me',
+                      key: reminderOptionsKey,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (!isReminderMonthsExpanded)
+                      // Show only selected option when collapsed
+                      SizedBox(
+                        width: double.infinity,
+                        child: ChoiceChip(
+                          label: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$reminderMonthsBefore ${reminderMonthsBefore == 1 ? 'month' : 'months'} before',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                          selected: true,
+                          onSelected: (selected) {
+                            setState(() => isReminderMonthsExpanded = true);
+                          },
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      )
+                    else
+                      // Show all options when expanded (1, 2, 3 months)
+                      Column(
+                        children: [1, 2, 3].map((months) {
+                          final isSelected = reminderMonthsBefore == months;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ChoiceChip(
+                                label: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '$months ${months == 1 ? 'month' : 'months'} before',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Theme.of(context).colorScheme.primary,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    reminderMonthsBefore = months;
+                                    isReminderMonthsExpanded = false; // Collapse after selection
+                                  });
+                                },
+                                selectedColor: Theme.of(context).colorScheme.primary,
+                                backgroundColor: Colors.white,
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.grey.shade300,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                  ],
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
@@ -373,6 +509,8 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                           warrantyImagePath: warrantyImagePath,
                           receiptImagePath: receiptImagePath,
                           notes: notesController.text.isEmpty ? null : notesController.text,
+                          reminderEnabled: reminderEnabled,
+                          reminderMonthsBefore: reminderMonthsBefore,
                           createdAt: guarantee?.createdAt ?? DateTime.now(),
                         );
 

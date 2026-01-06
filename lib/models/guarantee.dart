@@ -6,6 +6,8 @@ class Guarantee {
   final String? warrantyImagePath;
   final String? receiptImagePath;
   final String? notes;
+  final bool reminderEnabled;
+  final int reminderMonthsBefore;
   final DateTime createdAt;
 
   Guarantee({
@@ -16,6 +18,8 @@ class Guarantee {
     this.warrantyImagePath,
     this.receiptImagePath,
     this.notes,
+    this.reminderEnabled = false,
+    this.reminderMonthsBefore = 1,
     required this.createdAt,
   });
 
@@ -28,6 +32,8 @@ class Guarantee {
       'warrantyImagePath': warrantyImagePath,
       'receiptImagePath': receiptImagePath,
       'notes': notes,
+      'reminderEnabled': reminderEnabled,
+      'reminderMonthsBefore': reminderMonthsBefore,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -45,6 +51,8 @@ class Guarantee {
       warrantyImagePath: map['warrantyImagePath'],
       receiptImagePath: map['receiptImagePath'],
       notes: map['notes'],
+      reminderEnabled: map['reminderEnabled'] ?? false,
+      reminderMonthsBefore: map['reminderMonthsBefore'] ?? 1,
       createdAt: map['createdAt'] is String
           ? DateTime.parse(map['createdAt'])
           : (map['createdAt'] as DateTime? ?? DateTime.now()),
@@ -59,6 +67,8 @@ class Guarantee {
     String? warrantyImagePath,
     String? receiptImagePath,
     String? notes,
+    bool? reminderEnabled,
+    int? reminderMonthsBefore,
     DateTime? createdAt,
   }) {
     return Guarantee(
@@ -69,6 +79,8 @@ class Guarantee {
       warrantyImagePath: warrantyImagePath ?? this.warrantyImagePath,
       receiptImagePath: receiptImagePath ?? this.receiptImagePath,
       notes: notes ?? this.notes,
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      reminderMonthsBefore: reminderMonthsBefore ?? this.reminderMonthsBefore,
       createdAt: createdAt ?? this.createdAt,
     );
   }

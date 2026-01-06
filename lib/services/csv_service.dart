@@ -8,7 +8,8 @@ import '../models/shopping_item.dart';
 
 class CsvService {
   /// Export shopping list to CSV format
-  Future<void> exportShoppingList(ShoppingList list) async {
+  /// Returns true if user actually shared, false if cancelled
+  Future<bool> exportShoppingList(ShoppingList list) async {
     final csvContent = _generateCsv(list);
     final fileName = '${list.name.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.csv';
     
@@ -17,11 +18,14 @@ class CsvService {
     final file = File('${tempDir.path}/$fileName');
     await file.writeAsString(csvContent);
     
-    await Share.shareXFiles(
+    final result = await Share.shareXFiles(
       [XFile(file.path)],
       text: 'Shopping List: ${list.name}',
-      subject: 'Shopping List Export',
+      subject: list.name,
     );
+    
+    // Check if user actually shared or cancelled
+    return result.status == ShareResultStatus.success;
   }
 
   /// Generate CSV content from shopping list

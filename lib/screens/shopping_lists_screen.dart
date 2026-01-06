@@ -124,15 +124,8 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
             backgroundColor: Colors.green,
           ),
         );
-      } else if (context.mounted) {
-        // User cancelled file picker
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Import cancelled'),
-            duration: Duration(seconds: 1),
-          ),
-        );
       }
+      // Don't show anything if user cancelled - it's a normal action, not an error
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -153,21 +146,32 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   Future<void> _exportShoppingList(ShoppingList list) async {
     try {
       final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-      await notifier.exportShoppingList(list);
+      final success = await notifier.exportShoppingList(list);
       
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Shopping list exported!'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        if (success) {
+          // Only show success message if user actually shared
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'Shopping list exported!',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+        // Don't show anything if user cancelled - it's a normal action
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to export: $e'),
+            content: Text(
+              'Failed to export: $e',
+              style: const TextStyle(color: Colors.white),
+            ),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -687,6 +691,7 @@ class _ShoppingListDetailScreenState
       enableDrag: true,
       builder: (context) {
         ShoppingUnit selectedUnit = ShoppingUnit.piece;
+        bool isUnitExpanded = false;
         
         return StatefulBuilder(
           builder: (context, setState) {
@@ -786,38 +791,87 @@ class _ShoppingListDetailScreenState
                   ),
                 ),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: ShoppingUnit.values.map((unit) {
-                    final isSelected = selectedUnit == unit;
-                    return ChoiceChip(
-                      label: Text(
-                        unit.displayName.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isSelected
-                              ? Colors.white
-                              : Theme.of(context).colorScheme.primary,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
+                if (!isUnitExpanded)
+                  // Show only selected option when collapsed
+                  SizedBox(
+                    width: double.infinity,
+                    child: ChoiceChip(
+                      label: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            selectedUnit.displayName.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.white,
+                          ),
+                        ],
                       ),
-                      selected: isSelected,
+                      selected: true,
                       onSelected: (selected) {
-                        setState(() => selectedUnit = unit);
+                        setState(() => isUnitExpanded = true);
                       },
                       selectedColor: Theme.of(context).colorScheme.primary,
-                      backgroundColor: Colors.white,
                       side: BorderSide(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.grey.shade300,
-                        width: isSelected ? 2 : 1,
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    );
-                  }).toList(),
-                ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  )
+                else
+                  // Show all options when expanded
+                  Column(
+                    children: ShoppingUnit.values.map((unit) {
+                      final isSelected = selectedUnit == unit;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ChoiceChip(
+                            label: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  unit.displayName.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                selectedUnit = unit;
+                                isUnitExpanded = false; // Collapse after selection
+                              });
+                            },
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -873,6 +927,7 @@ class _ShoppingListDetailScreenState
     final nameController = TextEditingController(text: item.name);
     final quantityController = TextEditingController(text: item.quantity.toString());
     ShoppingUnit selectedUnit = item.unit;
+    bool isUnitExpanded = false;
 
     showModalBottomSheet(
       context: context,
@@ -978,38 +1033,87 @@ class _ShoppingListDetailScreenState
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: ShoppingUnit.values.map((unit) {
-                          final isSelected = selectedUnit == unit;
-                          return ChoiceChip(
-                            label: Text(
-                              unit.displayName.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isSelected
-                                    ? Colors.white
-                                    : Theme.of(context).colorScheme.primary,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              ),
+                      if (!isUnitExpanded)
+                        // Show only selected option when collapsed
+                        SizedBox(
+                          width: double.infinity,
+                          child: ChoiceChip(
+                            label: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  selectedUnit.displayName.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                ),
+                              ],
                             ),
-                            selected: isSelected,
+                            selected: true,
                             onSelected: (selected) {
-                              setState(() => selectedUnit = unit);
+                              setState(() => isUnitExpanded = true);
                             },
                             selectedColor: Theme.of(context).colorScheme.primary,
-                            backgroundColor: Colors.white,
                             side: BorderSide(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey.shade300,
-                              width: isSelected ? 2 : 1,
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          );
-                        }).toList(),
-                      ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        )
+                      else
+                        // Show all options when expanded
+                        Column(
+                          children: ShoppingUnit.values.map((unit) {
+                            final isSelected = selectedUnit == unit;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ChoiceChip(
+                                  label: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        unit.displayName.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Theme.of(context).colorScheme.primary,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      selectedUnit = unit;
+                                      isUnitExpanded = false; // Collapse after selection
+                                    });
+                                  },
+                                  selectedColor: Theme.of(context).colorScheme.primary,
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey.shade300,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,

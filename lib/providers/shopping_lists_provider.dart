@@ -59,14 +59,16 @@ class ShoppingListsNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> exportShoppingList(ShoppingList list) async {
+  Future<bool> exportShoppingList(ShoppingList list) async {
     state = const AsyncValue.loading();
     try {
       final csvService = ref.read(csvServiceProvider);
-      await csvService.exportShoppingList(list);
+      final success = await csvService.exportShoppingList(list);
       state = const AsyncValue.data(null);
+      return success;
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      return false;
     }
   }
 

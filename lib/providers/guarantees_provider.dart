@@ -21,15 +21,29 @@ class GuaranteesNotifier extends Notifier<AsyncValue<void>> {
       final storageService = ref.read(localStorageServiceProvider);
       await storageService.createGuarantee(guarantee);
       
-      // Schedule notification for expiry (7 days before)
-      if (guarantee.expiryDate.isAfter(DateTime.now())) {
+      // Schedule notification if reminder is enabled
+      if (guarantee.reminderEnabled && guarantee.expiryDate.isAfter(DateTime.now())) {
         final notificationService = ref.read(notificationServiceProvider);
-        final notificationDate = guarantee.expiryDate.subtract(const Duration(days: 7));
+        // Calculate notification date: X months before expiry, always at noon
+        var notificationYear = guarantee.expiryDate.year;
+        var notificationMonth = guarantee.expiryDate.month - guarantee.reminderMonthsBefore;
+        while (notificationMonth <= 0) {
+          notificationMonth += 12;
+          notificationYear -= 1;
+        }
+        final notificationDate = DateTime(
+          notificationYear,
+          notificationMonth,
+          guarantee.expiryDate.day,
+          12, // Always at noon
+          0,  // 0 minutes
+        );
         if (notificationDate.isAfter(DateTime.now())) {
+          final monthsText = guarantee.reminderMonthsBefore == 1 ? 'month' : 'months';
           await notificationService.scheduleGuaranteeExpiryNotification(
             id: guarantee.id.hashCode,
             title: 'Guarantee Expiring Soon',
-            body: '${guarantee.productName} warranty expires in 7 days',
+            body: '${guarantee.productName} warranty expires in ${guarantee.reminderMonthsBefore} $monthsText',
             scheduledDate: notificationDate,
           );
         }
@@ -51,13 +65,28 @@ class GuaranteesNotifier extends Notifier<AsyncValue<void>> {
       final notificationService = ref.read(notificationServiceProvider);
       await notificationService.cancelNotification(guarantee.id.hashCode);
       
-      if (guarantee.expiryDate.isAfter(DateTime.now())) {
-        final notificationDate = guarantee.expiryDate.subtract(const Duration(days: 7));
+      // Schedule notification if reminder is enabled
+      if (guarantee.reminderEnabled && guarantee.expiryDate.isAfter(DateTime.now())) {
+        // Calculate notification date: X months before expiry, always at noon
+        var notificationYear = guarantee.expiryDate.year;
+        var notificationMonth = guarantee.expiryDate.month - guarantee.reminderMonthsBefore;
+        while (notificationMonth <= 0) {
+          notificationMonth += 12;
+          notificationYear -= 1;
+        }
+        final notificationDate = DateTime(
+          notificationYear,
+          notificationMonth,
+          guarantee.expiryDate.day,
+          12, // Always at noon
+          0,  // 0 minutes
+        );
         if (notificationDate.isAfter(DateTime.now())) {
+          final monthsText = guarantee.reminderMonthsBefore == 1 ? 'month' : 'months';
           await notificationService.scheduleGuaranteeExpiryNotification(
             id: guarantee.id.hashCode,
             title: 'Guarantee Expiring Soon',
-            body: '${guarantee.productName} warranty expires in 7 days',
+            body: '${guarantee.productName} warranty expires in ${guarantee.reminderMonthsBefore} $monthsText',
             scheduledDate: notificationDate,
           );
         }
