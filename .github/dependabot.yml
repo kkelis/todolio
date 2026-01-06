@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Enable version updates for Dart/Flutter dependencies
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly" # Check for updates every Monday
+    open-pull-requests-limit: 5 # Limit number of open PRs to avoid spam
+    groups:
+      # Group minor and patch updates together to reduce PR noise
+      flutter-dependencies:
+        patterns:
+          - "flutter*"
+          - "dart*"
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "flutter*"
+          - "dart*"
+    # Commit message configuration
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Labels for PRs
+    labels:
+      - "dependencies"
+      - "automated"
+    
+

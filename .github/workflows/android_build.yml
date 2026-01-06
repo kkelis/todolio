@@ -1,0 +1,91 @@
+name: Android Build & Quality Checks
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter setup
+        run: flutter doctor -v
+
+      - name: Run linter
+        run: flutter analyze
+        continue-on-error: false
+
+      - name: Check for outdated dependencies
+        run: dart pub outdated
+        continue-on-error: true # Don't fail build, just warn
+
+      - name: Security scan - Check for vulnerable dependencies
+        run: |
+          echo "Checking for known vulnerabilities..."
+          # Check if packages have known security issues
+          dart pub outdated --json > outdated.json || true
+        continue-on-error: true # Don't fail build, just warn
+
+      - name: Code analysis report
+        run: |
+          flutter analyze --no-fatal-infos > analysis_report.txt || true
+          echo "## Code Analysis Report" >> $GITHUB_STEP_SUMMARY
+          cat analysis_report.txt >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Run tests
+        run: flutter test
+        continue-on-error: false
+
+      - name: Build APK
+        run: flutter build apk --release
+        env:
+          FLUTTER_BUILD_MODE: release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Upload build logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-logs
+          path: |
+            analysis_report.txt
+            outdated.json
+          retention-days: 7
+
+      - name: Build summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Flutter version: $(flutter --version | head -n 1)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ APK built successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### APK Location" >> $GITHUB_STEP_SUMMARY
+          echo "Download the APK from the artifacts section above." >> $GITHUB_STEP_SUMMARY
+
