@@ -9,6 +9,7 @@ import '../services/local_image_service.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/delete_confirmation_dialog.dart';
 import '../widgets/glassmorphic_card.dart';
+import 'settings_screen.dart';
 
 class GuaranteesScreen extends ConsumerStatefulWidget {
   const GuaranteesScreen({super.key});
@@ -29,6 +30,17 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('Guarantees'),
+          leading: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
         ),
         body: guaranteesAsync.when(
         data: (guarantees) {

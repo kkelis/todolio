@@ -7,6 +7,7 @@ import '../providers/reminders_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+import 'settings_screen.dart';
 
 class TodosScreen extends ConsumerStatefulWidget {
   const TodosScreen({super.key});
@@ -38,6 +39,17 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('To-Dos'),
+          leading: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.filter_list),

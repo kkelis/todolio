@@ -6,6 +6,7 @@ import '../providers/reminders_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+import 'settings_screen.dart';
 
 class RemindersScreen extends ConsumerStatefulWidget {
   const RemindersScreen({super.key});
@@ -26,6 +27,17 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('Reminders'),
+          leading: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
           actions: [
             PopupMenuButton<ReminderType?>(
               icon: const Icon(Icons.filter_list),

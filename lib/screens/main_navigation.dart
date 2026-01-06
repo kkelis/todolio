@@ -5,9 +5,12 @@ import 'todos_screen.dart';
 import 'shopping_lists_screen.dart';
 import 'guarantees_screen.dart';
 import 'notes_screen.dart';
+import 'settings_screen.dart';
 import '../widgets/gradient_background.dart';
 import '../services/notification_service.dart';
 import '../providers/reminders_provider.dart';
+import '../providers/settings_provider.dart';
+import '../models/app_settings.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -19,14 +22,6 @@ class MainNavigation extends ConsumerStatefulWidget {
 class _MainNavigationState extends ConsumerState<MainNavigation> {
   int _currentIndex = 0;
   late PageController _pageController;
-
-  final List<Widget> _screens = [
-    const RemindersScreen(),
-    const TodosScreen(),
-    const ShoppingListsScreen(),
-    const GuaranteesScreen(),
-    const NotesScreen(),
-  ];
 
   @override
   void initState() {
@@ -49,81 +44,159 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     super.dispose();
   }
 
+  List<Widget> _getScreens(AppSettings settings) {
+    final screens = <Widget>[];
+    if (settings.remindersEnabled) screens.add(const RemindersScreen());
+    if (settings.todosEnabled) screens.add(const TodosScreen());
+    if (settings.shoppingEnabled) screens.add(const ShoppingListsScreen());
+    if (settings.guaranteesEnabled) screens.add(const GuaranteesScreen());
+    if (settings.notesEnabled) screens.add(const NotesScreen());
+    return screens;
+  }
+
+  List<NavigationDestination> _getDestinations(AppSettings settings) {
+    final destinations = <NavigationDestination>[];
+    if (settings.remindersEnabled) {
+      destinations.add(const NavigationDestination(
+        icon: Icon(Icons.notifications_outlined),
+        selectedIcon: Icon(Icons.notifications),
+        label: 'Reminders',
+      ));
+    }
+    if (settings.todosEnabled) {
+      destinations.add(const NavigationDestination(
+        icon: Icon(Icons.check_circle_outline),
+        selectedIcon: Icon(Icons.check_circle),
+        label: 'Todos',
+      ));
+    }
+    if (settings.shoppingEnabled) {
+      destinations.add(const NavigationDestination(
+        icon: Icon(Icons.shopping_cart_outlined),
+        selectedIcon: Icon(Icons.shopping_cart),
+        label: 'Shopping',
+      ));
+    }
+    if (settings.guaranteesEnabled) {
+      destinations.add(const NavigationDestination(
+        icon: Icon(Icons.verified_outlined),
+        selectedIcon: Icon(Icons.verified),
+        label: 'Guarantees',
+      ));
+    }
+    if (settings.notesEnabled) {
+      destinations.add(const NavigationDestination(
+        icon: Icon(Icons.note_outlined),
+        selectedIcon: Icon(Icons.note),
+        label: 'Notes',
+      ));
+    }
+    return destinations;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Development mode: skip authentication
-    // TODO: Re-enable auth check in production
-    // final authState = ref.watch(authStateProvider);
-    // return authState.when(...)
+    final settingsAsync = ref.watch(appSettingsProvider);
     
-    return GradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          children: _screens,
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            border: Border(
-              top: BorderSide(
-                color: Colors.white.withOpacity(0.1),
-                width: 1,
-              ),
-            ),
-          ),
-          child: NavigationBar(
+    return settingsAsync.when(
+      data: (settings) {
+        final screens = _getScreens(settings);
+        final destinations = _getDestinations(settings);
+        
+        // Ensure current index is valid
+        if (_currentIndex >= screens.length) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _currentIndex = 0);
+              _pageController.jumpToPage(0);
+            }
+          });
+        }
+        
+        return GradientBackground(
+          child: Scaffold(
             backgroundColor: Colors.transparent,
-            indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-            elevation: 0,
-            height: 70,
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.notifications_outlined),
-                selectedIcon: Icon(Icons.notifications),
-                label: 'Reminders',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.check_circle_outline),
-                selectedIcon: Icon(Icons.check_circle),
-                label: 'Todos',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.shopping_cart_outlined),
-                selectedIcon: Icon(Icons.shopping_cart),
-                label: 'Shopping',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.verified_outlined),
-                selectedIcon: Icon(Icons.verified),
-                label: 'Guarantees',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.note_outlined),
-                selectedIcon: Icon(Icons.note),
-                label: 'Notes',
-              ),
-            ],
-          ),
-        ),
+            body: screens.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.settings,
+                          size: 80,
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'No sections enabled',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Enable at least one section in Settings',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.settings),
+                          label: const Text('Open Settings'),
+                        ),
+                      ],
+                    ),
+                  )
+                : PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                    children: screens,
+                  ),
+            bottomNavigationBar: screens.isEmpty
+                ? null
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      border: Border(
+                        top: BorderSide(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: NavigationBar(
+                      backgroundColor: Colors.transparent,
+                      indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                      elevation: 0,
+                      height: 70,
+                      selectedIndex: _currentIndex.clamp(0, destinations.length - 1),
+                      onDestinationSelected: (index) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                      destinations: destinations,
+                    ),
+                  ),
         drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -163,8 +236,13 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                   leading: const Icon(Icons.settings),
                   title: const Text('Settings'),
                   onTap: () {
-                    // Navigate to settings
                     Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
@@ -273,6 +351,25 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
               ],
             ),
           ),
+          ),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error loading settings: $error'),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(appSettingsProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

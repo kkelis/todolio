@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/models.dart';
 import '../models/todo_item.dart' as todo_item; // For migration only
+import '../models/app_settings.dart';
 
 class LocalStorageService {
   static const String remindersBox = 'reminders';
@@ -9,6 +10,7 @@ class LocalStorageService {
   static const String shoppingListsBox = 'shoppingLists';
   static const String guaranteesBox = 'guarantees';
   static const String notesBox = 'notes';
+  static const String settingsBox = 'appSettings';
 
   // Stream controllers for real-time updates
   final _remindersController = StreamController<List<Reminder>>.broadcast();
@@ -408,6 +410,21 @@ class LocalStorageService {
     _shoppingListsController.add([]);
     _guaranteesController.add([]);
     _notesController.add([]);
+  }
+
+  // App Settings
+  Future<AppSettings> getAppSettings() async {
+    final box = await Hive.openBox(settingsBox);
+    final data = box.get('settings') as Map<String, dynamic>?;
+    if (data != null) {
+      return AppSettings.fromMap(data);
+    }
+    return AppSettings(); // Return default settings
+  }
+
+  Future<void> saveAppSettings(AppSettings settings) async {
+    final box = await Hive.openBox(settingsBox);
+    await box.put('settings', settings.toMap());
   }
 
   void dispose() {

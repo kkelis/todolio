@@ -7,6 +7,7 @@ import '../providers/shopping_lists_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+import 'settings_screen.dart';
 
 class ShoppingListsScreen extends ConsumerStatefulWidget {
   const ShoppingListsScreen({super.key});
@@ -25,6 +26,17 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('Shopping Lists'),
+          leading: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.file_upload),

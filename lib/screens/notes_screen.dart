@@ -7,6 +7,7 @@ import '../utils/constants.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
+import 'settings_screen.dart';
 
 class NotesScreen extends ConsumerStatefulWidget {
   const NotesScreen({super.key});
@@ -36,6 +37,17 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('Notes'),
+          leading: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
           actions: [
             IconButton(
               icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
