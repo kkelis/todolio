@@ -4,19 +4,35 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 
 ## ✨ Features
 
-- **Reminders** - Schedule reminders for birthdays, appointments, and other events with notifications
+- **Reminders** - Schedule reminders for birthdays, appointments, todos, and other events with notifications
+  - Repeat functionality (daily, weekly, monthly, yearly)
+  - Snooze options (5min, 15min, 30min)
+  - Grouped by date (Today, Next 7 days, Overdue, Completed)
+  - Notifications persist after device reboot
 - **To-Do Lists** - Organize tasks with priorities and due dates
+  - Same unified model as reminders
+  - Grouped by priority (High, Medium, Low)
+  - Can have due dates and appear in reminders view
 - **Shopping Lists** - Create and manage shopping lists with CSV export/import
-- **Guarantee Tracking** - Track warranties with photos, expiry dates, and storage locations
+  - Unit selection (piece, liter, kg, etc.)
+  - Quantity and unit tracking
+  - CSV export/import for sharing
+- **Guarantee Tracking** - Track warranties with photos, expiry dates, and notes
+  - Customizable reminder notifications (1, 2, or 3 months before expiry)
+  - Local photo storage for warranty and receipt
 - **Notes** - Rich notes with tags, colors, and pinning support
+- **Settings** - Enable/disable app sections to customize your experience
 
 ## 🎨 Design
 
 - Modern gradient background (#5056cb to #8c92f9)
 - White modal dialogs with primary color accents
 - Roboto font family
-- Glassmorphic cards on main screens
+- White cards with shadows on main screens
+- Collapsible UI elements for better space usage
+- Completed items with primary color background and white text
 - Smooth animations and transitions
+- Swipe navigation between sections
 
 ## 🚀 Getting Started
 
@@ -58,6 +74,8 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 - **No Cloud** - No Firebase, no authentication, no external dependencies
 - **State Management** - Riverpod 3.x
 - **Real-time Updates** - Stream-based reactive UI
+- **Reliable Notifications** - Uses native AlarmManager.setAlarmClock() for persistent alarms
+- **Boot Persistence** - Notifications survive device reboots automatically
 
 ## 📦 Key Dependencies
 
