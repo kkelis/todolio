@@ -7,7 +7,9 @@ import 'theme/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/local_storage_service.dart';
 import 'providers/reminders_provider.dart';
+import 'providers/settings_provider.dart';
 import 'models/reminder.dart';
+import 'models/color_scheme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,18 +57,71 @@ void main() async {
   );
 }
 
-class ToDoLioApp extends StatelessWidget {
+class ToDoLioApp extends ConsumerWidget {
   const ToDoLioApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ToDoLio',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const MainNavigation(),
-      debugShowCheckedModeBanner: false,
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the notifier provider for immediate updates when settings change
+    final settingsNotifier = ref.watch(appSettingsNotifierProvider);
+    
+    return settingsNotifier.when(
+      data: (settings) {
+        // Debug: Log color scheme changes
+        debugPrint('🎨 Building MaterialApp with color scheme: ${settings.colorScheme.name}');
+        debugPrint('   Primary color: ${settings.colorScheme.primaryColor}');
+        debugPrint('   Secondary color: ${settings.colorScheme.secondaryColor}');
+        debugPrint('   MaterialApp key: todolio_${settings.colorScheme.name}');
+        
+        final theme = AppTheme.lightTheme(settings.colorScheme);
+        debugPrint('   Theme primary color: ${theme.colorScheme.primary}');
+        debugPrint('   Theme FAB backgroundColor: ${theme.floatingActionButtonTheme.backgroundColor}');
+        debugPrint('   Theme ElevatedButton backgroundColor: ${theme.elevatedButtonTheme.style?.backgroundColor}');
+        
+        return MaterialApp(
+          key: ValueKey('todolio_${settings.colorScheme.name}'), // Force rebuild when color scheme changes
+          title: 'ToDoLio',
+          theme: theme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.light, // Always use light theme with custom color scheme
+          home: MainNavigation(key: ValueKey('navigation_${settings.colorScheme.name}')), // Force navigation rebuild
+          debugShowCheckedModeBanner: false,
+        );
+      },
+      loading: () => MaterialApp(
+        title: 'ToDoLio',
+        theme: AppTheme.lightTheme(AppColorScheme.blue),
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+        debugShowCheckedModeBanner: false,
+      ),
+      error: (error, stack) {
+        debugPrint('❌ Error loading settings: $error');
+        return MaterialApp(
+          title: 'ToDoLio',
+          theme: AppTheme.lightTheme(AppColorScheme.blue),
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.system,
+          home: Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error loading settings: $error'),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(appSettingsNotifierProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_settings.dart';
+import '../models/color_scheme.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 
@@ -114,6 +115,24 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 32),
+          // Color Scheme Selection
+          Text(
+            'Color Scheme',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Choose your preferred color theme',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildColorSchemeSelector(context, ref, settings),
+          const SizedBox(height: 32),
           // Warning if all sections are disabled
           if (!settings.remindersEnabled &&
               !settings.todosEnabled &&
@@ -195,6 +214,91 @@ class SettingsScreen extends ConsumerWidget {
           inactiveTrackColor: Colors.grey.shade300,
           inactiveThumbColor: Colors.grey.shade400,
         ),
+      ),
+    );
+  }
+
+  Widget _buildColorSchemeSelector(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        children: AppColorScheme.values.map((scheme) {
+          final isSelected = settings.colorScheme == scheme;
+          return GestureDetector(
+            onTap: () {
+              ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+                settings.copyWith(colorScheme: scheme),
+              );
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: scheme.gradientColors,
+                    ),
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.black
+                          : Colors.grey.withValues(alpha: 0.3),
+                      width: isSelected ? 3 : 2,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: scheme.primaryColor.withValues(alpha: 0.5),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: isSelected
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: Colors.white,
+                          size: 28,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  scheme.name,
+                  style: TextStyle(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.black87,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }

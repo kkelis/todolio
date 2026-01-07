@@ -6,4 +6,5 @@ export 'shopping_list.dart';
 export 'guarantee.dart';
 export 'note.dart';
 export 'app_settings.dart';
+export 'color_scheme.dart';
 

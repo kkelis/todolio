@@ -1,16 +1,45 @@
 import 'package:flutter/material.dart';
+import '../models/color_scheme.dart';
 
 class AppTheme {
-  static ThemeData get lightTheme {
+  static ThemeData lightTheme(AppColorScheme colorScheme) {
+    // Create a custom color scheme using the exact colors from the selected scheme
+    // Material 3 uses different color properties for different widgets, so we set them all
+    final customColorScheme = ColorScheme.light(
+      primary: colorScheme.primaryColor,
+      primaryContainer: colorScheme.primaryColor, // Material 3 uses this for FAB and some buttons
+      secondary: colorScheme.secondaryColor,
+      secondaryContainer: colorScheme.secondaryColor, // Some widgets use this
+      tertiary: colorScheme.secondaryColor.withValues(alpha: 0.8),
+      error: const Color(0xFFEF4444),
+      onPrimary: Colors.white,
+      onPrimaryContainer: Colors.white, // Text/icon color on primaryContainer
+      onSecondary: Colors.white,
+      onSecondaryContainer: Colors.white,
+      onTertiary: Colors.white,
+      onError: Colors.white,
+      surface: Colors.white,
+      onSurface: Colors.black87,
+      surfaceContainerHighest: Colors.grey.shade100,
+      onSurfaceVariant: Colors.black54,
+      outline: colorScheme.primaryColor, // Border colors
+      outlineVariant: colorScheme.primaryColor.withValues(alpha: 0.5),
+    );
+    
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blue,
-        brightness: Brightness.light,
-      ),
-      appBarTheme: const AppBarTheme(
+      colorScheme: customColorScheme,
+      appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 2,
@@ -21,13 +50,96 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.primaryColor, width: 2),
         ),
         filled: true,
+        fillColor: Colors.white,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: colorScheme.primaryColor,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.primaryColor,
+          side: BorderSide(color: colorScheme.primaryColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primaryColor;
+          }
+          return Colors.transparent;
+        }),
+        checkColor: WidgetStateProperty.all(Colors.white),
+        side: BorderSide(
+          color: Colors.grey.shade400,
+          width: 2,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primaryColor;
+          }
+          return Colors.grey.shade400;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primaryColor.withValues(alpha: 0.5);
+          }
+          return Colors.grey.shade300;
+        }),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: Colors.white,
+        selectedColor: colorScheme.primaryColor,
+        labelStyle: const TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }

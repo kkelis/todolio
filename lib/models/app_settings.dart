@@ -1,9 +1,12 @@
+import 'color_scheme.dart';
+
 class AppSettings {
   final bool remindersEnabled;
   final bool todosEnabled;
   final bool shoppingEnabled;
   final bool guaranteesEnabled;
   final bool notesEnabled;
+  final AppColorScheme colorScheme;
 
   AppSettings({
     this.remindersEnabled = true,
@@ -11,6 +14,7 @@ class AppSettings {
     this.shoppingEnabled = true,
     this.guaranteesEnabled = true,
     this.notesEnabled = true,
+    this.colorScheme = AppColorScheme.blue,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +24,7 @@ class AppSettings {
       'shoppingEnabled': shoppingEnabled,
       'guaranteesEnabled': guaranteesEnabled,
       'notesEnabled': notesEnabled,
+      'colorScheme': colorScheme.toJson(),
     };
   }
 
@@ -30,6 +35,9 @@ class AppSettings {
       shoppingEnabled: map['shoppingEnabled'] ?? true,
       guaranteesEnabled: map['guaranteesEnabled'] ?? true,
       notesEnabled: map['notesEnabled'] ?? true,
+      colorScheme: map['colorScheme'] != null
+          ? AppColorScheme.fromString(map['colorScheme'])
+          : AppColorScheme.blue,
     );
   }
 
@@ -39,6 +47,7 @@ class AppSettings {
     bool? shoppingEnabled,
     bool? guaranteesEnabled,
     bool? notesEnabled,
+    AppColorScheme? colorScheme,
   }) {
     return AppSettings(
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
@@ -46,6 +55,7 @@ class AppSettings {
       shoppingEnabled: shoppingEnabled ?? this.shoppingEnabled,
       guaranteesEnabled: guaranteesEnabled ?? this.guaranteesEnabled,
       notesEnabled: notesEnabled ?? this.notesEnabled,
+      colorScheme: colorScheme ?? this.colorScheme,
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../models/guarantee.dart';
 import '../providers/guarantees_provider.dart';
+import '../providers/settings_provider.dart';
 import '../services/local_image_service.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/delete_confirmation_dialog.dart';
@@ -109,9 +110,21 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showEditDialog(null),
-        child: const Icon(Icons.add),
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) {
+          // Watch app settings notifier for immediate updates
+          final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
+          final primaryColor = appSettingsNotifier.hasValue 
+              ? appSettingsNotifier.value!.colorScheme.primaryColor
+              : Theme.of(context).colorScheme.primary;
+          
+          return FloatingActionButton(
+            onPressed: () => _showEditDialog(null),
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+          );
+        },
       ),
       ),
     );
@@ -136,8 +149,11 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
@@ -296,8 +312,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
+                            // Let theme handle backgroundColor and foregroundColor
                           ),
                           onPressed: () async {
                             final image = await ImagePicker().pickImage(
@@ -320,8 +335,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
+                            // Let theme handle backgroundColor and foregroundColor
                           ),
                           onPressed: () async {
                             final image = await ImagePicker().pickImage(
@@ -508,9 +522,8 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        // Let theme handle backgroundColor and foregroundColor
                       ),
                       onPressed: () {
                         final newGuarantee = Guarantee(
@@ -542,8 +555,11 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
               ),
             ),
           ),
-        ),
-      ),
+        );
+        },
+      );
+    },
+  ),
     );
   }
 
@@ -605,8 +621,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
+              // Let theme handle backgroundColor and foregroundColor
             ),
             onPressed: () {
               Navigator.pop(context);

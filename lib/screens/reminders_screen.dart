@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/reminder.dart';
 import '../providers/reminders_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/delete_confirmation_dialog.dart';
 import 'settings_screen.dart';
@@ -19,7 +20,15 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch app settings notifier for immediate updates when color scheme changes
+    final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
     final remindersAsync = ref.watch(remindersProvider);
+    
+    // Get current color scheme for debugging
+    if (appSettingsNotifier.hasValue) {
+      debugPrint('🔄 RemindersScreen build - Color scheme: ${appSettingsNotifier.value!.colorScheme.name}');
+      debugPrint('   Theme primary: ${Theme.of(context).colorScheme.primary}');
+    }
 
     return GradientBackground(
       child: Scaffold(
@@ -276,9 +285,24 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showEditDialog(null),
-        child: const Icon(Icons.add),
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) {
+          // Watch app settings notifier for immediate updates
+          final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
+          final primaryColor = appSettingsNotifier.hasValue 
+              ? appSettingsNotifier.value!.colorScheme.primaryColor
+              : Theme.of(context).colorScheme.primary;
+          
+          debugPrint('🔵 FloatingActionButton color: $primaryColor');
+          debugPrint('   From settings: ${appSettingsNotifier.hasValue ? appSettingsNotifier.value!.colorScheme.name : "N/A"}');
+          
+          return FloatingActionButton(
+            onPressed: () => _showEditDialog(null),
+            backgroundColor: primaryColor, // Use color scheme directly
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+          );
+        },
       ),
       ),
     );
@@ -371,8 +395,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
@@ -460,7 +487,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                           ? DateFormat('MMM d, yyyy HH:mm').format(selectedDate!)
                           : 'Not set',
                       style: TextStyle(
-                        color: selectedDate != null ? Colors.black87 : Colors.grey.shade600,
+                        color: selectedDate != null ? Theme.of(context).colorScheme.onSurface : Colors.grey.shade600,
                       ),
                     ),
                     trailing: Row(
@@ -509,8 +536,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                           );
                         },
                       );
-                      if (date != null) {
-                        if (!mounted) return;
+                      if (date != null && context.mounted) {
                         final time = await showTimePicker(
                           context: context,
                           initialTime: selectedTime ?? TimeOfDay.now(),
@@ -528,7 +554,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                             );
                           },
                         );
-                        if (time != null) {
+                        if (time != null && context.mounted) {
                           setState(() {
                             selectedTime = time;
                             selectedDate = DateTime(
@@ -937,9 +963,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        // Let theme handle backgroundColor and foregroundColor
                       ),
                       onPressed: () {
                         final text = textController.text.trim();
@@ -1010,8 +1035,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
               ),
             ),
           ),
-        ),
-      ),
+        );
+        },
+      );
+    },
+  ),
     );
   }
 

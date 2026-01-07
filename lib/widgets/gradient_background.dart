@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/settings_provider.dart';
+import '../models/color_scheme.dart';
 
-class GradientBackground extends StatelessWidget {
+class GradientBackground extends ConsumerWidget {
   final Widget child;
   final List<Color>? colors;
   final AlignmentGeometry begin;
@@ -15,18 +18,22 @@ class GradientBackground extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final defaultColors = [
-      const Color(0xFF5056cb), // Start color
-      const Color(0xFF8c92f9), // End color
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Get color scheme from settings notifier for immediate updates, or use default
+    final settingsNotifier = ref.watch(appSettingsNotifierProvider);
+    final colorScheme = settingsNotifier.maybeWhen(
+      data: (settings) => settings.colorScheme,
+      orElse: () => AppColorScheme.blue,
+    );
+
+    final defaultColors = colors ?? colorScheme.gradientColors;
 
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: begin,
           end: end,
-          colors: colors ?? defaultColors,
+          colors: defaultColors,
         ),
       ),
       child: child,
