@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/reminder.dart';
 import '../providers/todos_provider.dart';
 import '../providers/reminders_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/delete_confirmation_dialog.dart';
 import 'settings_screen.dart';
@@ -158,26 +159,26 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                           ),
                         ),
                         ...overdueTodos.map((todo) => _TodoCard(
-                              todo: todo,
-                              onTap: () => _showEditDialog(todo),
-                              onToggle: (value) {
-                                final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.updateReminder(
-                                  todo.copyWith(isCompleted: value),
-                                );
-                              },
-                              onDelete: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
-                                  context,
-                                  title: 'Delete To-Do',
-                                  message: 'Are you sure you want to delete "${todo.title}"?',
-                                );
-                                if (confirmed == true && context.mounted) {
-                                  final notifier = ref.read(remindersNotifierProvider.notifier);
-                                  notifier.deleteReminder(todo.id);
-                                }
-                              },
-                            )),
+                          todo: todo,
+                          onTap: () => _showEditDialog(todo),
+                          onToggle: (value) {
+                            final notifier = ref.read(remindersNotifierProvider.notifier);
+                            notifier.updateReminder(
+                              todo.copyWith(isCompleted: value),
+                            );
+                          },
+                          onDelete: () async {
+                            final confirmed = await showDeleteConfirmationDialog(
+                              context,
+                              title: 'Delete To-Do',
+                              message: 'Are you sure you want to delete "${todo.title}"?',
+                            );
+                            if (confirmed == true && context.mounted) {
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.deleteReminder(todo.id);
+                            }
+                          },
+                        )),
                       ],
                     );
                   }
@@ -295,9 +296,21 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showEditDialog(null),
-          child: const Icon(Icons.add),
+        floatingActionButton: Consumer(
+          builder: (context, ref, child) {
+            // Watch app settings notifier for immediate updates
+            final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
+            final primaryColor = appSettingsNotifier.hasValue 
+                ? appSettingsNotifier.value!.colorScheme.primaryColor
+                : Theme.of(context).colorScheme.primary;
+            
+            return FloatingActionButton(
+              onPressed: () => _showEditDialog(null),
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+            );
+          },
         ),
       ),
     );
@@ -369,8 +382,11 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Padding(
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
@@ -458,7 +474,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                           ? DateFormat('MMM d, yyyy HH:mm').format(selectedDate!)
                           : 'Not set',
                       style: TextStyle(
-                        color: selectedDate != null ? Colors.black87 : Colors.grey.shade600,
+                        color: selectedDate != null ? Theme.of(context).colorScheme.onSurface : Colors.grey.shade600,
                       ),
                     ),
                     trailing: Row(
@@ -507,8 +523,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                           );
                         },
                       );
-                      if (date != null) {
-                        if (!mounted) return;
+                      if (date != null && context.mounted) {
                         final time = await showTimePicker(
                           context: context,
                           initialTime: selectedTime ?? TimeOfDay.now(),
@@ -526,7 +541,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                             );
                           },
                         );
-                        if (time != null) {
+                        if (time != null && context.mounted) {
                           setState(() {
                             selectedTime = time;
                             selectedDate = DateTime(
@@ -822,9 +837,8 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        // Let theme handle backgroundColor and foregroundColor
                       ),
                       onPressed: () {
                         final text = textController.text.trim();
@@ -895,8 +909,11 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               ),
             ),
           ),
-        ),
-      ),
+        );
+        },
+      );
+    },
+  ),
     );
   }
 }
@@ -1096,8 +1113,8 @@ class _TodoCard extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
         ],
-          ),
-        ),
+      ),
+    ),
       ),
     );
   }

@@ -15,7 +15,7 @@ import 'package:todolio/main.dart';
 import 'package:todolio/services/local_storage_service.dart';
 import 'package:todolio/services/notification_service.dart';
 import 'package:todolio/providers/reminders_provider.dart';
-import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // Mock NotificationService for testing - all methods return immediately
 class MockNotificationService extends NotificationService {

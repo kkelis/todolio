@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_item.dart';
 import '../providers/shopping_lists_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/delete_confirmation_dialog.dart';
@@ -111,9 +112,21 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showCreateDialog(),
-          child: const Icon(Icons.add),
+        floatingActionButton: Consumer(
+          builder: (context, ref, child) {
+            // Watch app settings notifier for immediate updates
+            final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
+            final primaryColor = appSettingsNotifier.hasValue 
+                ? appSettingsNotifier.value!.colorScheme.primaryColor
+                : Theme.of(context).colorScheme.primary;
+            
+            return FloatingActionButton(
+              onPressed: () => _showCreateDialog(),
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+            );
+          },
         ),
       ),
     );
@@ -275,9 +288,8 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      // Let theme handle backgroundColor and foregroundColor
                     ),
                     onPressed: () {
                       if (nameController.text.isEmpty) {
@@ -683,9 +695,21 @@ class _ShoppingListDetailScreenState
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddItemDialog(),
-        child: const Icon(Icons.add),
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) {
+          // Watch app settings notifier for immediate updates
+          final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
+          final primaryColor = appSettingsNotifier.hasValue 
+              ? appSettingsNotifier.value!.colorScheme.primaryColor
+              : Theme.of(context).colorScheme.primary;
+          
+          return FloatingActionButton(
+            onPressed: () => _showAddItemDialog(),
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+          );
+        },
       ),
       ),
     );
@@ -700,12 +724,13 @@ class _ShoppingListDetailScreenState
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) {
-        ShoppingUnit selectedUnit = ShoppingUnit.piece;
-        bool isUnitExpanded = false;
-        
-        return StatefulBuilder(
-          builder: (context, setState) {
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          ShoppingUnit selectedUnit = ShoppingUnit.piece;
+          bool isUnitExpanded = false;
+          
+          return StatefulBuilder(
+            builder: (context, setState) {
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -888,9 +913,8 @@ class _ShoppingListDetailScreenState
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      // Let theme handle backgroundColor and foregroundColor
                     ),
                     onPressed: () {
                       if (nameController.text.isEmpty) {
@@ -930,7 +954,8 @@ class _ShoppingListDetailScreenState
             );
           },
         );
-      },
+        },
+      ),
     );
   }
 
