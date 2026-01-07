@@ -53,16 +53,33 @@ jobs:
       #   run: flutter test
       #   continue-on-error: false
 
+      - name: Extract version from pubspec.yaml
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*//')
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from pubspec.yaml"
+            exit 1
+          fi
+          echo "version_name=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
+
       - name: Build APK
         run: flutter build apk --release
         env:
           FLUTTER_BUILD_MODE: release
 
+      - name: Rename APK with version
+        run: |
+          VERSION="${{ steps.version.outputs.version_name }}"
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/todolio-v${VERSION}.apk
+          echo "✅ Renamed APK to todolio-v${VERSION}.apk"
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: todolio-v${{ steps.version.outputs.version_name }}-apk
+          path: build/app/outputs/flutter-apk/todolio-v${{ steps.version.outputs.version_name }}.apk
           retention-days: 30
 
       - name: Upload build logs

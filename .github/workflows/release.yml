@@ -100,6 +100,12 @@ jobs:
         env:
           FLUTTER_BUILD_MODE: release
 
+      - name: Rename APK with version
+        run: |
+          VERSION="${{ steps.version.outputs.version_name }}"
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/todolio-v${VERSION}.apk
+          echo "✅ Renamed APK to todolio-v${VERSION}.apk"
+
       - name: Generate release notes
         id: release_notes
         if: ${{ inputs.release_notes == '' }}
@@ -139,7 +145,7 @@ jobs:
             **Build Number**: ${{ steps.version.outputs.build_number }}
             **Flutter**: $(flutter --version | head -n 1)
           files: |
-            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/todolio-v${{ steps.version.outputs.version_name }}.apk
           prerelease: ${{ inputs.prerelease }}
           draft: false
           generate_release_notes: false
