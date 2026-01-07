@@ -177,24 +177,58 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                         ),
                       ),
                     ),
-                    child: NavigationBar(
-                      backgroundColor: Colors.transparent,
-                      indicatorColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                      elevation: 0,
-                      height: 70,
-                      selectedIndex: _currentIndex.clamp(0, destinations.length - 1),
-                      onDestinationSelected: (index) {
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                        _pageController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
+                    height: 70,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(destinations.length, (index) {
+                        final destination = destinations[index];
+                        final isSelected = index == _currentIndex.clamp(0, destinations.length - 1);
+                        final iconWidget = isSelected 
+                            ? destination.selectedIcon
+                            : destination.icon;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _currentIndex = index;
+                              });
+                              _pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.white : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconTheme(
+                                    data: IconThemeData(
+                                      color: isSelected ? Colors.black : Colors.white,
+                                      size: 24,
+                                    ),
+                                    child: iconWidget ?? const SizedBox(),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    destination.label,
+                                    style: TextStyle(
+                                      color: isSelected ? Colors.black : Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         );
-                      },
-                      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-                      destinations: destinations,
+                      }),
                     ),
                   ),
         drawer: Drawer(
