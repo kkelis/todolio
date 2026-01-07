@@ -106,16 +106,15 @@ jobs:
         run: |
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -z "$PREVIOUS_TAG" ]; then
-            echo "notes=## What's Changed" > $GITHUB_OUTPUT
-            echo "" >> $GITHUB_OUTPUT
-            echo "Initial release 🎉" >> $GITHUB_OUTPUT
+            NOTES="## What's Changed"$'\n\n'"Initial release 🎉"
           else
-            echo "notes=## What's Changed" > $GITHUB_OUTPUT
-            echo "" >> $GITHUB_OUTPUT
-            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges >> $GITHUB_OUTPUT || true
-            echo "" >> $GITHUB_OUTPUT
-            echo "**Full Changelog**: ${PREVIOUS_TAG}...${{ steps.version.outputs.tag }}" >> $GITHUB_OUTPUT
+            NOTES="## What's Changed"$'\n\n'"$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges || true)"$'\n\n'"**Full Changelog**: ${PREVIOUS_TAG}...${{ steps.version.outputs.tag }}"
           fi
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Create Git Tag
         if: steps.check_tag.outputs.exists == 'false'
