@@ -66,7 +66,7 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 ## 📱 Platform Support
 
 - ✅ Android
-- ✅ iOS
+- ❌ iOS (not currently supported, may be added in the future)
 
 ## 🏗️ Architecture
 
