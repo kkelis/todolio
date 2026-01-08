@@ -47,6 +47,7 @@ Future<void> showUndoDeletionSnackBar(
     backgroundColor: Colors.white,
     duration: duration,
     behavior: SnackBarBehavior.floating,
+    dismissDirection: DismissDirection.horizontal,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8),
     ),
