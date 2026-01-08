@@ -522,6 +522,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         initialDate: selectedDate ?? DateTime.now(),
                         firstDate: DateTime.now(),
                         lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                        locale: const Locale('en', 'GB'), // Week starts on Monday
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(

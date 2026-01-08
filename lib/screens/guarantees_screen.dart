@@ -242,6 +242,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                         initialDate: purchaseDate,
                         firstDate: DateTime(2000),
                         lastDate: DateTime.now(),
+                        locale: const Locale('en', 'GB'), // Week starts on Monday
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
@@ -287,6 +288,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                         initialDate: expiryDate,
                         firstDate: DateTime.now(),
                         lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                        locale: const Locale('en', 'GB'), // Week starts on Monday
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
