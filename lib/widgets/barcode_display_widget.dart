@@ -32,20 +32,35 @@ class BarcodeDisplayWidget extends StatelessWidget {
         height: height,
         color: bgColor,
         padding: const EdgeInsets.all(16),
-        child: QrImageView(
-          data: barcodeNumber,
-          version: QrVersions.auto,
-          size: width != null ? width! - 32 : 200,
-          backgroundColor: bgColor,
-          eyeStyle: QrEyeStyle(
-            eyeShape: QrEyeShape.square,
-            color: fgColor,
-          ),
-          dataModuleStyle: QrDataModuleStyle(
-            dataModuleShape: QrDataModuleShape.square,
-            color: fgColor,
-          ),
-          errorCorrectionLevel: QrErrorCorrectLevel.M,
+        alignment: Alignment.center,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth;
+            final availableHeight = constraints.maxHeight;
+            final qrSize = (availableWidth < availableHeight 
+                ? availableWidth 
+                : availableHeight).clamp(200.0, 300.0);
+            
+            return SizedBox(
+              width: qrSize,
+              height: qrSize,
+              child: QrImageView(
+                data: barcodeNumber,
+                version: QrVersions.auto,
+                size: qrSize,
+                backgroundColor: bgColor,
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: fgColor,
+                ),
+                dataModuleStyle: QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: fgColor,
+                ),
+                errorCorrectionLevel: QrErrorCorrectLevel.M,
+              ),
+            );
+          },
         ),
       );
     }
