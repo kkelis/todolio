@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../models/app_settings.dart';
 import '../models/color_scheme.dart';
 import '../providers/settings_provider.dart';
@@ -171,6 +172,26 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          const SizedBox(height: 32),
+          // Version Info
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final packageInfo = snapshot.data!;
+                return Center(
+                  child: Text(
+                    'v${packageInfo.version}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
