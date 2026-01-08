@@ -114,6 +114,17 @@ class SettingsScreen extends ConsumerWidget {
               settings.copyWith(notesEnabled: value),
             ),
           ),
+          _buildSectionToggle(
+            context,
+            ref,
+            settings,
+            'Loyalty Cards',
+            Icons.card_membership_outlined,
+            settings.loyaltyCardsEnabled,
+            (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+              settings.copyWith(loyaltyCardsEnabled: value),
+            ),
+          ),
           const SizedBox(height: 32),
           // Color Scheme Selection
           Text(
@@ -138,7 +149,8 @@ class SettingsScreen extends ConsumerWidget {
               !settings.todosEnabled &&
               !settings.shoppingEnabled &&
               !settings.guaranteesEnabled &&
-              !settings.notesEnabled)
+              !settings.notesEnabled &&
+              !settings.loyaltyCardsEnabled)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -179,6 +191,7 @@ class SettingsScreen extends ConsumerWidget {
       settings.shoppingEnabled,
       settings.guaranteesEnabled,
       settings.notesEnabled,
+      settings.loyaltyCardsEnabled,
     ].where((e) => e).length;
 
     return Container(

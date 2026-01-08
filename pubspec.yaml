@@ -33,6 +33,11 @@ dependencies:
   timezone: ^0.10.1
   path: ^1.9.1
 
+  # Barcode & QR Code
+  barcode_widget: ^2.0.2
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
+
   # UI
   cupertino_icons: ^1.0.8
 
