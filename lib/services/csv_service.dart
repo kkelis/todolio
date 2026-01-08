@@ -145,7 +145,7 @@ class CsvService {
           final name = fields[0].trim();
           if (name.isEmpty) continue;
 
-          final quantity = int.tryParse(fields[1].trim()) ?? 1;
+          final quantity = double.tryParse(fields[1].trim()) ?? 1.0;
           
           // Parse unit (if present) or default to piece
           ShoppingUnit unit = ShoppingUnit.piece;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_item.dart';
@@ -646,7 +647,7 @@ class _ShoppingListDetailScreenState
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Quantity: ${item.quantity} ${item.unit.displayName}',
+                                  'Quantity: ${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: item.isCompleted
                                         ? Colors.white.withValues(alpha: 0.9)
@@ -810,7 +811,10 @@ class _ShoppingListDetailScreenState
                 TextField(
                   controller: quantityController,
                   style: const TextStyle(color: Colors.black87),
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Quantity',
                     labelStyle: TextStyle(color: Colors.grey.shade700),
@@ -940,7 +944,7 @@ class _ShoppingListDetailScreenState
                       final newItem = ShoppingItem(
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
                         name: nameController.text,
-                        quantity: int.tryParse(quantityController.text) ?? 1,
+                        quantity: double.tryParse(quantityController.text) ?? 1.0,
                         unit: selectedUnit,
                         addedBy: 'local',
                       );
@@ -974,7 +978,11 @@ class _ShoppingListDetailScreenState
 
   void _showEditItemDialog(ShoppingItem item) {
     final nameController = TextEditingController(text: item.name);
-    final quantityController = TextEditingController(text: item.quantity.toString());
+    // Format quantity: show as integer if whole number, otherwise up to 2 decimal places
+    final quantityText = item.quantity.truncateToDouble() == item.quantity
+        ? item.quantity.toInt().toString()
+        : item.quantity.toStringAsFixed(2);
+    final quantityController = TextEditingController(text: quantityText);
     ShoppingUnit selectedUnit = item.unit;
     bool isUnitExpanded = false;
 
@@ -1052,7 +1060,10 @@ class _ShoppingListDetailScreenState
                       TextField(
                         controller: quantityController,
                         style: const TextStyle(color: Colors.black87),
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                        ],
                         decoration: InputDecoration(
                           labelText: 'Quantity',
                           labelStyle: TextStyle(color: Colors.grey.shade700),
@@ -1182,7 +1193,7 @@ class _ShoppingListDetailScreenState
 
                             final updatedItem = item.copyWith(
                               name: nameController.text,
-                              quantity: int.tryParse(quantityController.text) ?? 1,
+                              quantity: double.tryParse(quantityController.text) ?? 1.0,
                               unit: selectedUnit,
                             );
 
