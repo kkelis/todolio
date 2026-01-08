@@ -1,13 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import '../models/loyalty_card.dart' as loyalty_card;
 import '../models/loyalty_card.dart';
 import '../providers/loyalty_cards_provider.dart';
 import '../providers/settings_provider.dart';
-import '../services/local_image_service.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
 import '../widgets/glassmorphic_card.dart';
@@ -24,8 +21,6 @@ class LoyaltyCardsScreen extends ConsumerStatefulWidget {
 }
 
 class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
-  final _imageService = LocalImageService();
-
   @override
   Widget build(BuildContext context) {
     final cardsAsync = ref.watch(loyaltyCardsProvider);
@@ -187,14 +182,6 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                 ),
               ),
             ),
-            if (card.notes != null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  card.notes!,
-                  style: const TextStyle(color: Colors.black87),
-                ),
-              ),
             const SizedBox(height: 16),
           ],
         ),
@@ -205,9 +192,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
   void _showEditDialog(LoyaltyCard? card) async {
     final cardNameController = TextEditingController(text: card?.cardName ?? '');
     final barcodeNumberController = TextEditingController(text: card?.barcodeNumber ?? '');
-    final notesController = TextEditingController(text: card?.notes ?? '');
     loyalty_card.BarcodeType barcodeType = card?.barcodeType ?? loyalty_card.BarcodeType.ean13;
-    String? cardImagePath = card?.cardImagePath;
 
     showModalBottomSheet(
       context: context,
@@ -370,60 +355,6 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                             );
                           },
                         ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          ),
-                          onPressed: () async {
-                            final image = await ImagePicker().pickImage(
-                              source: ImageSource.camera,
-                            );
-                            if (image != null) {
-                              final fileName = await _imageService.generateFileName('loyalty_card');
-                              final path = await _imageService.saveImage(
-                                File(image.path),
-                                fileName,
-                              );
-                              setState(() => cardImagePath = path);
-                            }
-                          },
-                          icon: const Icon(Icons.camera_alt),
-                          label: const Text('Capture Card Photo'),
-                        ),
-                        if (cardImagePath != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              'Card photo captured',
-                              style: TextStyle(color: Colors.green[700]),
-                            ),
-                          ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: notesController,
-                          style: const TextStyle(color: Colors.black87),
-                          decoration: InputDecoration(
-                            labelText: 'Notes (optional)',
-                            labelStyle: TextStyle(color: Colors.grey.shade700),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 2,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.all(16),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                          maxLines: 3,
-                        ),
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -447,8 +378,8 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 cardName: cardNameController.text,
                                 barcodeNumber: barcodeNumberController.text,
                                 barcodeType: barcodeType,
-                                cardImagePath: cardImagePath,
-                                notes: notesController.text.isEmpty ? null : notesController.text,
+                                cardImagePath: null,
+                                notes: null,
                                 createdAt: card?.createdAt ?? DateTime.now(),
                               );
 
