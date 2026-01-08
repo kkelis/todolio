@@ -6,7 +6,7 @@ import '../providers/todos_provider.dart';
 import '../providers/reminders_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/delete_confirmation_dialog.dart';
+import '../utils/undo_deletion_helper.dart';
 import 'settings_screen.dart';
 
 class TodosScreen extends ConsumerStatefulWidget {
@@ -168,15 +168,18 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                             );
                           },
                           onDelete: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
+                            if (!context.mounted) return;
+                            final todoCopy = todo;
+                            final notifier = ref.read(remindersNotifierProvider.notifier);
+                            notifier.deleteReminder(todo.id);
+                            showUndoDeletionSnackBar(
                               context,
-                              title: 'Delete To-Do',
-                              message: 'Are you sure you want to delete "${todo.title}"?',
+                              itemName: todo.title,
+                              onUndo: () {
+                                // Restore the todo
+                                notifier.createReminder(todoCopy);
+                              },
                             );
-                            if (confirmed == true && context.mounted) {
-                              final notifier = ref.read(remindersNotifierProvider.notifier);
-                              notifier.deleteReminder(todo.id);
-                            }
                           },
                         )),
                       ],
@@ -222,16 +225,19 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                                   todo.copyWith(isCompleted: value),
                                 );
                               },
-                              onDelete: () async {
-                                final confirmed = await showDeleteConfirmationDialog(
+                              onDelete: () {
+                                if (!context.mounted) return;
+                                final todoCopy = todo;
+                                final notifier = ref.read(remindersNotifierProvider.notifier);
+                                notifier.deleteReminder(todo.id);
+                                showUndoDeletionSnackBar(
                                   context,
-                                  title: 'Delete To-Do',
-                                  message: 'Are you sure you want to delete "${todo.title}"?',
+                                  itemName: todo.title,
+                                  onUndo: () {
+                                    // Restore the todo
+                                    notifier.createReminder(todoCopy);
+                                  },
                                 );
-                                if (confirmed == true && context.mounted) {
-                                  final notifier = ref.read(remindersNotifierProvider.notifier);
-                                  notifier.deleteReminder(todo.id);
-                                }
                               },
                             )),
                       ],
@@ -264,16 +270,19 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                                 todo.copyWith(isCompleted: value),
                               );
                             },
-                            onDelete: () async {
-                              final confirmed = await showDeleteConfirmationDialog(
+                            onDelete: () {
+                              if (!context.mounted) return;
+                              final todoCopy = todo;
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.deleteReminder(todo.id);
+                              showUndoDeletionSnackBar(
                                 context,
-                                title: 'Delete To-Do',
-                                message: 'Are you sure you want to delete "${todo.title}"?',
+                                itemName: todo.title,
+                                onUndo: () {
+                                  // Restore the todo
+                                  notifier.createReminder(todoCopy);
+                                },
                               );
-                              if (confirmed == true && context.mounted) {
-                                final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.deleteReminder(todo.id);
-                              }
                             },
                           )),
                     ],
@@ -509,6 +518,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         initialDate: selectedDate ?? DateTime.now(),
                         firstDate: DateTime.now(),
                         lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                        locale: const Locale('en', 'GB'), // Week starts on Monday
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(

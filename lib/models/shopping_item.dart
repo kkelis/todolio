@@ -41,7 +41,7 @@ extension ShoppingUnitExtension on ShoppingUnit {
 class ShoppingItem {
   final String id;
   final String name;
-  final int quantity;
+  final double quantity;
   final ShoppingUnit unit;
   final bool isCompleted;
   final String addedBy;
@@ -49,7 +49,7 @@ class ShoppingItem {
   ShoppingItem({
     required this.id,
     required this.name,
-    this.quantity = 1,
+    this.quantity = 1.0,
     this.unit = ShoppingUnit.piece,
     this.isCompleted = false,
     required this.addedBy,
@@ -67,10 +67,18 @@ class ShoppingItem {
   }
 
   factory ShoppingItem.fromMap(Map<String, dynamic> map) {
+    // Handle both int and double for backward compatibility
+    final quantityValue = map['quantity'];
+    final quantity = quantityValue is double
+        ? quantityValue
+        : quantityValue is int
+            ? quantityValue.toDouble()
+            : (double.tryParse(quantityValue.toString()) ?? 1.0);
+    
     return ShoppingItem(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
-      quantity: map['quantity'] ?? 1,
+      quantity: quantity,
       unit: map['unit'] != null
           ? ShoppingUnit.values.firstWhere(
               (e) => e.name == map['unit'],
@@ -85,7 +93,7 @@ class ShoppingItem {
   ShoppingItem copyWith({
     String? id,
     String? name,
-    int? quantity,
+    double? quantity,
     ShoppingUnit? unit,
     bool? isCompleted,
     String? addedBy,
