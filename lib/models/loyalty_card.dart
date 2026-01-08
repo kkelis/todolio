@@ -56,6 +56,7 @@ class LoyaltyCard {
   final String? cardImagePath;
   final String? notes;
   final DateTime createdAt;
+  final bool isPinned;
 
   LoyaltyCard({
     required this.id,
@@ -65,6 +66,7 @@ class LoyaltyCard {
     this.cardImagePath,
     this.notes,
     required this.createdAt,
+    this.isPinned = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -76,6 +78,7 @@ class LoyaltyCard {
       'cardImagePath': cardImagePath,
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
+      'isPinned': isPinned,
     };
   }
 
@@ -92,6 +95,7 @@ class LoyaltyCard {
       createdAt: map['createdAt'] is String
           ? DateTime.parse(map['createdAt'])
           : (map['createdAt'] as DateTime? ?? DateTime.now()),
+      isPinned: map['isPinned'] ?? false,
     );
   }
 
@@ -103,6 +107,7 @@ class LoyaltyCard {
     String? cardImagePath,
     String? notes,
     DateTime? createdAt,
+    bool? isPinned,
   }) {
     return LoyaltyCard(
       id: id ?? this.id,
@@ -112,6 +117,7 @@ class LoyaltyCard {
       cardImagePath: cardImagePath ?? this.cardImagePath,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
+      isPinned: isPinned ?? this.isPinned,
     );
   }
 }

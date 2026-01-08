@@ -21,6 +21,15 @@ class LoyaltyCardsScreen extends ConsumerStatefulWidget {
 }
 
 class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cardsAsync = ref.watch(loyaltyCardsProvider);
@@ -44,74 +53,119 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                 ),
               )
             : null,
-        body: cardsAsync.when(
-          data: (cards) {
-            if (cards.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.card_membership_outlined,
-                      size: 80,
-                      color: Colors.white.withValues(alpha: 0.3),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'No loyalty cards',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.6),
-                          ),
-                    ),
-                  ],
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search loyalty cards...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _searchQuery = '';
+                              _searchController.clear();
+                            });
+                          },
+                        )
+                      : null,
                 ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(loyaltyCardsProvider);
-              },
-              color: Theme.of(context).colorScheme.primary,
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: cards.length,
-                itemBuilder: (context, index) {
-                  final card = cards[index];
-                  return _LoyaltyCardCard(
-                    card: card,
-                    onTap: () => _showBarcodeDisplay(card),
-                    onDelete: () async {
-                      if (!context.mounted) return;
-                      final cardCopy = card;
-                      final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
-                      notifier.deleteLoyaltyCard(card.id);
-                      showUndoDeletionSnackBar(
-                        context,
-                        itemName: card.cardName,
-                        onUndo: () {
-                          notifier.createLoyaltyCard(cardCopy);
-                        },
-                      );
-                    },
-                  );
+                onChanged: (value) {
+                  setState(() => _searchQuery = value.toLowerCase());
                 },
               ),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Error: $error'),
-                ElevatedButton(
-                  onPressed: () => ref.invalidate(loyaltyCardsProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
             ),
-          ),
+            Expanded(
+              child: cardsAsync.when(
+                data: (cards) {
+                  // Filter by search query
+                  var filteredCards = cards.where((card) {
+                    return _searchQuery.isEmpty ||
+                        card.cardName.toLowerCase().contains(_searchQuery) ||
+                        card.barcodeNumber.toLowerCase().contains(_searchQuery);
+                  }).toList();
+
+                  // Sort: pinned first, then alphabetical by card name
+                  filteredCards.sort((a, b) {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    return a.cardName.toLowerCase().compareTo(b.cardName.toLowerCase());
+                  });
+
+                  if (filteredCards.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.card_membership_outlined,
+                            size: 80,
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            _searchQuery.isEmpty ? 'No loyalty cards' : 'No cards found',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(loyaltyCardsProvider);
+                    },
+                    color: Theme.of(context).colorScheme.primary,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: filteredCards.length,
+                      itemBuilder: (context, index) {
+                        final card = filteredCards[index];
+                        return _LoyaltyCardCard(
+                          card: card,
+                          onTap: () => _showBarcodeDisplay(card),
+                          onEdit: () => _showEditDialog(card),
+                          onDelete: () async {
+                            if (!context.mounted) return;
+                            final cardCopy = card;
+                            final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+                            notifier.deleteLoyaltyCard(card.id);
+                            showUndoDeletionSnackBar(
+                              context,
+                              itemName: card.cardName,
+                              onUndo: () {
+                                notifier.createLoyaltyCard(cardCopy);
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Error: $error'),
+                      ElevatedButton(
+                        onPressed: () => ref.invalidate(loyaltyCardsProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         floatingActionButton: Consumer(
           builder: (context, ref, child) {
@@ -193,6 +247,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     final cardNameController = TextEditingController(text: card?.cardName ?? '');
     final barcodeNumberController = TextEditingController(text: card?.barcodeNumber ?? '');
     loyalty_card.BarcodeType barcodeType = card?.barcodeType ?? loyalty_card.BarcodeType.ean13;
+    bool isPinned = card?.isPinned ?? false;
 
     showModalBottomSheet(
       context: context,
@@ -355,6 +410,28 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                             );
                           },
                         ),
+                        const SizedBox(height: 16),
+                        ListTile(
+                          title: Text(
+                            'Pinned',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          trailing: Switch(
+                            value: isPinned,
+                            onChanged: (value) => setState(() => isPinned = value),
+                            activeTrackColor: Theme.of(context).colorScheme.primary,
+                            activeThumbColor: Colors.white,
+                            inactiveTrackColor: Colors.grey.shade300,
+                            inactiveThumbColor: Colors.white,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -381,6 +458,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 cardImagePath: null,
                                 notes: null,
                                 createdAt: card?.createdAt ?? DateTime.now(),
+                                isPinned: isPinned,
                               );
 
                               final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
@@ -482,11 +560,13 @@ class _LoyaltyCardCard extends StatelessWidget {
   final LoyaltyCard card;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
   const _LoyaltyCardCard({
     required this.card,
     required this.onTap,
     required this.onDelete,
+    required this.onEdit,
   });
 
   @override
@@ -517,7 +597,7 @@ class _LoyaltyCardCard extends StatelessWidget {
               ),
             ),
             child: Icon(
-              Icons.card_membership,
+              card.isPinned ? Icons.push_pin : Icons.card_membership,
               color: theme.colorScheme.primary.withValues(alpha: 1.0),
               size: 22,
             ),
@@ -558,15 +638,33 @@ class _LoyaltyCardCard extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(
-              Icons.delete_outline,
-              size: 22,
-              color: Colors.red,
-            ),
-            onPressed: onDelete,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  size: 22,
+                  color: Colors.grey[700],
+                ),
+                onPressed: onEdit,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Edit',
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: 22,
+                  color: Colors.red,
+                ),
+                onPressed: onDelete,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Delete',
+              ),
+            ],
           ),
         ],
       ),
