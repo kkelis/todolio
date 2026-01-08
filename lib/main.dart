@@ -79,12 +79,11 @@ class ToDoLioApp extends ConsumerWidget {
         debugPrint('   Theme ElevatedButton backgroundColor: ${theme.elevatedButtonTheme.style?.backgroundColor}');
         
         return MaterialApp(
-          key: ValueKey('todolio_${settings.colorScheme.name}'), // Force rebuild when color scheme changes
           title: 'ToDoLio',
           theme: theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.light, // Always use light theme with custom color scheme
-          home: MainNavigation(key: ValueKey('navigation_${settings.colorScheme.name}')), // Force navigation rebuild
+          home: const MainNavigation(),
           debugShowCheckedModeBanner: false,
         );
       },
