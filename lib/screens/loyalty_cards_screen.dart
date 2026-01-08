@@ -367,50 +367,6 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        FormField<loyalty_card.BarcodeType>(
-                          initialValue: barcodeType,
-                          builder: (field) {
-                            return InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'Barcode Type',
-                                labelStyle: TextStyle(color: Colors.grey.shade700),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                ),
-                                contentPadding: const EdgeInsets.all(16),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<loyalty_card.BarcodeType>(
-                                  value: barcodeType,
-                                  isDense: true,
-                                  items: loyalty_card.BarcodeType.values.map((type) {
-                                    return DropdownMenuItem(
-                                      value: type,
-                                      child: Text(type.displayName),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setState(() => barcodeType = value);
-                                    }
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
                         ListTile(
                           title: Text(
                             'Pinned',
