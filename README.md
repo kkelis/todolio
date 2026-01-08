@@ -1,6 +1,6 @@
 # ToDoLio
 
-A beautiful, modern Flutter app for managing reminders, to-do lists, shopping lists, guarantee tracking, and notes. Built with a local-first architecture - all data is stored on your device with no cloud dependencies.
+A beautiful, modern Flutter app for managing reminders, to-do lists, shopping lists, loyalty cards, guarantee tracking, and notes. Built with a local-first architecture - all data is stored on your device with no cloud dependencies.
 
 ## ✨ Features
 
@@ -17,11 +17,21 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
   - Unit selection (piece, liter, kg, etc.)
   - Quantity and unit tracking
   - CSV export/import for sharing
+  - Unified view with Loyalty Cards in tabs
+- **Loyalty Cards** - Digital wallet for loyalty cards and membership cards
+  - Barcode and QR code support (EAN-13, Code 128, QR Code, UPC-A)
+  - Barcode scanning with camera
+  - Search functionality
+  - Pin cards to top for quick access
+  - Alphabetical sorting with pinned cards first
+  - Edit card details (name, barcode, pin status)
+  - Display barcodes for scanning at checkout
 - **Guarantee Tracking** - Track warranties with photos, expiry dates, and notes
   - Customizable reminder notifications (1, 2, or 3 months before expiry)
   - Local photo storage for warranty and receipt
 - **Notes** - Rich notes with tags, colors, and pinning support
 - **Settings** - Enable/disable app sections to customize your experience
+  - Version information display
 
 ## 🎨 Design
 
@@ -87,6 +97,10 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 - `share_plus` - CSV export/sharing
 - `intl` - Date formatting
 - `timezone` - Timezone support for notifications
+- `barcode_widget` - Barcode generation and display
+- `qr_flutter` - QR code generation
+- `mobile_scanner` - Barcode and QR code scanning
+- `package_info_plus` - App version information
 
 ## 🔒 Privacy
 
