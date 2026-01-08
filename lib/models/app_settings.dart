@@ -6,6 +6,7 @@ class AppSettings {
   final bool shoppingEnabled;
   final bool guaranteesEnabled;
   final bool notesEnabled;
+  final bool loyaltyCardsEnabled;
   final AppColorScheme colorScheme;
 
   AppSettings({
@@ -14,6 +15,7 @@ class AppSettings {
     this.shoppingEnabled = true,
     this.guaranteesEnabled = true,
     this.notesEnabled = true,
+    this.loyaltyCardsEnabled = true,
     this.colorScheme = AppColorScheme.blue,
   });
 
@@ -24,6 +26,7 @@ class AppSettings {
       'shoppingEnabled': shoppingEnabled,
       'guaranteesEnabled': guaranteesEnabled,
       'notesEnabled': notesEnabled,
+      'loyaltyCardsEnabled': loyaltyCardsEnabled,
       'colorScheme': colorScheme.toJson(),
     };
   }
@@ -35,6 +38,7 @@ class AppSettings {
       shoppingEnabled: map['shoppingEnabled'] ?? true,
       guaranteesEnabled: map['guaranteesEnabled'] ?? true,
       notesEnabled: map['notesEnabled'] ?? true,
+      loyaltyCardsEnabled: map['loyaltyCardsEnabled'] ?? true,
       colorScheme: map['colorScheme'] != null
           ? AppColorScheme.fromString(map['colorScheme'])
           : AppColorScheme.blue,
@@ -47,6 +51,7 @@ class AppSettings {
     bool? shoppingEnabled,
     bool? guaranteesEnabled,
     bool? notesEnabled,
+    bool? loyaltyCardsEnabled,
     AppColorScheme? colorScheme,
   }) {
     return AppSettings(
@@ -55,6 +60,7 @@ class AppSettings {
       shoppingEnabled: shoppingEnabled ?? this.shoppingEnabled,
       guaranteesEnabled: guaranteesEnabled ?? this.guaranteesEnabled,
       notesEnabled: notesEnabled ?? this.notesEnabled,
+      loyaltyCardsEnabled: loyaltyCardsEnabled ?? this.loyaltyCardsEnabled,
       colorScheme: colorScheme ?? this.colorScheme,
     );
   }
@@ -68,6 +74,7 @@ class AppSettings {
     if (shoppingEnabled) indices.add(index++);
     if (guaranteesEnabled) indices.add(index++);
     if (notesEnabled) indices.add(index++);
+    if (loyaltyCardsEnabled) indices.add(index++);
     return indices;
   }
 

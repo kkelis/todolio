@@ -9,6 +9,7 @@ class LocalStorageService {
   static const String shoppingListsBox = 'shoppingLists';
   static const String guaranteesBox = 'guarantees';
   static const String notesBox = 'notes';
+  static const String loyaltyCardsBox = 'loyaltyCards';
   static const String settingsBox = 'appSettings';
 
   // Stream controllers for real-time updates
@@ -17,6 +18,7 @@ class LocalStorageService {
   final _shoppingListsController = StreamController<List<ShoppingList>>.broadcast();
   final _guaranteesController = StreamController<List<Guarantee>>.broadcast();
   final _notesController = StreamController<List<Note>>.broadcast();
+  final _loyaltyCardsController = StreamController<List<LoyaltyCard>>.broadcast();
   
   bool _initialized = false;
   
@@ -27,6 +29,7 @@ class LocalStorageService {
     _shoppingListsController.add([]);
     _guaranteesController.add([]);
     _notesController.add([]);
+    _loyaltyCardsController.add([]);
   }
 
   Future<void> init() async {
@@ -38,6 +41,7 @@ class LocalStorageService {
     final shoppingListsBoxInstance = await Hive.openBox(shoppingListsBox);
     final guaranteesBoxInstance = await Hive.openBox(guaranteesBox);
     final notesBoxInstance = await Hive.openBox(notesBox);
+    final loyaltyCardsBoxInstance = await Hive.openBox(loyaltyCardsBox);
     
     // Migrate todos to reminders (one-time migration)
     await _migrateTodosToReminders(remindersBoxInstance, todosBoxInstance);
@@ -49,6 +53,7 @@ class LocalStorageService {
     _shoppingListsController.add(_getShoppingListsFromBox(shoppingListsBoxInstance));
     _guaranteesController.add(_getGuaranteesFromBox(guaranteesBoxInstance));
     _notesController.add(_getNotesFromBox(notesBoxInstance));
+    _loyaltyCardsController.add(_getLoyaltyCardsFromBox(loyaltyCardsBoxInstance));
     
     _initialized = true;
   }
@@ -389,12 +394,66 @@ class LocalStorageService {
     _notesController.add(_getNotesFromBox(box));
   }
 
+  // Loyalty Cards
+  Stream<List<LoyaltyCard>> getLoyaltyCards() async* {
+    try {
+      final box = Hive.box(loyaltyCardsBox);
+      yield _getLoyaltyCardsFromBox(box);
+    } catch (_) {
+      yield <LoyaltyCard>[];
+    }
+    yield* _loyaltyCardsController.stream;
+  }
+
+  Future<void> createLoyaltyCard(LoyaltyCard card) async {
+    final box = await Hive.openBox(loyaltyCardsBox);
+    final cards = _getLoyaltyCardsFromBox(box);
+    cards.add(card);
+    await box.put('loyaltyCards', cards.map((c) => c.toMap()).toList());
+    _emitLoyaltyCards();
+  }
+
+  Future<void> updateLoyaltyCard(LoyaltyCard card) async {
+    final box = await Hive.openBox(loyaltyCardsBox);
+    final cards = _getLoyaltyCardsFromBox(box);
+    final index = cards.indexWhere((c) => c.id == card.id);
+    if (index != -1) {
+      cards[index] = card;
+      await box.put('loyaltyCards', cards.map((c) => c.toMap()).toList());
+      _emitLoyaltyCards();
+    }
+  }
+
+  Future<void> deleteLoyaltyCard(String id) async {
+    final box = await Hive.openBox(loyaltyCardsBox);
+    final cards = _getLoyaltyCardsFromBox(box);
+    cards.removeWhere((c) => c.id == id);
+    await box.put('loyaltyCards', cards.map((c) => c.toMap()).toList());
+    _emitLoyaltyCards();
+  }
+
+  List<LoyaltyCard> _getLoyaltyCardsFromBox(Box box) {
+    final data = box.get('loyaltyCards') as List<dynamic>?;
+    if (data != null) {
+      return data
+          .map((map) => LoyaltyCard.fromMap(Map<String, dynamic>.from(map)))
+          .toList();
+    }
+    return [];
+  }
+
+  void _emitLoyaltyCards() {
+    final box = Hive.box(loyaltyCardsBox);
+    _loyaltyCardsController.add(_getLoyaltyCardsFromBox(box));
+  }
+
   Future<void> clearAllData() async {
     await Hive.deleteBoxFromDisk(remindersBox);
     await Hive.deleteBoxFromDisk(todosBox);
     await Hive.deleteBoxFromDisk(shoppingListsBox);
     await Hive.deleteBoxFromDisk(guaranteesBox);
     await Hive.deleteBoxFromDisk(notesBox);
+    await Hive.deleteBoxFromDisk(loyaltyCardsBox);
     
     // Re-open boxes
     await Hive.openBox(remindersBox);
@@ -402,6 +461,7 @@ class LocalStorageService {
     await Hive.openBox(shoppingListsBox);
     await Hive.openBox(guaranteesBox);
     await Hive.openBox(notesBox);
+    await Hive.openBox(loyaltyCardsBox);
     
     // Emit empty lists
     _remindersController.add([]);
@@ -409,6 +469,7 @@ class LocalStorageService {
     _shoppingListsController.add([]);
     _guaranteesController.add([]);
     _notesController.add([]);
+    _loyaltyCardsController.add([]);
   }
 
   // App Settings
@@ -432,5 +493,6 @@ class LocalStorageService {
     _shoppingListsController.close();
     _guaranteesController.close();
     _notesController.close();
+    _loyaltyCardsController.close();
   }
 }
