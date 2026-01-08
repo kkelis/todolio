@@ -6,7 +6,7 @@ import '../providers/shopping_lists_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/glassmorphic_card.dart';
-import '../widgets/delete_confirmation_dialog.dart';
+import '../utils/undo_deletion_helper.dart';
 import 'settings_screen.dart';
 
 class ShoppingListsScreen extends ConsumerStatefulWidget {
@@ -82,15 +82,18 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
                     list: list,
                     onTap: () => _navigateToDetail(list),
                     onDelete: () async {
-                      final confirmed = await showDeleteConfirmationDialog(
+                      if (!context.mounted) return;
+                      final listCopy = list;
+                      final notifier = ref.read(shoppingListsNotifierProvider.notifier);
+                      notifier.deleteShoppingList(list.id);
+                      showUndoDeletionSnackBar(
                         context,
-                        title: 'Delete Shopping List',
-                        message: 'Are you sure you want to delete "${list.name}"?',
+                        itemName: list.name,
+                        onUndo: () {
+                          // Restore the shopping list
+                          notifier.createShoppingList(listCopy);
+                        },
                       );
-                      if (confirmed == true && context.mounted) {
-                        final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-                        notifier.deleteShoppingList(list.id);
-                      }
                     },
                     onExport: () => _exportShoppingList(list),
                   );
@@ -665,23 +668,33 @@ class _ShoppingListDetailScreenState
                           color: Colors.red,
                         ),
                         onPressed: () async {
-                          final confirmed = await showDeleteConfirmationDialog(
+                          if (!context.mounted) return;
+                          final itemCopy = item;
+                          final listBeforeDelete = _currentList;
+                          final updatedItems = _currentList.items
+                              .where((i) => i.id != item.id)
+                              .toList();
+
+                          setState(() {
+                            _currentList = _currentList.copyWith(items: updatedItems);
+                          });
+
+                          final notifier = ref.read(shoppingListsNotifierProvider.notifier);
+                          notifier.updateShoppingList(_currentList);
+                          
+                          showUndoDeletionSnackBar(
                             context,
-                            title: 'Delete Item',
-                            message: 'Are you sure you want to delete "${item.name}"?',
+                            itemName: item.name,
+                            onUndo: () {
+                              // Restore the item
+                              final restoredItems = [..._currentList.items, itemCopy];
+                              final restoredList = listBeforeDelete.copyWith(items: restoredItems);
+                              setState(() {
+                                _currentList = restoredList;
+                              });
+                              notifier.updateShoppingList(restoredList);
+                            },
                           );
-                          if (confirmed == true && context.mounted) {
-                            final updatedItems = _currentList.items
-                                .where((i) => i.id != item.id)
-                                .toList();
-
-                            setState(() {
-                              _currentList = _currentList.copyWith(items: updatedItems);
-                            });
-
-                            final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-                            notifier.updateShoppingList(_currentList);
-                          }
                         },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),

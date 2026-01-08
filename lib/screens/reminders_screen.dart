@@ -5,7 +5,7 @@ import '../models/reminder.dart';
 import '../providers/reminders_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/delete_confirmation_dialog.dart';
+import '../utils/undo_deletion_helper.dart';
 import 'settings_screen.dart';
 
 class RemindersScreen extends ConsumerStatefulWidget {
@@ -172,16 +172,19 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                                 reminder.copyWith(isCompleted: value),
                               );
                             },
-                            onDelete: () async {
-                              final confirmed = await showDeleteConfirmationDialog(
+                            onDelete: () {
+                              if (!context.mounted) return;
+                              final reminderCopy = reminder;
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.deleteReminder(reminder.id);
+                              showUndoDeletionSnackBar(
                                 context,
-                                title: 'Delete Reminder',
-                                message: 'Are you sure you want to delete "${reminder.title}"?',
+                                itemName: reminder.title,
+                                onUndo: () {
+                                  // Restore the reminder
+                                  notifier.createReminder(reminderCopy);
+                                },
                               );
-                              if (confirmed == true && context.mounted) {
-                                final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.deleteReminder(reminder.id);
-                              }
                             },
                           )),
                     ],
@@ -214,16 +217,19 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                                 reminder.copyWith(isCompleted: value),
                               );
                             },
-                            onDelete: () async {
-                              final confirmed = await showDeleteConfirmationDialog(
+                            onDelete: () {
+                              if (!context.mounted) return;
+                              final reminderCopy = reminder;
+                              final notifier = ref.read(remindersNotifierProvider.notifier);
+                              notifier.deleteReminder(reminder.id);
+                              showUndoDeletionSnackBar(
                                 context,
-                                title: 'Delete Reminder',
-                                message: 'Are you sure you want to delete "${reminder.title}"?',
+                                itemName: reminder.title,
+                                onUndo: () {
+                                  // Restore the reminder
+                                  notifier.createReminder(reminderCopy);
+                                },
                               );
-                              if (confirmed == true && context.mounted) {
-                                final notifier = ref.read(remindersNotifierProvider.notifier);
-                                notifier.deleteReminder(reminder.id);
-                              }
                             },
                           )),
                     ],
@@ -253,16 +259,19 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                               reminder.copyWith(isCompleted: value),
                             );
                           },
-                          onDelete: () async {
-                            final confirmed = await showDeleteConfirmationDialog(
+                          onDelete: () {
+                            if (!context.mounted) return;
+                            final reminderCopy = reminder;
+                            final notifier = ref.read(remindersNotifierProvider.notifier);
+                            notifier.deleteReminder(reminder.id);
+                            showUndoDeletionSnackBar(
                               context,
-                              title: 'Delete Reminder',
-                              message: 'Are you sure you want to delete "${reminder.title}"?',
+                              itemName: reminder.title,
+                              onUndo: () {
+                                // Restore the reminder
+                                notifier.createReminder(reminderCopy);
+                              },
                             );
-                            if (confirmed == true && context.mounted) {
-                              final notifier = ref.read(remindersNotifierProvider.notifier);
-                              notifier.deleteReminder(reminder.id);
-                            }
                           },
                         )),
                   ],

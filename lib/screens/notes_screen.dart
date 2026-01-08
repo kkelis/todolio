@@ -6,7 +6,7 @@ import '../providers/notes_provider.dart';
 import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/delete_confirmation_dialog.dart';
+import '../utils/undo_deletion_helper.dart';
 import 'settings_screen.dart';
 
 class NotesScreen extends ConsumerStatefulWidget {
@@ -181,16 +181,19 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                                     note: note,
                                     onTap: () => _showEditDialog(note),
                                     onDelete: () async {
-                                      final confirmed = await showDeleteConfirmationDialog(
+                                      if (!context.mounted) return;
+                                      final noteCopy = note;
+                                      final notifier =
+                                          ref.read(notesNotifierProvider.notifier);
+                                      notifier.deleteNote(note.id);
+                                      showUndoDeletionSnackBar(
                                         context,
-                                        title: 'Delete Note',
-                                        message: 'Are you sure you want to delete "${note.title}"?',
+                                        itemName: note.title,
+                                        onUndo: () {
+                                          // Restore the note
+                                          notifier.createNote(noteCopy);
+                                        },
                                       );
-                                      if (confirmed == true && context.mounted) {
-                                        final notifier =
-                                            ref.read(notesNotifierProvider.notifier);
-                                        notifier.deleteNote(note.id);
-                                      }
                                     },
                                   );
                                 },
@@ -204,16 +207,19 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                                     note: note,
                                     onTap: () => _showEditDialog(note),
                                     onDelete: () async {
-                                      final confirmed = await showDeleteConfirmationDialog(
+                                      if (!context.mounted) return;
+                                      final noteCopy = note;
+                                      final notifier =
+                                          ref.read(notesNotifierProvider.notifier);
+                                      notifier.deleteNote(note.id);
+                                      showUndoDeletionSnackBar(
                                         context,
-                                        title: 'Delete Note',
-                                        message: 'Are you sure you want to delete "${note.title}"?',
+                                        itemName: note.title,
+                                        onUndo: () {
+                                          // Restore the note
+                                          notifier.createNote(noteCopy);
+                                        },
                                       );
-                                      if (confirmed == true && context.mounted) {
-                                        final notifier =
-                                            ref.read(notesNotifierProvider.notifier);
-                                        notifier.deleteNote(note.id);
-                                      }
                                     },
                                   );
                                 },

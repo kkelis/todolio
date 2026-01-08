@@ -8,7 +8,7 @@ import '../providers/guarantees_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/local_image_service.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/delete_confirmation_dialog.dart';
+import '../utils/undo_deletion_helper.dart';
 import '../widgets/glassmorphic_card.dart';
 import 'settings_screen.dart';
 
@@ -81,15 +81,18 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   guarantee: guarantee,
                   onTap: () => _showDetailDialog(guarantee),
                   onDelete: () async {
-                    final confirmed = await showDeleteConfirmationDialog(
+                    if (!context.mounted) return;
+                    final guaranteeCopy = guarantee;
+                    final notifier = ref.read(guaranteesNotifierProvider.notifier);
+                    notifier.deleteGuarantee(guarantee.id);
+                    showUndoDeletionSnackBar(
                       context,
-                      title: 'Delete Guarantee',
-                      message: 'Are you sure you want to delete "${guarantee.productName}"?',
+                      itemName: guarantee.productName,
+                      onUndo: () {
+                        // Restore the guarantee
+                        notifier.createGuarantee(guaranteeCopy);
+                      },
                     );
-                    if (confirmed == true && context.mounted) {
-                      final notifier = ref.read(guaranteesNotifierProvider.notifier);
-                      notifier.deleteGuarantee(guarantee.id);
-                    }
                   },
                 );
               },
