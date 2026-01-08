@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'reminders_screen.dart';
 import 'todos_screen.dart';
-import 'shopping_lists_screen.dart';
+import 'shopping_unified_screen.dart';
 import 'guarantees_screen.dart';
 import 'notes_screen.dart';
-import 'loyalty_cards_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/gradient_background.dart';
 import '../services/notification_service.dart';
@@ -49,10 +48,11 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     final screens = <Widget>[];
     if (settings.remindersEnabled) screens.add(const RemindersScreen());
     if (settings.todosEnabled) screens.add(const TodosScreen());
-    if (settings.shoppingEnabled) screens.add(const ShoppingListsScreen());
+    if (settings.shoppingEnabled || settings.loyaltyCardsEnabled) {
+      screens.add(const ShoppingUnifiedScreen());
+    }
     if (settings.guaranteesEnabled) screens.add(const GuaranteesScreen());
     if (settings.notesEnabled) screens.add(const NotesScreen());
-    if (settings.loyaltyCardsEnabled) screens.add(const LoyaltyCardsScreen());
     return screens;
   }
 
@@ -72,7 +72,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         label: 'Todos',
       ));
     }
-    if (settings.shoppingEnabled) {
+    if (settings.shoppingEnabled || settings.loyaltyCardsEnabled) {
       destinations.add(const NavigationDestination(
         icon: Icon(Icons.shopping_cart_outlined),
         selectedIcon: Icon(Icons.shopping_cart),
@@ -91,13 +91,6 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         icon: Icon(Icons.note_outlined),
         selectedIcon: Icon(Icons.note),
         label: 'Notes',
-      ));
-    }
-    if (settings.loyaltyCardsEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.card_membership_outlined),
-        selectedIcon: Icon(Icons.card_membership),
-        label: 'Cards',
       ));
     }
     return destinations;

@@ -11,7 +11,9 @@ import '../utils/undo_deletion_helper.dart';
 import 'settings_screen.dart';
 
 class ShoppingListsScreen extends ConsumerStatefulWidget {
-  const ShoppingListsScreen({super.key});
+  final bool showAppBar;
+  
+  const ShoppingListsScreen({super.key, this.showAppBar = true});
 
   @override
   ConsumerState<ShoppingListsScreen> createState() => _ShoppingListsScreenState();
@@ -25,27 +27,29 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Shopping Lists'),
-          leading: IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
+        appBar: widget.showAppBar
+            ? AppBar(
+                title: const Text('Shopping Lists'),
+                leading: IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.file_upload),
-              onPressed: () => _importShoppingList(),
-              tooltip: 'Import CSV',
-            ),
-          ],
-        ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.file_upload),
+                    onPressed: () => _importShoppingList(),
+                    tooltip: 'Import CSV',
+                  ),
+                ],
+              )
+            : null,
         body: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(shoppingListsProvider);

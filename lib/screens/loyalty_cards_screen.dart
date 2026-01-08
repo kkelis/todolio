@@ -15,7 +15,9 @@ import '../widgets/barcode_display_widget.dart';
 import 'settings_screen.dart';
 
 class LoyaltyCardsScreen extends ConsumerStatefulWidget {
-  const LoyaltyCardsScreen({super.key});
+  final bool showAppBar;
+  
+  const LoyaltyCardsScreen({super.key, this.showAppBar = true});
 
   @override
   ConsumerState<LoyaltyCardsScreen> createState() => _LoyaltyCardsScreenState();
@@ -31,20 +33,22 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Loyalty Cards'),
-          leading: IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
+        appBar: widget.showAppBar
+            ? AppBar(
+                title: const Text('Loyalty Cards'),
+                leading: IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ),
+              )
+            : null,
         body: cardsAsync.when(
           data: (cards) {
             if (cards.isEmpty) {
