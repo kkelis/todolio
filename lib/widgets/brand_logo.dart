@@ -30,15 +30,16 @@ class BrandLogo extends StatelessWidget {
 
       final child = Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: FittedBox(
-            fit: BoxFit.scaleDown,
+            fit: BoxFit.contain,
             child: Text(
               display,
               textAlign: TextAlign.center,
               maxLines: 1,
               style: TextStyle(
                 color: color,
+                fontSize: 48,  // Base size for FittedBox to scale from
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
               ),

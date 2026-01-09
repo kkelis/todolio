@@ -188,6 +188,9 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
         (card.brandPrimaryColor != null
             ? Color(card.brandPrimaryColor!)
             : Theme.of(context).colorScheme.primary);
+    final logoAssetPath = brand?.logoAssetPath ?? card.brandLogoAssetPath;
+    final isWhiteBackground = brandColor.computeLuminance() > 0.5;
+    final textColor = isWhiteBackground ? Colors.black87 : Colors.white;
 
     showModalBottomSheet(
       context: context,
@@ -211,7 +214,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                     child: Text(
                       card.cardName,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
+                            color: textColor,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
@@ -220,7 +223,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                        icon: Icon(Icons.edit_outlined, color: textColor),
                         onPressed: () {
                           Navigator.pop(context);
                           _showEditDialog(card);
@@ -228,7 +231,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                         tooltip: 'Edit',
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.white),
+                        icon: Icon(Icons.delete_outline, color: textColor),
                         onPressed: () async {
                           Navigator.pop(context);
                           if (!context.mounted) return;
@@ -246,7 +249,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                         tooltip: 'Delete',
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
+                        icon: Icon(Icons.close, color: textColor),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -255,15 +258,15 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
               ),
             ),
             // Brand logo if available
-            if (brand != null)
+            if (logoAssetPath != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: SizedBox(
                   height: 60,
                   child: BrandLogo(
-                    assetPath: brand.logoAssetPath,
+                    assetPath: logoAssetPath,
                     height: 60,
-                    fallbackColor: Colors.white,
+                    fallbackColor: textColor,
                   ),
                 ),
               ),
@@ -333,6 +336,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
           isPinned: false,
           brandId: brand?.id,
           brandPrimaryColor: brand?.primaryColor.toARGB32(),
+          brandLogoAssetPath: brand?.logoAssetPath,
         );
 
         final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
@@ -358,6 +362,18 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     Brand? selectedBrand = card?.brandId != null
         ? BrandDatabase.getBrandById(card!.brandId!)
         : null;
+    
+    // If brand lookup failed but we have brand data stored (custom brands), reconstruct it
+    if (selectedBrand == null && card?.brandId != null && card?.brandLogoAssetPath != null) {
+      selectedBrand = Brand(
+        id: card!.brandId!,
+        name: card.cardName,
+        logoAssetPath: card.brandLogoAssetPath!,
+        primaryColor: card.brandPrimaryColor != null 
+            ? Color(card.brandPrimaryColor!) 
+            : Theme.of(context).colorScheme.primary,
+      );
+    }
 
     showModalBottomSheet(
       context: context,
@@ -446,6 +462,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                         : card?.copyWith(
                                               brandId: brand.id,
                                               brandPrimaryColor: brand.primaryColor.toARGB32(),
+                                              brandLogoAssetPath: brand.logoAssetPath,
                                               cardName: brand.name,
                                             );
                                     _showEditDialog(updatedCard);
@@ -627,6 +644,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 brandId: selectedBrand?.id ?? card?.brandId,
                                 brandPrimaryColor: selectedBrand?.primaryColor.toARGB32() ??
                                     card?.brandPrimaryColor,
+                                brandLogoAssetPath: selectedBrand?.logoAssetPath ?? card?.brandLogoAssetPath,
                               );
 
                               final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
@@ -742,6 +760,7 @@ class _LoyaltyCardCard extends StatelessWidget {
         (card.brandPrimaryColor != null
             ? Color(card.brandPrimaryColor!)
             : Theme.of(context).colorScheme.primary);
+    final logoAssetPath = brand?.logoAssetPath ?? card.brandLogoAssetPath;
 
     return InkWell(
       onTap: onTap,
@@ -769,9 +788,9 @@ class _LoyaltyCardCard extends StatelessWidget {
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      child: brand != null
+                      child: logoAssetPath != null
                           ? BrandLogo(
-                              assetPath: brand.logoAssetPath,
+                              assetPath: logoAssetPath,
                               fallbackColor: Colors.white,
                             )
                           : Icon(

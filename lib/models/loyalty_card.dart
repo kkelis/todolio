@@ -59,6 +59,7 @@ class LoyaltyCard {
   final bool isPinned;
   final String? brandId;
   final int? brandPrimaryColor;
+  final String? brandLogoAssetPath;
 
   LoyaltyCard({
     required this.id,
@@ -71,6 +72,7 @@ class LoyaltyCard {
     this.isPinned = false,
     this.brandId,
     this.brandPrimaryColor,
+    this.brandLogoAssetPath,
   });
 
   Map<String, dynamic> toMap() {
@@ -85,6 +87,7 @@ class LoyaltyCard {
       'isPinned': isPinned,
       'brandId': brandId,
       'brandPrimaryColor': brandPrimaryColor,
+      'brandLogoAssetPath': brandLogoAssetPath,
     };
   }
 
@@ -109,6 +112,7 @@ class LoyaltyCard {
           : (map['brandPrimaryColor'] != null
               ? int.tryParse(map['brandPrimaryColor'].toString())
               : null),
+      brandLogoAssetPath: map['brandLogoAssetPath'],
     );
   }
 
@@ -123,6 +127,7 @@ class LoyaltyCard {
     bool? isPinned,
     String? brandId,
     int? brandPrimaryColor,
+    String? brandLogoAssetPath,
   }) {
     return LoyaltyCard(
       id: id ?? this.id,
@@ -135,6 +140,7 @@ class LoyaltyCard {
       isPinned: isPinned ?? this.isPinned,
       brandId: brandId ?? this.brandId,
       brandPrimaryColor: brandPrimaryColor ?? this.brandPrimaryColor,
+      brandLogoAssetPath: brandLogoAssetPath ?? this.brandLogoAssetPath,
     );
   }
 }
