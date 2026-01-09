@@ -223,6 +223,29 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
+                        icon: Icon(
+                          card.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                          color: textColor,
+                        ),
+                        onPressed: () {
+                          final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+                          final updatedCard = card.copyWith(isPinned: !card.isPinned);
+                          notifier.updateLoyaltyCard(updatedCard);
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                card.isPinned
+                                    ? 'Card unpinned'
+                                    : 'Card pinned to top',
+                              ),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        tooltip: card.isPinned ? 'Unpin' : 'Pin to top',
+                      ),
+                      IconButton(
                         icon: Icon(Icons.edit_outlined, color: textColor),
                         onPressed: () {
                           Navigator.pop(context);
@@ -819,22 +842,6 @@ class _LoyaltyCardCard extends StatelessWidget {
                       ),
                     ),
                 ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Card name below
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              card.cardName,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
               ),
             ),
           ),

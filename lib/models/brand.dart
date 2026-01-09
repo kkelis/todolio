@@ -371,7 +371,7 @@ class BrandDatabase {
     ),
     Brand(
       id: 'kiehls',
-      name: 'Kiehls',
+      name: 'Kiehl\'s',
       logoAssetPath: 'assets/images/brands/kiehls.svg',
       primaryColor: Color(0xFF000000),
     ),
