@@ -1,7 +1,7 @@
 name: todolio
 description: A Flutter app for reminders, to-do lists, shopping lists, guarantee tracking, and notes.
 publish_to: 'none'
-version: 1.2.0+4
+version: 1.2.1+5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -41,6 +41,7 @@ dependencies:
 
   # UI
   cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.10
 
 dev_dependencies:
   flutter_test:
@@ -49,3 +50,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - assets/images/brands/

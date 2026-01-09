@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'reminders_screen.dart';
 import 'todos_screen.dart';
-import 'shopping_unified_screen.dart';
+import 'shopping_lists_screen.dart';
+import 'loyalty_cards_screen.dart';
 import 'guarantees_screen.dart';
 import 'notes_screen.dart';
 import 'settings_screen.dart';
@@ -48,9 +49,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     final screens = <Widget>[];
     if (settings.remindersEnabled) screens.add(const RemindersScreen());
     if (settings.todosEnabled) screens.add(const TodosScreen());
-    if (settings.shoppingEnabled || settings.loyaltyCardsEnabled) {
-      screens.add(const ShoppingUnifiedScreen());
-    }
+    if (settings.shoppingEnabled) screens.add(const ShoppingListsScreen(showAppBar: true));
+    if (settings.loyaltyCardsEnabled) screens.add(const LoyaltyCardsScreen(showAppBar: true));
     if (settings.guaranteesEnabled) screens.add(const GuaranteesScreen());
     if (settings.notesEnabled) screens.add(const NotesScreen());
     return screens;
@@ -67,16 +67,23 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     }
     if (settings.todosEnabled) {
       destinations.add(const NavigationDestination(
-        icon: Icon(Icons.check_circle_outline),
+        icon: Icon(Icons.check_circle_outlined),
         selectedIcon: Icon(Icons.check_circle),
         label: 'Todos',
       ));
     }
-    if (settings.shoppingEnabled || settings.loyaltyCardsEnabled) {
+    if (settings.shoppingEnabled) {
       destinations.add(const NavigationDestination(
         icon: Icon(Icons.shopping_cart_outlined),
         selectedIcon: Icon(Icons.shopping_cart),
         label: 'Shopping',
+      ));
+    }
+    if (settings.loyaltyCardsEnabled) {
+      destinations.add(const NavigationDestination(
+        icon: Icon(Icons.card_membership_outlined),
+        selectedIcon: Icon(Icons.card_membership),
+        label: 'Cards',
       ));
     }
     if (settings.guaranteesEnabled) {
@@ -96,6 +103,15 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     return destinations;
   }
 
+  bool _areAllSectionsEnabled(AppSettings settings) {
+    return settings.remindersEnabled &&
+        settings.todosEnabled &&
+        settings.shoppingEnabled &&
+        settings.loyaltyCardsEnabled &&
+        settings.guaranteesEnabled &&
+        settings.notesEnabled;
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(appSettingsProvider);
@@ -104,6 +120,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
       data: (settings) {
         final screens = _getScreens(settings);
         final destinations = _getDestinations(settings);
+        final allSectionsEnabled = _areAllSectionsEnabled(settings);
         
         // Ensure current index is valid
         if (_currentIndex >= screens.length) {
@@ -169,71 +186,10 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                   ),
             bottomNavigationBar: screens.isEmpty || destinations.length < 2
                 ? null
-                : Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      border: Border(
-                        top: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    height: 70,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(destinations.length, (index) {
-                        final destination = destinations[index];
-                        final isSelected = index == _currentIndex.clamp(0, destinations.length - 1);
-                        final iconWidget = isSelected 
-                            ? destination.selectedIcon
-                            : destination.icon;
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _currentIndex = index;
-                              });
-                              _pageController.animateToPage(
-                                index,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: isSelected ? Colors.white : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconTheme(
-                                    data: IconThemeData(
-                                      color: isSelected ? Colors.black : Colors.white,
-                                      size: 24,
-                                    ),
-                                    child: iconWidget ?? const SizedBox(),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    destination.label,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.black : Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-        drawer: Drawer(
+                : allSectionsEnabled
+                    ? _buildHorizontalScrollableNavigation(destinations)
+                    : _buildBottomNavigationBar(destinations),
+            drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
@@ -406,6 +362,141 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(List<NavigationDestination> destinations) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.3),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      height: 70,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(destinations.length, (index) {
+          final destination = destinations[index];
+          final isSelected = index == _currentIndex.clamp(0, destinations.length - 1);
+          final iconWidget = isSelected 
+              ? destination.selectedIcon
+              : destination.icon;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentIndex = index;
+                });
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconTheme(
+                      data: IconThemeData(
+                        color: isSelected ? Colors.black : Colors.white,
+                        size: 24,
+                      ),
+                      child: iconWidget ?? const SizedBox(),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      destination.label,
+                      style: TextStyle(
+                        color: isSelected ? Colors.black : Colors.white,
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalScrollableNavigation(List<NavigationDestination> destinations) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.3),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      height: 70,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        itemCount: destinations.length,
+        itemBuilder: (context, index) {
+          final destination = destinations[index];
+          final isSelected = index == _currentIndex;
+          final iconWidget = isSelected 
+              ? destination.selectedIcon
+              : destination.icon;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _currentIndex = index;
+              });
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconTheme(
+                    data: IconThemeData(
+                      color: isSelected ? Colors.black : Colors.white,
+                      size: 24,
+                    ),
+                    child: iconWidget ?? const SizedBox(),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    destination.label,
+                    style: TextStyle(
+                      color: isSelected ? Colors.black : Colors.white,
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

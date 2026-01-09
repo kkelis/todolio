@@ -3,13 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import '../models/loyalty_card.dart' as loyalty_card;
 import '../models/loyalty_card.dart';
+import '../models/brand.dart';
 import '../providers/loyalty_cards_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
-import '../widgets/glassmorphic_card.dart';
 import '../widgets/barcode_display_widget.dart';
+import '../widgets/brand_logo.dart';
 import 'settings_screen.dart';
+import 'brand_selection_screen.dart';
 
 class LoyaltyCardsScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -123,28 +125,20 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                       ref.invalidate(loyaltyCardsProvider);
                     },
                     color: Theme.of(context).colorScheme.primary,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.3,
+                      ),
                       itemCount: filteredCards.length,
                       itemBuilder: (context, index) {
                         final card = filteredCards[index];
                         return _LoyaltyCardCard(
                           card: card,
                           onTap: () => _showBarcodeDisplay(card),
-                          onEdit: () => _showEditDialog(card),
-                          onDelete: () async {
-                            if (!context.mounted) return;
-                            final cardCopy = card;
-                            final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
-                            notifier.deleteLoyaltyCard(card.id);
-                            showUndoDeletionSnackBar(
-                              context,
-                              itemName: card.cardName,
-                              onUndo: () {
-                                notifier.createLoyaltyCard(cardCopy);
-                              },
-                            );
-                          },
                         );
                       },
                     ),
@@ -175,7 +169,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                 : Theme.of(context).colorScheme.primary;
 
             return FloatingActionButton(
-              onPressed: () => _showEditDialog(null),
+              onPressed: () => _showBrandSelection(),
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               child: const Icon(Icons.add),
@@ -187,59 +181,199 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
   }
 
   void _showBarcodeDisplay(LoyaltyCard card) {
+    final brand = card.brandId != null
+        ? BrandDatabase.getBrandById(card.brandId!)
+        : null;
+    final brandColor = brand?.primaryColor ??
+        (card.brandPrimaryColor != null
+            ? Color(card.brandPrimaryColor!)
+            : Theme.of(context).colorScheme.primary);
+    final logoAssetPath = brand?.logoAssetPath ?? card.brandLogoAssetPath;
+    final isWhiteBackground = brandColor.computeLuminance() > 0.5;
+    final textColor = isWhiteBackground ? Colors.black87 : Colors.white;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: brandColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [
+            // Header with close, edit, delete
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    card.cardName,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      color: Theme.of(context).colorScheme.primary,
+                  Expanded(
+                    child: Text(
+                      card.cardName,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
-                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          card.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                          color: textColor,
+                        ),
+                        onPressed: () {
+                          final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+                          final updatedCard = card.copyWith(isPinned: !card.isPinned);
+                          notifier.updateLoyaltyCard(updatedCard);
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                card.isPinned
+                                    ? 'Card unpinned'
+                                    : 'Card pinned to top',
+                              ),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        tooltip: card.isPinned ? 'Unpin' : 'Pin to top',
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined, color: textColor),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showEditDialog(card);
+                        },
+                        tooltip: 'Edit',
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete_outline, color: textColor),
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          if (!context.mounted) return;
+                          final cardCopy = card;
+                          final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+                          notifier.deleteLoyaltyCard(card.id);
+                          showUndoDeletionSnackBar(
+                            context,
+                            itemName: card.cardName,
+                            onUndo: () {
+                              notifier.createLoyaltyCard(cardCopy);
+                            },
+                          );
+                        },
+                        tooltip: 'Delete',
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: textColor),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            // Brand logo if available
+            if (logoAssetPath != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: SizedBox(
+                  height: 60,
+                  child: BrandLogo(
+                    assetPath: logoAssetPath,
+                    height: 60,
+                    fallbackColor: textColor,
+                  ),
+                ),
+              ),
+            // Barcode on white background
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
-                  child: Padding(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
                     padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: BarcodeDisplayWidget(
                       barcodeNumber: card.barcodeNumber,
                       barcodeType: card.barcodeType,
-                      width: MediaQuery.of(context).size.width - 48,
+                      width: MediaQuery.of(context).size.width - 96,
                       height: 300,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
           ],
         ),
       ),
+    );
+  }
+
+  void _showBrandSelection() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BrandSelectionScreen(
+          onBrandSelected: (brand) {
+            // Cancel/back should just close the selector, not start scanning.
+            if (brand == null) return;
+            _showBarcodeScannerWithBrand(context, brand);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showBarcodeScannerWithBrand(BuildContext context, Brand? brand) {
+    _showBarcodeScanner(
+      context,
+      (barcode, type) {
+        // Create card with brand info
+        final newCard = LoyaltyCard(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          cardName: brand?.name ?? 'Loyalty Card',
+          barcodeNumber: barcode,
+          barcodeType: type,
+          cardImagePath: null,
+          notes: null,
+          createdAt: DateTime.now(),
+          isPinned: false,
+          brandId: brand?.id,
+          brandPrimaryColor: brand?.primaryColor.toARGB32(),
+          brandLogoAssetPath: brand?.logoAssetPath,
+        );
+
+        final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+        notifier.createLoyaltyCard(newCard);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Card "${newCard.cardName}" added successfully!'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -248,6 +382,21 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     final barcodeNumberController = TextEditingController(text: card?.barcodeNumber ?? '');
     loyalty_card.BarcodeType barcodeType = card?.barcodeType ?? loyalty_card.BarcodeType.ean13;
     bool isPinned = card?.isPinned ?? false;
+    Brand? selectedBrand = card?.brandId != null
+        ? BrandDatabase.getBrandById(card!.brandId!)
+        : null;
+    
+    // If brand lookup failed but we have brand data stored (custom brands), reconstruct it
+    if (selectedBrand == null && card?.brandId != null && card?.brandLogoAssetPath != null) {
+      selectedBrand = Brand(
+        id: card!.brandId!,
+        name: card.cardName,
+        logoAssetPath: card.brandLogoAssetPath!,
+        primaryColor: card.brandPrimaryColor != null 
+            ? Color(card.brandPrimaryColor!) 
+            : Theme.of(context).colorScheme.primary,
+      );
+    }
 
     showModalBottomSheet(
       context: context,
@@ -320,6 +469,106 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        // Brand selection
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BrandSelectionScreen(
+                                  onBrandSelected: (brand) {
+                                    // BrandSelectionScreen handles its own pop.
+                                    // Re-open the edit sheet with updated (or unchanged) brand.
+                                    final updatedCard = brand == null
+                                        ? card
+                                        : card?.copyWith(
+                                              brandId: brand.id,
+                                              brandPrimaryColor: brand.primaryColor.toARGB32(),
+                                              brandLogoAssetPath: brand.logoAssetPath,
+                                              cardName: brand.name,
+                                            );
+                                    _showEditDialog(updatedCard);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.white,
+                            ),
+                            child: Row(
+                              children: [
+                                if (selectedBrand != null)
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: selectedBrand.primaryColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: selectedBrand.primaryColor.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: BrandLogo(
+                                        assetPath: selectedBrand.logoAssetPath,
+                                        width: 40,
+                                        height: 40,
+                                        fallbackColor: selectedBrand.primaryColor,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.card_membership,
+                                      color: Colors.grey,
+                                      size: 24,
+                                    ),
+                                  ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Brand',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        selectedBrand?.name ?? 'Generic Card',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.chevron_right, color: Colors.grey),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
@@ -365,50 +614,6 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                               label: const Text('Scan'),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 16),
-                        FormField<loyalty_card.BarcodeType>(
-                          initialValue: barcodeType,
-                          builder: (field) {
-                            return InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'Barcode Type',
-                                labelStyle: TextStyle(color: Colors.grey.shade700),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                ),
-                                contentPadding: const EdgeInsets.all(16),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<loyalty_card.BarcodeType>(
-                                  value: barcodeType,
-                                  isDense: true,
-                                  items: loyalty_card.BarcodeType.values.map((type) {
-                                    return DropdownMenuItem(
-                                      value: type,
-                                      child: Text(type.displayName),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setState(() => barcodeType = value);
-                                    }
-                                  },
-                                ),
-                              ),
-                            );
-                          },
                         ),
                         const SizedBox(height: 16),
                         ListTile(
@@ -459,6 +664,10 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 notes: null,
                                 createdAt: card?.createdAt ?? DateTime.now(),
                                 isPinned: isPinned,
+                                brandId: selectedBrand?.id ?? card?.brandId,
+                                brandPrimaryColor: selectedBrand?.primaryColor.toARGB32() ??
+                                    card?.brandPrimaryColor,
+                                brandLogoAssetPath: selectedBrand?.logoAssetPath ?? card?.brandLogoAssetPath,
                               );
 
                               final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
@@ -559,112 +768,82 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
 class _LoyaltyCardCard extends StatelessWidget {
   final LoyaltyCard card;
   final VoidCallback onTap;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
 
   const _LoyaltyCardCard({
     required this.card,
     required this.onTap,
-    required this.onDelete,
-    required this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final brand = card.brandId != null
+        ? BrandDatabase.getBrandById(card.brandId!)
+        : null;
+    final cardColor = brand?.primaryColor ??
+        (card.brandPrimaryColor != null
+            ? Color(card.brandPrimaryColor!)
+            : Theme.of(context).colorScheme.primary);
+    final logoAssetPath = brand?.logoAssetPath ?? card.brandLogoAssetPath;
 
-    return GlassmorphicCard(
+    return InkWell(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.primary.withValues(alpha: 0.2),
-                  theme.colorScheme.primary.withValues(alpha: 0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                width: 1.5,
-              ),
-            ),
-            child: Icon(
-              card.isPinned ? Icons.push_pin : Icons.card_membership,
-              color: theme.colorScheme.primary.withValues(alpha: 1.0),
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 16),
+          // Card with brand color background
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  card.cardName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: cardColor.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.qr_code,
-                      size: 13,
-                      color: Colors.grey[600],
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Logo in center
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: logoAssetPath != null
+                          ? BrandLogo(
+                              assetPath: logoAssetPath,
+                              fallbackColor: Colors.white,
+                            )
+                          : Icon(
+                              Icons.card_membership,
+                              size: 48,
+                              color: Colors.white.withValues(alpha: 0.8),
+                            ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      card.barcodeType.displayName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                  ),
+                  // Pin indicator
+                  if (card.isPinned)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.push_pin,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.edit_outlined,
-                  size: 22,
-                  color: Colors.grey[700],
-                ),
-                onPressed: onEdit,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                tooltip: 'Edit',
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  size: 22,
-                  color: Colors.red,
-                ),
-                onPressed: onDelete,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                tooltip: 'Delete',
-              ),
-            ],
           ),
         ],
       ),
