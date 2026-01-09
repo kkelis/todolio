@@ -660,5 +660,33 @@ class NotificationService {
     return await _notifications.pendingNotificationRequests();
   }
 
+  /// Show backup reminder notification
+  Future<void> showBackupReminderNotification() async {
+    await _notifications.show(
+      9999, // Special ID for backup reminders
+      '🔔 Time to backup your data!',
+      'Don\'t forget to backup your Todolio data. Tap to open settings.',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminders',
+          'Reminders',
+          channelDescription: 'Notifications for reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: true,
+          enableVibration: true,
+          playSound: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: 'backup_reminder',
+    );
+    debugPrint('✅ Backup reminder notification shown');
+  }
+
 }
 

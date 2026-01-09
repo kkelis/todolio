@@ -29,6 +29,9 @@ void main() async {
 
   // Request exact alarm permissions for Android (required for exact notifications)
   await notificationService.requestExactAlarmPermission();
+  
+  // Check if backup reminder is due
+  await _checkBackupReminder(localStorageService, notificationService);
 
   // Set up notification action handler
   notificationService.onNotificationAction = (reminderId, action) {
@@ -153,6 +156,40 @@ class ToDoLioApp extends ConsumerWidget {
         );
       },
     );
+  }
+}
+
+// Check if backup reminder is due
+Future<void> _checkBackupReminder(
+  LocalStorageService storageService,
+  NotificationService notificationService,
+) async {
+  try {
+    final settings = await storageService.getAppSettings();
+    
+    // Check if backup reminders are enabled
+    if (!settings.backupReminderEnabled) {
+      return;
+    }
+    
+    // Check if reminder is due
+    final now = DateTime.now();
+    if (settings.lastBackupDate == null) {
+      // Never backed up - show reminder immediately
+      await notificationService.showBackupReminderNotification();
+      debugPrint('📱 Backup reminder shown: Never backed up');
+    } else {
+      final daysSinceLastBackup = now.difference(settings.lastBackupDate!).inDays;
+      if (daysSinceLastBackup >= settings.backupReminderFrequencyDays) {
+        // Reminder is due
+        await notificationService.showBackupReminderNotification();
+        debugPrint('📱 Backup reminder shown: $daysSinceLastBackup days since last backup');
+      } else {
+        debugPrint('✅ Backup reminder not due: $daysSinceLastBackup days since last backup (frequency: ${settings.backupReminderFrequencyDays} days)');
+      }
+    }
+  } catch (e) {
+    debugPrint('❌ Error checking backup reminder: $e');
   }
 }
 
