@@ -15,22 +15,33 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
   - Can have due dates and appear in reminders view
 - **Shopping Lists** - Create and manage shopping lists with CSV export/import
   - Unit selection (piece, liter, kg, etc.)
-  - Quantity and unit tracking
+  - Quantity and unit tracking (including decimal quantities)
   - CSV export/import for sharing
-  - Unified view with Loyalty Cards in tabs
-- **Loyalty Cards** - Digital wallet for loyalty cards and membership cards
-  - Barcode and QR code support (EAN-13, Code 128, QR Code, UPC-A)
-  - Barcode scanning with camera
-  - Search functionality
-  - Pin cards to top for quick access
-  - Alphabetical sorting with pinned cards first
-  - Edit card details (name, barcode, pin status)
-  - Display barcodes for scanning at checkout
+  - Independent navigation screen (separate from Loyalty Cards)
+- **Loyalty Cards** - Digital wallet for loyalty cards with brand recognition
+  - **80+ Popular Brands** with logos and brand colors (Lidl, dm, IKEA, H&M, Zara, etc.)
+  - **Custom Brand Creation** with personalized colors and text logos
+  - **Brand Selection Screen** with searchable grid layout
+  - **Barcode Scanning** from camera or gallery images
+  - **Multiple Format Support** (EAN-13, Code 128, QR Code, UPC-A)
+  - **Brand-Themed Display** - barcode modal with brand's primary color background
+  - **Pin/Unpin Functionality** - quick access button in barcode view
+  - **Grid Layout** - clean 2-column card display without labels
+  - **Alphabetical Sorting** with pinned cards at the top
+  - **Search Functionality** across all cards
+  - Edit card details (name, barcode, brand, pin status)
 - **Guarantee Tracking** - Track warranties with photos, expiry dates, and notes
   - Customizable reminder notifications (1, 2, or 3 months before expiry)
   - Local photo storage for warranty and receipt
 - **Notes** - Rich notes with tags, colors, and pinning support
-- **Settings** - Enable/disable app sections to customize your experience
+- **Backup & Restore** - Comprehensive data management
+  - Export all app data to ZIP file
+  - Import/restore from backup files
+  - Automatic backup reminders (configurable: never, daily, weekly, monthly)
+  - Complete data preservation including photos and images
+- **Settings** - Customize your experience
+  - Enable/disable app sections
+  - Color scheme selection
   - Version information display
 
 ## 🎨 Design
@@ -75,8 +86,8 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 
 ## 📱 Platform Support
 
-- ✅ Android
-- ❌ iOS (not currently supported, may be added in the future)
+- ✅ **Android** - Fully supported with all features
+- ❌ **iOS** - Not currently supported, may be added in the future
 
 ## 🏗️ Architecture
 
@@ -99,14 +110,17 @@ A beautiful, modern Flutter app for managing reminders, to-do lists, shopping li
 - `timezone` - Timezone support for notifications
 - `barcode_widget` - Barcode generation and display
 - `qr_flutter` - QR code generation
-- `mobile_scanner` - Barcode and QR code scanning
+- `mobile_scanner` - Barcode and QR code scanning (camera and image)
+- `flutter_svg` - SVG logo rendering for brands
 - `package_info_plus` - App version information
+- `archive` - Backup/restore ZIP file handling
 
 ## 🔒 Privacy
 
 - **100% Local** - All data stored on your device only
 - **No Cloud Sync** - No data sent to external servers
 - **Complete Privacy** - Your data stays on your device
+- **Privacy Policy** - Read our full [Privacy Policy](https://kkelis.github.io/todolio/privacy.html)
 
 ## 📄 License
 
@@ -116,4 +130,11 @@ Copyright (c) 2026 Karlo Keliš
 
 ## 📝 Documentation
 
-See `IMPLEMENTATION_SUMMARY.md` for detailed feature documentation.
+- See `IMPLEMENTATION_SUMMARY.md` for detailed feature documentation
+- [Privacy Policy](https://kkelis.github.io/todolio/privacy.html)
+
+## 📧 Contact
+
+**Karlo Keliš**
+- Email: karlo.kelis@gmail.com
+- GitHub: [kkelis](https://github.com/kkelis)

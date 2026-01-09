@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoLio - Local-First Task & Reminder Manager</title>
+    <style>
+        body { 
+            font-family: 'Roboto', 'Segoe UI', sans-serif; 
+            line-height: 1.6; 
+            padding: 20px; 
+            max-width: 900px; 
+            margin: auto; 
+            color: #333;
+            background: linear-gradient(135deg, #5056cb 0%, #8c92f9 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #5056cb; 
+            border-bottom: 3px solid #8c92f9;
+            padding-bottom: 15px;
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        h2 { 
+            color: #5056cb; 
+            border-bottom: 1px solid #eee; 
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #5056cb;
+        }
+        pre code {
+            background: none;
+            color: #f8f8f2;
+            padding: 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        .feature-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .footer { 
+            font-size: 0.9em; 
+            color: #666; 
+            margin-top: 50px; 
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        a {
+            color: #5056cb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .tag {
+            display: inline-block;
+            background: #5056cb;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">✅</span>ToDoLio</h1>
+        
+        <p class="highlight">
+            A beautiful, modern Flutter app for managing reminders, to-do lists, shopping lists, loyalty cards, guarantee tracking, and notes. 
+            Built with a <strong>local-first architecture</strong> - all data is stored on your device with no cloud dependencies.
+        </p>
+
+        <h2><span class="emoji">✨</span>Features</h2>
+        
+        <div class="feature-list">
+            <h3>📅 Reminders</h3>
+            <ul>
+                <li>Schedule reminders for birthdays, appointments, todos, and other events with notifications</li>
+                <li>Repeat functionality (daily, weekly, monthly, yearly)</li>
+                <li>Snooze options (5min, 15min, 30min)</li>
+                <li>Grouped by date (Today, Next 7 days, Overdue, Completed)</li>
+                <li>Notifications persist after device reboot</li>
+            </ul>
+
+            <h3>📝 To-Do Lists</h3>
+            <ul>
+                <li>Organize tasks with priorities and due dates</li>
+                <li>Same unified model as reminders</li>
+                <li>Grouped by priority (High, Medium, Low)</li>
+                <li>Can have due dates and appear in reminders view</li>
+            </ul>
+
+            <h3>🛒 Shopping Lists</h3>
+            <ul>
+                <li>Create and manage shopping lists with CSV export/import</li>
+                <li>Unit selection (piece, liter, kg, etc.)</li>
+                <li>Quantity and unit tracking (including decimal quantities)</li>
+                <li>CSV export/import for sharing</li>
+                <li>Independent navigation screen (separate from Loyalty Cards)</li>
+            </ul>
+
+            <h3>💳 Loyalty Cards</h3>
+            <ul>
+                <li>Digital wallet for loyalty cards with brand recognition</li>
+                <li><strong>80+ Popular Brands</strong> with logos and brand colors (Lidl, dm, IKEA, H&M, Zara, etc.)</li>
+                <li><strong>Custom Brand Creation</strong> with personalized colors and text logos</li>
+                <li><strong>Brand Selection Screen</strong> with searchable grid layout</li>
+                <li><strong>Barcode Scanning</strong> from camera or gallery images</li>
+                <li><strong>Multiple Format Support</strong> (EAN-13, Code 128, QR Code, UPC-A)</li>
+                <li><strong>Brand-Themed Display</strong> - barcode modal with brand's primary color background</li>
+                <li><strong>Pin/Unpin Functionality</strong> - quick access button in barcode view</li>
+                <li><strong>Grid Layout</strong> - clean 2-column card display without labels</li>
+                <li><strong>Alphabetical Sorting</strong> with pinned cards at the top</li>
+                <li><strong>Search Functionality</strong> across all cards</li>
+                <li>Edit card details (name, barcode, brand, pin status)</li>
+            </ul>
+
+            <h3>🔖 Guarantee Tracking</h3>
+            <ul>
+                <li>Track warranties with photos, expiry dates, and notes</li>
+                <li>Customizable reminder notifications (1, 2, or 3 months before expiry)</li>
+                <li>Local photo storage for warranty and receipt</li>
+            </ul>
+
+            <h3>📓 Notes</h3>
+            <ul>
+                <li>Rich notes with tags, colors, and pinning support</li>
+            </ul>
+
+            <h3>💾 Backup & Restore</h3>
+            <ul>
+                <li>Export all app data to ZIP file</li>
+                <li>Import/restore from backup files</li>
+                <li>Automatic backup reminders (configurable: never, daily, weekly, monthly)</li>
+                <li>Complete data preservation including photos and images</li>
+            </ul>
+
+            <h3>⚙️ Settings</h3>
+            <ul>
+                <li>Enable/disable app sections</li>
+                <li>Color scheme selection</li>
+                <li>Version information display</li>
+            </ul>
+        </div>
+
+        <h2><span class="emoji">🎨</span>Design</h2>
+        <ul>
+            <li>Modern gradient background (#5056cb to #8c92f9)</li>
+            <li>White modal dialogs with primary color accents</li>
+            <li>Roboto font family</li>
+            <li>White cards with shadows on main screens</li>
+            <li>Collapsible UI elements for better space usage</li>
+            <li>Completed items with primary color background and white text</li>
+            <li>Smooth animations and transitions</li>
+            <li>Swipe navigation between sections</li>
+        </ul>
+
+        <h2><span class="emoji">🚀</span>Getting Started</h2>
+        
+        <h3>Prerequisites</h3>
+        <ul>
+            <li>Flutter SDK (3.0.0 or higher)</li>
+            <li>Dart SDK</li>
+            <li>Android Studio / Xcode (for mobile development)</li>
+            <li>Git</li>
+        </ul>
+
+        <h3>Installation</h3>
+        <ol>
+            <li>Clone the repository:
+                <pre><code>git clone &lt;repository-url&gt;
+cd todolio</code></pre>
+            </li>
+            <li>Install dependencies:
+                <pre><code>flutter pub get</code></pre>
+            </li>
+            <li>Run the app:
+                <pre><code>flutter run</code></pre>
+            </li>
+        </ol>
+
+        <p class="highlight">
+            <strong>No additional setup required!</strong> The app works 100% offline with local storage.
+        </p>
+
+        <h2><span class="emoji">📱</span>Platform Support</h2>
+        <p>
+            <span class="badge badge-success">✅ Android - Fully supported with all features</span>
+            <span class="badge badge-warning">❌ iOS - Not currently supported, may be added in the future</span>
+        </p>
+
+        <h2><span class="emoji">🏗️</span>Architecture</h2>
+        <ul>
+            <li><strong>Local-First</strong> - All data stored locally using Hive</li>
+            <li><strong>No Cloud</strong> - No Firebase, no authentication, no external dependencies</li>
+            <li><strong>State Management</strong> - Riverpod 3.x</li>
+            <li><strong>Real-time Updates</strong> - Stream-based reactive UI</li>
+            <li><strong>Reliable Notifications</strong> - Uses native AlarmManager.setAlarmClock() for persistent alarms</li>
+            <li><strong>Boot Persistence</strong> - Notifications survive device reboots automatically</li>
+        </ul>
+
+        <h2><span class="emoji">📦</span>Key Dependencies</h2>
+        <div>
+            <span class="tag">flutter_riverpod</span>
+            <span class="tag">hive</span>
+            <span class="tag">hive_flutter</span>
+            <span class="tag">flutter_local_notifications</span>
+            <span class="tag">image_picker</span>
+            <span class="tag">file_picker</span>
+            <span class="tag">share_plus</span>
+            <span class="tag">intl</span>
+            <span class="tag">timezone</span>
+            <span class="tag">barcode_widget</span>
+            <span class="tag">qr_flutter</span>
+            <span class="tag">mobile_scanner</span>
+            <span class="tag">flutter_svg</span>
+            <span class="tag">package_info_plus</span>
+            <span class="tag">archive</span>
+        </div>
+
+        <h2><span class="emoji">🔒</span>Privacy</h2>
+        <ul>
+            <li><strong>100% Local</strong> - All data stored on your device only</li>
+            <li><strong>No Cloud Sync</strong> - No data sent to external servers</li>
+            <li><strong>Complete Privacy</strong> - Your data stays on your device</li>
+            <li><strong>Privacy Policy</strong> - Read our full <a href="privacy.html">Privacy Policy</a></li>
+        </ul>
+
+        <h2><span class="emoji">📄</span>License</h2>
+        <p>This project is licensed under the MIT License - see the LICENSE file for details.</p>
+        <p>Copyright © 2026 Karlo Keliš</p>
+
+        <h2><span class="emoji">📝</span>Documentation</h2>
+        <ul>
+            <li>See <code>IMPLEMENTATION_SUMMARY.md</code> for detailed feature documentation</li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+        </ul>
+
+        <h2><span class="emoji">📧</span>Contact</h2>
+        <p>
+            <strong>Karlo Keliš</strong><br>
+            Email: <a href="mailto:karlo.kelis@gmail.com">karlo.kelis@gmail.com</a><br>
+            GitHub: <a href="https://github.com/kkelis">@kkelis</a>
+        </p>
+
+        <div class="footer">
+            <p>Made with ❤️ using Flutter | <a href="https://github.com/kkelis/todolio">View on GitHub</a></p>
+        </div>
+    </div>
+</body>
+</html>
