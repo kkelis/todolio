@@ -487,6 +487,21 @@ class LocalStorageService {
     await box.put('settings', settings.toMap());
   }
 
+  /// Force emit all data from boxes to stream controllers
+  /// Useful after importing backup to refresh all providers
+  Future<void> refreshAllStreams() async {
+    try {
+      _emitReminders();
+      _emitTodos();
+      _emitShoppingLists();
+      _emitGuarantees();
+      _emitNotes();
+      _emitLoyaltyCards();
+    } catch (e) {
+      // Ignore errors, streams might not be initialized
+    }
+  }
+
   void dispose() {
     _remindersController.close();
     _todosController.close();

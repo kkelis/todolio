@@ -8,6 +8,11 @@ class AppSettings {
   final bool notesEnabled;
   final bool loyaltyCardsEnabled;
   final AppColorScheme colorScheme;
+  
+  // Backup settings
+  final DateTime? lastBackupDate;
+  final bool backupReminderEnabled;
+  final int backupReminderFrequencyDays; // 7, 14, or 30 days
 
   AppSettings({
     this.remindersEnabled = true,
@@ -17,6 +22,9 @@ class AppSettings {
     this.notesEnabled = true,
     this.loyaltyCardsEnabled = true,
     this.colorScheme = AppColorScheme.blue,
+    this.lastBackupDate,
+    this.backupReminderEnabled = false,
+    this.backupReminderFrequencyDays = 14,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +36,9 @@ class AppSettings {
       'notesEnabled': notesEnabled,
       'loyaltyCardsEnabled': loyaltyCardsEnabled,
       'colorScheme': colorScheme.toJson(),
+      'lastBackupDate': lastBackupDate?.toIso8601String(),
+      'backupReminderEnabled': backupReminderEnabled,
+      'backupReminderFrequencyDays': backupReminderFrequencyDays,
     };
   }
 
@@ -42,6 +53,11 @@ class AppSettings {
       colorScheme: map['colorScheme'] != null
           ? AppColorScheme.fromString(map['colorScheme'])
           : AppColorScheme.blue,
+      lastBackupDate: map['lastBackupDate'] != null
+          ? DateTime.parse(map['lastBackupDate'])
+          : null,
+      backupReminderEnabled: map['backupReminderEnabled'] ?? false,
+      backupReminderFrequencyDays: map['backupReminderFrequencyDays'] ?? 14,
     );
   }
 
@@ -53,6 +69,9 @@ class AppSettings {
     bool? notesEnabled,
     bool? loyaltyCardsEnabled,
     AppColorScheme? colorScheme,
+    DateTime? lastBackupDate,
+    bool? backupReminderEnabled,
+    int? backupReminderFrequencyDays,
   }) {
     return AppSettings(
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
@@ -62,6 +81,9 @@ class AppSettings {
       notesEnabled: notesEnabled ?? this.notesEnabled,
       loyaltyCardsEnabled: loyaltyCardsEnabled ?? this.loyaltyCardsEnabled,
       colorScheme: colorScheme ?? this.colorScheme,
+      lastBackupDate: lastBackupDate ?? this.lastBackupDate,
+      backupReminderEnabled: backupReminderEnabled ?? this.backupReminderEnabled,
+      backupReminderFrequencyDays: backupReminderFrequencyDays ?? this.backupReminderFrequencyDays,
     );
   }
 

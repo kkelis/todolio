@@ -4,6 +4,12 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../models/app_settings.dart';
 import '../models/color_scheme.dart';
 import '../providers/settings_provider.dart';
+import '../providers/reminders_provider.dart';
+import '../providers/shopping_lists_provider.dart';
+import '../providers/guarantees_provider.dart';
+import '../providers/notes_provider.dart';
+import '../providers/loyalty_cards_provider.dart';
+import '../services/backup_service.dart';
 import '../widgets/gradient_background.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -144,6 +150,24 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           _buildColorSchemeSelector(context, ref, settings),
+          const SizedBox(height: 32),
+          // Backup & Restore Section
+          Text(
+            'Backup & Restore',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Backup your data to transfer to a new device',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildBackupSection(context, ref, settings),
           const SizedBox(height: 32),
           // Warning if all sections are disabled
           if (!settings.remindersEnabled &&
@@ -335,6 +359,350 @@ class SettingsScreen extends ConsumerWidget {
         }).toList(),
       ),
     );
+  }
+
+  Widget _buildBackupSection(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Last backup info
+          if (settings.lastBackupDate != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green[700], size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Last backup: ${_formatBackupDate(settings.lastBackupDate!)}',
+                      style: TextStyle(
+                        color: Colors.green[900],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange[700], size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Never backed up',
+                      style: TextStyle(
+                        color: Colors.orange[900],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          // Backup and Restore buttons
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _createBackup(context, ref, settings),
+                  icon: const Icon(Icons.backup),
+                  label: const Text('Create Backup'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _restoreBackup(context, ref),
+                  icon: const Icon(Icons.restore),
+                  label: const Text('Restore'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Colors.grey[700],
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 16),
+          // Backup reminder toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Text(
+                  'Backup Reminders',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              Switch(
+                value: settings.backupReminderEnabled,
+                onChanged: (value) {
+                  ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+                    settings.copyWith(backupReminderEnabled: value),
+                  );
+                },
+                activeTrackColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                activeThumbColor: Theme.of(context).colorScheme.primary,
+              ),
+            ],
+          ),
+          // Backup reminder frequency (shown only when reminders are enabled)
+          if (settings.backupReminderEnabled) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'Reminder Frequency',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 7, label: Text('7 days')),
+                ButtonSegment(value: 14, label: Text('14 days')),
+                ButtonSegment(value: 30, label: Text('30 days')),
+              ],
+              selected: {settings.backupReminderFrequencyDays},
+              onSelectionChanged: (Set<int> newSelection) {
+                ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+                  settings.copyWith(backupReminderFrequencyDays: newSelection.first),
+                );
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatBackupDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'today';
+    } else if (difference.inDays == 1) {
+      return 'yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return '$weeks ${weeks == 1 ? 'week' : 'weeks'} ago';
+    } else {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    }
+  }
+
+  Future<void> _createBackup(BuildContext context, WidgetRef ref, AppSettings settings) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final backupService = BackupService();
+      final success = await backupService.exportBackup();
+
+      if (!context.mounted) return;
+      
+      Navigator.of(context).pop(); // Close loading dialog
+
+      if (success) {
+        // Update last backup date
+        await ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+          settings.copyWith(lastBackupDate: DateTime.now()),
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Backup created successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Backup cancelled'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating backup: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
+    if (!context.mounted) return;
+    
+    // Show mode selection dialog
+    final mode = await showDialog<BackupImportMode>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Restore Backup'),
+        content: const Text(
+          'How would you like to restore the backup?\n\n'
+          '• Replace: Delete all current data and restore from backup\n'
+          '• Merge: Combine backup data with current data',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(BackupImportMode.merge),
+            child: const Text('Merge'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(BackupImportMode.replace),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    );
+
+    if (mode == null || !context.mounted) return;
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final backupService = BackupService();
+      final success = await backupService.importBackup(mode);
+
+      if (!context.mounted) return;
+      
+      Navigator.of(context).pop(); // Close loading dialog
+
+      if (success) {
+        // Force storage service to emit fresh data from Hive
+        final storageService = ref.read(localStorageServiceProvider);
+        await storageService.refreshAllStreams();
+        
+        // Invalidate ALL providers to force reload from Hive
+        ref.invalidate(appSettingsProvider);
+        ref.invalidate(appSettingsNotifierProvider);
+        ref.invalidate(remindersProvider);
+        ref.invalidate(shoppingListsProvider);
+        ref.invalidate(guaranteesProvider);
+        ref.invalidate(notesProvider);
+        ref.invalidate(loyaltyCardsProvider);
+        
+        // Reschedule all reminder notifications after import
+        // This ensures notifications match the restored data
+        try {
+          final remindersNotifier = ref.read(remindersNotifierProvider.notifier);
+          await remindersNotifier.rescheduleAllReminders();
+        } catch (e) {
+          debugPrint('⚠️ Error rescheduling reminders after restore: $e');
+        }
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Backup restored successfully! Data reloaded.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Restore cancelled'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error restoring backup: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 
