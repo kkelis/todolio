@@ -57,6 +57,8 @@ class LoyaltyCard {
   final String? notes;
   final DateTime createdAt;
   final bool isPinned;
+  final String? brandId;
+  final int? brandPrimaryColor;
 
   LoyaltyCard({
     required this.id,
@@ -67,6 +69,8 @@ class LoyaltyCard {
     this.notes,
     required this.createdAt,
     this.isPinned = false,
+    this.brandId,
+    this.brandPrimaryColor,
   });
 
   Map<String, dynamic> toMap() {
@@ -79,6 +83,8 @@ class LoyaltyCard {
       'notes': notes,
       'createdAt': createdAt.toIso8601String(),
       'isPinned': isPinned,
+      'brandId': brandId,
+      'brandPrimaryColor': brandPrimaryColor,
     };
   }
 
@@ -96,6 +102,13 @@ class LoyaltyCard {
           ? DateTime.parse(map['createdAt'])
           : (map['createdAt'] as DateTime? ?? DateTime.now()),
       isPinned: map['isPinned'] ?? false,
+      // Migration: Handle existing cards without brand info
+      brandId: map['brandId'],
+      brandPrimaryColor: map['brandPrimaryColor'] is int
+          ? map['brandPrimaryColor'] as int
+          : (map['brandPrimaryColor'] != null
+              ? int.tryParse(map['brandPrimaryColor'].toString())
+              : null),
     );
   }
 
@@ -108,6 +121,8 @@ class LoyaltyCard {
     String? notes,
     DateTime? createdAt,
     bool? isPinned,
+    String? brandId,
+    int? brandPrimaryColor,
   }) {
     return LoyaltyCard(
       id: id ?? this.id,
@@ -118,6 +133,8 @@ class LoyaltyCard {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       isPinned: isPinned ?? this.isPinned,
+      brandId: brandId ?? this.brandId,
+      brandPrimaryColor: brandPrimaryColor ?? this.brandPrimaryColor,
     );
   }
 }

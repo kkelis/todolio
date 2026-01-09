@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import '../models/loyalty_card.dart' as loyalty_card;
 import '../models/loyalty_card.dart';
+import '../models/brand.dart';
 import '../providers/loyalty_cards_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/barcode_display_widget.dart';
+import '../widgets/brand_logo.dart';
 import 'settings_screen.dart';
+import 'brand_selection_screen.dart';
 
 class LoyaltyCardsScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -175,7 +178,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                 : Theme.of(context).colorScheme.primary;
 
             return FloatingActionButton(
-              onPressed: () => _showEditDialog(null),
+              onPressed: () => _showBrandSelection(),
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               child: const Icon(Icons.add),
@@ -243,11 +246,63 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     );
   }
 
+  void _showBrandSelection() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BrandSelectionScreen(
+          onBrandSelected: (brand) {
+            if (brand != null || Navigator.canPop(context)) {
+              // Navigate to barcode scanner with selected brand
+              _showBarcodeScannerWithBrand(context, brand);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showBarcodeScannerWithBrand(BuildContext context, Brand? brand) {
+    _showBarcodeScanner(
+      context,
+      (barcode, type) {
+        // Create card with brand info
+        final newCard = LoyaltyCard(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          cardName: brand?.name ?? 'Loyalty Card',
+          barcodeNumber: barcode,
+          barcodeType: type,
+          cardImagePath: null,
+          notes: null,
+          createdAt: DateTime.now(),
+          isPinned: false,
+          brandId: brand?.id,
+          brandPrimaryColor: brand?.primaryColor.toARGB32(),
+        );
+
+        final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+        notifier.createLoyaltyCard(newCard);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Card "${newCard.cardName}" added successfully!'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+    );
+  }
+
   void _showEditDialog(LoyaltyCard? card) async {
     final cardNameController = TextEditingController(text: card?.cardName ?? '');
     final barcodeNumberController = TextEditingController(text: card?.barcodeNumber ?? '');
     loyalty_card.BarcodeType barcodeType = card?.barcodeType ?? loyalty_card.BarcodeType.ean13;
     bool isPinned = card?.isPinned ?? false;
+    Brand? selectedBrand = card?.brandId != null
+        ? BrandDatabase.getBrandById(card!.brandId!)
+        : null;
 
     showModalBottomSheet(
       context: context,
@@ -317,6 +372,103 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                             contentPadding: const EdgeInsets.all(16),
                             filled: true,
                             fillColor: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Brand selection
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BrandSelectionScreen(
+                                  onBrandSelected: (brand) {
+                                    Navigator.pop(context);
+                                    _showEditDialog(
+                                      card?.copyWith(
+                                        brandId: brand?.id,
+                                        brandPrimaryColor: brand?.primaryColor.toARGB32(),
+                                        cardName: brand?.name ?? card.cardName,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.white,
+                            ),
+                            child: Row(
+                              children: [
+                                if (selectedBrand != null)
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: selectedBrand.primaryColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: selectedBrand.primaryColor.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: BrandLogo(
+                                        assetPath: selectedBrand.logoAssetPath,
+                                        width: 40,
+                                        height: 40,
+                                        fallbackColor: selectedBrand.primaryColor,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.card_membership,
+                                      color: Colors.grey,
+                                      size: 24,
+                                    ),
+                                  ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Brand',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        selectedBrand?.name ?? 'Generic Card',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.chevron_right, color: Colors.grey),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -415,6 +567,9 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 notes: null,
                                 createdAt: card?.createdAt ?? DateTime.now(),
                                 isPinned: isPinned,
+                                brandId: selectedBrand?.id ?? card?.brandId,
+                                brandPrimaryColor: selectedBrand?.primaryColor.toARGB32() ??
+                                    card?.brandPrimaryColor,
                               );
 
                               final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
@@ -528,11 +683,19 @@ class _LoyaltyCardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final brand = card.brandId != null
+        ? BrandDatabase.getBrandById(card.brandId!)
+        : null;
+    final cardColor = brand?.primaryColor ??
+        (card.brandPrimaryColor != null
+            ? Color(card.brandPrimaryColor!)
+            : theme.colorScheme.primary);
 
     return GlassmorphicCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      color: cardColor.withValues(alpha: 0.05),
       child: Row(
         children: [
           Container(
@@ -540,23 +703,33 @@ class _LoyaltyCardCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  theme.colorScheme.primary.withValues(alpha: 0.2),
-                  theme.colorScheme.primary.withValues(alpha: 0.1),
+                  cardColor.withValues(alpha: 0.2),
+                  cardColor.withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                color: cardColor.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
-            child: Icon(
-              card.isPinned ? Icons.push_pin : Icons.card_membership,
-              color: theme.colorScheme.primary.withValues(alpha: 1.0),
-              size: 22,
-            ),
+            child: brand != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: BrandLogo(
+                      assetPath: brand.logoAssetPath,
+                      width: 22,
+                      height: 22,
+                      fallbackColor: cardColor,
+                    ),
+                  )
+                : Icon(
+                    card.isPinned ? Icons.push_pin : Icons.card_membership,
+                    color: cardColor.withValues(alpha: 1.0),
+                    size: 22,
+                  ),
           ),
           const SizedBox(width: 16),
           Expanded(
