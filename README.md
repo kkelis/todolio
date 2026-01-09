@@ -130,7 +130,6 @@ Copyright (c) 2026 Karlo Keliš
 
 ## 📝 Documentation
 
-- See `IMPLEMENTATION_SUMMARY.md` for detailed feature documentation
 - [Privacy Policy](https://kkelis.github.io/todolio/privacy.html)
 
 ## 📧 Contact

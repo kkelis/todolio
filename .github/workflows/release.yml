@@ -95,16 +95,43 @@ jobs:
             echo "✅ Tag $TAG is available"
           fi
 
+      - name: Decode and setup keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # Decode keystore from base64
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          
+          # Create key.properties file
+          cat > android/key.properties << EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+          
+          echo "✅ Keystore and key.properties configured"
+
       - name: Build APK
         run: flutter build apk --release
         env:
           FLUTTER_BUILD_MODE: release
 
-      - name: Rename APK with version
+      - name: Build App Bundle (AAB) for Play Store
+        run: flutter build appbundle --release
+        env:
+          FLUTTER_BUILD_MODE: release
+
+      - name: Rename APK and AAB with version
         run: |
           VERSION="${{ steps.version.outputs.version_name }}"
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/todolio-v${VERSION}.apk
+          cp build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/todolio-v${VERSION}.aab
           echo "✅ Renamed APK to todolio-v${VERSION}.apk"
+          echo "✅ Renamed AAB to todolio-v${VERSION}.aab"
 
       - name: Generate release notes
         id: release_notes
@@ -144,8 +171,14 @@ jobs:
             **Version**: ${{ steps.version.outputs.full_version }}
             **Build Number**: ${{ steps.version.outputs.build_number }}
             **Flutter**: $(flutter --version | head -n 1)
+            
+            ## 📦 Downloads
+            
+            - **APK** (for direct installation): `todolio-v${{ steps.version.outputs.version_name }}.apk`
+            - **AAB** (for Google Play Store): `todolio-v${{ steps.version.outputs.version_name }}.aab`
           files: |
             build/app/outputs/flutter-apk/todolio-v${{ steps.version.outputs.version_name }}.apk
+            build/app/outputs/bundle/release/todolio-v${{ steps.version.outputs.version_name }}.aab
           prerelease: ${{ inputs.prerelease }}
           draft: false
           generate_release_notes: false
@@ -156,7 +189,14 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.version.outputs.full_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag**: ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **APK**: Uploaded to release assets" >> $GITHUB_STEP_SUMMARY
+          echo "- **APK**: Uploaded to release assets (for direct installation)" >> $GITHUB_STEP_SUMMARY
+          echo "- **AAB**: Uploaded to release assets (for Google Play Store)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "View the release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 Next Steps for Play Store" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the \`.aab\` file from the release" >> $GITHUB_STEP_SUMMARY
+          echo "2. Go to Google Play Console" >> $GITHUB_STEP_SUMMARY
+          echo "3. Navigate to your app → Release → Production" >> $GITHUB_STEP_SUMMARY
+          echo "4. Create new release and upload the \`.aab\` file" >> $GITHUB_STEP_SUMMARY
 
