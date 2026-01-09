@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
+import 'package:image_picker/image_picker.dart';
 import '../models/loyalty_card.dart' as loyalty_card;
 import '../models/loyalty_card.dart';
 import '../models/brand.dart';
@@ -712,6 +713,11 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
             backgroundColor: Colors.black,
             actions: [
               IconButton(
+                icon: const Icon(Icons.photo_library, color: Colors.white),
+                onPressed: () => _pickImageAndScan(context, controller, onScanned),
+                tooltip: 'Pick from gallery',
+              ),
+              IconButton(
                 icon: const Icon(Icons.flash_on, color: Colors.white),
                 onPressed: () => controller.toggleTorch(),
               ),
@@ -762,6 +768,94 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
         ),
       ),
     ).then((_) => controller.dispose());
+  }
+
+  Future<void> _pickImageAndScan(
+    BuildContext context,
+    mobile_scanner.MobileScannerController controller,
+    Function(String barcode, loyalty_card.BarcodeType type) onScanned,
+  ) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) return;
+
+    if (!context.mounted) return;
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final mobile_scanner.BarcodeCapture? capture = 
+          await controller.analyzeImage(image.path);
+
+      if (!context.mounted) return;
+      Navigator.pop(context); // Close loading dialog
+
+      if (capture != null && capture.barcodes.isNotEmpty) {
+        for (final barcode in capture.barcodes) {
+          if (barcode.rawValue != null) {
+            final rawValue = barcode.rawValue!;
+            loyalty_card.BarcodeType detectedType = loyalty_card.BarcodeType.ean13;
+
+            // Map mobile_scanner BarcodeFormat to our BarcodeType
+            switch (barcode.format) {
+              case mobile_scanner.BarcodeFormat.ean13:
+                detectedType = loyalty_card.BarcodeType.ean13;
+                break;
+              case mobile_scanner.BarcodeFormat.code128:
+                detectedType = loyalty_card.BarcodeType.code128;
+                break;
+              case mobile_scanner.BarcodeFormat.qrCode:
+                detectedType = loyalty_card.BarcodeType.qrCode;
+                break;
+              case mobile_scanner.BarcodeFormat.upcA:
+                detectedType = loyalty_card.BarcodeType.upcA;
+                break;
+              default:
+                // Try to infer from format
+                if (rawValue.length == 13 && RegExp(r'^\d+$').hasMatch(rawValue)) {
+                  detectedType = loyalty_card.BarcodeType.ean13;
+                } else if (rawValue.length == 12 && RegExp(r'^\d+$').hasMatch(rawValue)) {
+                  detectedType = loyalty_card.BarcodeType.upcA;
+                } else {
+                  detectedType = loyalty_card.BarcodeType.code128;
+                }
+            }
+
+            controller.stop();
+            Navigator.pop(context); // Close scanner screen
+            onScanned(rawValue, detectedType);
+            return;
+          }
+        }
+      }
+
+      // No barcode found in image
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No barcode found in the selected image'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // Close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error scanning image: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 }
 
