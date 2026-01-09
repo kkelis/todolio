@@ -20,6 +20,7 @@ class BrandSelectionScreen extends ConsumerStatefulWidget {
 class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _didSelectBrand = false;
 
   @override
   void dispose() {
@@ -38,19 +39,24 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
   Widget build(BuildContext context) {
     final filteredBrands = _getFilteredBrands();
 
-    return GradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Select Brand'),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              widget.onBrandSelected(null);
-              Navigator.pop(context);
-            },
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) return;
+        if (_didSelectBrand) return;
+        widget.onBrandSelected(null);
+      },
+      child: GradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            title: const Text('Select Brand'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
           ),
-        ),
         body: Column(
           children: [
             // Search bar
@@ -203,36 +209,38 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
                         childAspectRatio: 1.3,
                       ),
                       itemCount: filteredBrands.length,
-                      itemBuilder: (context, index) {
-                        final brand = filteredBrands[index];
-                        return _BrandCard(
-                          brand: brand,
-                          onTap: () {
-                            widget.onBrandSelected(brand);
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
+                    itemBuilder: (context, index) {
+                      final brand = filteredBrands[index];
+                      return _BrandCard(
+                        brand: brand,
+                        onTap: () {
+                          _didSelectBrand = true;
+                          Navigator.pop(context);
+                          widget.onBrandSelected(brand);
+                        },
+                      );
+                    },
                     ),
             ),
           ],
         ),
       ),
+      ),
     );
   }
 
-  void _showCustomBrandDialog() {
-    Navigator.push(
+  Future<void> _showCustomBrandDialog() async {
+    final brand = await Navigator.push<Brand>(
       context,
       MaterialPageRoute(
-        builder: (context) => _CustomBrandScreen(
-          onBrandCreated: (brand) {
-            widget.onBrandSelected(brand);
-            Navigator.pop(context);
-          },
-        ),
+        builder: (context) => const _CustomBrandScreen(),
       ),
     );
+
+    if (!mounted || brand == null) return;
+    _didSelectBrand = true;
+    Navigator.pop(context);
+    widget.onBrandSelected(brand);
   }
 }
 
@@ -301,11 +309,7 @@ class _BrandCard extends StatelessWidget {
 }
 
 class _CustomBrandScreen extends StatefulWidget {
-  final Function(Brand) onBrandCreated;
-
-  const _CustomBrandScreen({
-    required this.onBrandCreated,
-  });
+  const _CustomBrandScreen();
 
   @override
   State<_CustomBrandScreen> createState() => _CustomBrandScreenState();
@@ -359,10 +363,21 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
                     ],
                   ),
                   child: Center(
-                    child: Icon(
-                      Icons.card_membership,
-                      size: 64,
-                      color: Colors.white.withValues(alpha: 0.8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _nameController.text.isEmpty ? 'Brand' : _nameController.text,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -461,10 +476,11 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
                           final customBrand = Brand(
                             id: brandId,
                             name: _nameController.text,
-                            logoAssetPath: 'assets/images/brands/custom.png',
+                            // Render the name as a text “logo”.
+                            logoAssetPath: 'text:${_nameController.text}',
                             primaryColor: _selectedColor,
                           );
-                          widget.onBrandCreated(customBrand);
+                          Navigator.pop(context, customBrand);
                         },
                   icon: const Icon(Icons.qr_code_scanner),
                   label: const Text('Continue to Scan'),

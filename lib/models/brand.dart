@@ -419,8 +419,17 @@ class BrandDatabase {
     ),
   ];
 
+  static int _compareBrandNames(Brand a, Brand b) {
+    // Case-insensitive, stable-ish alphabetical sort by display name.
+    // Fallback to id for deterministic ordering when names match.
+    final nameCmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    if (nameCmp != 0) return nameCmp;
+    return a.id.toLowerCase().compareTo(b.id.toLowerCase());
+  }
+
   static List<Brand> getAllBrands() {
-    return List.unmodifiable(_brands);
+    final sorted = List<Brand>.from(_brands)..sort(_compareBrandNames);
+    return List.unmodifiable(sorted);
   }
 
   static Brand? getBrandById(String id) {
@@ -436,8 +445,10 @@ class BrandDatabase {
       return getAllBrands();
     }
     final lowerQuery = query.toLowerCase();
-    return _brands
+    final results = _brands
         .where((brand) => brand.name.toLowerCase().contains(lowerQuery))
         .toList();
+    results.sort(_compareBrandNames);
+    return results;
   }
 }

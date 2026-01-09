@@ -21,8 +21,46 @@ class BrandLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSvg = assetPath.toLowerCase().endsWith('.svg');
     final normalizedPath = assetPath.toLowerCase();
+
+    if (normalizedPath.startsWith('text:')) {
+      final text = assetPath.substring(5);
+      final display = text.trim().isEmpty ? '?' : text.trim();
+      final color = forceColor ?? fallbackColor ?? Colors.white;
+
+      final child = Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              display,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Match sizing behavior with image/svg branches.
+      if (width != null || height != null) {
+        return SizedBox(width: width, height: height, child: child);
+      }
+      return LayoutBuilder(
+        builder: (context, constraints) => SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: child,
+        ),
+      );
+    }
+
+    final isSvg = assetPath.toLowerCase().endsWith('.svg');
     final effectiveForceColor =
         forceColor ?? (normalizedPath.contains('optikaanda.png') ? Colors.white : null);
 
