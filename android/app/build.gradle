@@ -50,7 +50,7 @@ android {
     defaultConfig {
         applicationId "com.todolio.todolio"
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
