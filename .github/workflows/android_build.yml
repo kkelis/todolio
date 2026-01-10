@@ -64,6 +64,55 @@ jobs:
           echo "version_name=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Version: $VERSION"
 
+      - name: Check for signing secrets
+        run: |
+          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "❌ ERROR: KEYSTORE_BASE64 secret is not set!"
+            echo "Please set up Android signing secrets in GitHub:"
+            echo "  - KEYSTORE_BASE64"
+            echo "  - KEYSTORE_PASSWORD"
+            echo "  - KEY_ALIAS"
+            echo "  - KEY_PASSWORD"
+            echo ""
+            echo "See SIGNING_SETUP.md for instructions"
+            exit 1
+          fi
+          echo "✅ Signing secrets are configured"
+
+      - name: Decode and setup keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # Decode keystore from base64
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          
+          # Verify keystore was created
+          if [ ! -f android/app/upload-keystore.jks ]; then
+            echo "❌ Failed to create keystore file"
+            exit 1
+          fi
+          
+          # Create key.properties file
+          cat > android/key.properties << EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+          
+          # Verify key.properties was created
+          if [ ! -f android/key.properties ]; then
+            echo "❌ Failed to create key.properties file"
+            exit 1
+          fi
+          
+          echo "✅ Keystore and key.properties configured"
+          ls -lh android/app/upload-keystore.jks
+          cat android/key.properties
+
       - name: Build APK
         run: flutter build apk --release
         env:
