@@ -62,7 +62,10 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       await storageService.updateReminder(reminder);
       
       // If reminder was just marked as completed and has repeat, create next occurrence
-      if (!wasCompleted && reminder.isCompleted && reminder.repeatType != RepeatType.none) {
+      // Skip for warranty reminders - they don't repeat
+      if (!wasCompleted && reminder.isCompleted && 
+          reminder.repeatType != RepeatType.none && 
+          reminder.type != ReminderType.warranty) {
         final nextOccurrence = reminder.getNextOccurrence();
         if (nextOccurrence != null) {
           final nextReminder = Reminder(
@@ -77,6 +80,7 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
             repeatType: reminder.repeatType,
             isCompleted: false,
             createdAt: DateTime.now(),
+            linkedGuaranteeId: reminder.linkedGuaranteeId,
           );
           
           await storageService.createReminder(nextReminder);
@@ -91,6 +95,28 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
           );
           
           debugPrint('🔄 Created next occurrence: ${reminder.title} for $nextOccurrence');
+        }
+      }
+      
+      // If a warranty reminder is completed, update the linked guarantee
+      if (!wasCompleted && reminder.isCompleted && 
+          reminder.type == ReminderType.warranty && 
+          reminder.linkedGuaranteeId != null) {
+        // Disable reminder on the linked guarantee since it's been handled
+        try {
+          final guarantees = await storageService.getGuarantees().first;
+          final guarantee = guarantees.firstWhere(
+            (g) => g.id == reminder.linkedGuaranteeId,
+          );
+          // Update guarantee to disable reminder (user handled it)
+          final updatedGuarantee = guarantee.copyWith(
+            reminderEnabled: false,
+            linkedReminderId: null,
+          );
+          await storageService.updateGuarantee(updatedGuarantee);
+          debugPrint('✅ Disabled reminder on linked guarantee: ${guarantee.productName}');
+        } catch (e) {
+          debugPrint('⚠️ Could not update linked guarantee: $e');
         }
       }
       
@@ -125,11 +151,42 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final storageService = ref.read(localStorageServiceProvider);
+      
+      // Get the reminder before deleting to check if it's a warranty reminder
+      final reminders = await storageService.getReminders().first;
+      Reminder? reminder;
+      try {
+        reminder = reminders.firstWhere((r) => r.id == id);
+      } catch (_) {
+        // Reminder not found, continue with deletion
+      }
+      
       await storageService.deleteReminder(id);
       
       // Cancel notification
       final notificationService = ref.read(notificationServiceProvider);
       await notificationService.cancelNotification(id.hashCode);
+      
+      // If it was a warranty reminder, update the linked guarantee
+      if (reminder != null && 
+          reminder.type == ReminderType.warranty && 
+          reminder.linkedGuaranteeId != null) {
+        try {
+          final guarantees = await storageService.getGuarantees().first;
+          final guarantee = guarantees.firstWhere(
+            (g) => g.id == reminder!.linkedGuaranteeId,
+          );
+          // Update guarantee to disable reminder
+          final updatedGuarantee = guarantee.copyWith(
+            reminderEnabled: false,
+            linkedReminderId: null,
+          );
+          await storageService.updateGuarantee(updatedGuarantee);
+          debugPrint('✅ Disabled reminder on linked guarantee: ${guarantee.productName}');
+        } catch (e) {
+          debugPrint('⚠️ Could not update linked guarantee: $e');
+        }
+      }
       
       state = const AsyncValue.data(null);
     } catch (e, stack) {

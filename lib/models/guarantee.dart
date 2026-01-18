@@ -9,6 +9,7 @@ class Guarantee {
   final bool reminderEnabled;
   final int reminderMonthsBefore;
   final DateTime createdAt;
+  final String? linkedReminderId; // Link to the reminder (for warranty notifications)
 
   Guarantee({
     required this.id,
@@ -21,6 +22,7 @@ class Guarantee {
     this.reminderEnabled = false,
     this.reminderMonthsBefore = 1,
     required this.createdAt,
+    this.linkedReminderId,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +37,7 @@ class Guarantee {
       'reminderEnabled': reminderEnabled,
       'reminderMonthsBefore': reminderMonthsBefore,
       'createdAt': createdAt.toIso8601String(),
+      'linkedReminderId': linkedReminderId,
     };
   }
 
@@ -56,6 +59,7 @@ class Guarantee {
       createdAt: map['createdAt'] is String
           ? DateTime.parse(map['createdAt'])
           : (map['createdAt'] as DateTime? ?? DateTime.now()),
+      linkedReminderId: map['linkedReminderId'],
     );
   }
 
@@ -70,6 +74,7 @@ class Guarantee {
     bool? reminderEnabled,
     int? reminderMonthsBefore,
     DateTime? createdAt,
+    String? linkedReminderId,
   }) {
     return Guarantee(
       id: id ?? this.id,
@@ -82,6 +87,7 @@ class Guarantee {
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
       reminderMonthsBefore: reminderMonthsBefore ?? this.reminderMonthsBefore,
       createdAt: createdAt ?? this.createdAt,
+      linkedReminderId: linkedReminderId ?? this.linkedReminderId,
     );
   }
 }

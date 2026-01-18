@@ -2,6 +2,7 @@ enum ReminderType {
   birthday,
   appointment,
   todo,
+  warranty,
   other,
 }
 
@@ -31,6 +32,7 @@ class Reminder {
   final RepeatType repeatType; // Repeat pattern
   final bool isCompleted;
   final DateTime createdAt;
+  final String? linkedGuaranteeId; // Link to guarantee (for warranty reminders)
 
   Reminder({
     required this.id,
@@ -44,6 +46,7 @@ class Reminder {
     this.repeatType = RepeatType.none,
     this.isCompleted = false,
     required this.createdAt,
+    this.linkedGuaranteeId,
   });
 
   // Get effective dateTime (snooze if set, otherwise original)
@@ -62,6 +65,7 @@ class Reminder {
       'repeatType': repeatType.name,
       'isCompleted': isCompleted,
       'createdAt': createdAt.toIso8601String(),
+      'linkedGuaranteeId': linkedGuaranteeId,
     };
   }
 
@@ -100,6 +104,7 @@ class Reminder {
       createdAt: map['createdAt'] is String
           ? DateTime.parse(map['createdAt'])
           : (map['createdAt'] as DateTime? ?? DateTime.now()),
+      linkedGuaranteeId: map['linkedGuaranteeId'],
     );
   }
 
@@ -115,6 +120,7 @@ class Reminder {
     RepeatType? repeatType,
     bool? isCompleted,
     DateTime? createdAt,
+    String? linkedGuaranteeId,
   }) {
     return Reminder(
       id: id ?? this.id,
@@ -128,6 +134,7 @@ class Reminder {
       repeatType: repeatType ?? this.repeatType,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
+      linkedGuaranteeId: linkedGuaranteeId ?? this.linkedGuaranteeId,
     );
   }
 
