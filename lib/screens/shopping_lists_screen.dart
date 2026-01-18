@@ -231,7 +231,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
       enableDrag: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
         ),
         child: Container(
           constraints: BoxConstraints(
@@ -751,7 +751,7 @@ class _ShoppingListDetailScreenState
             builder: (context, setState) {
             return Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
+                bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
               ),
               child: Container(
                 constraints: BoxConstraints(
@@ -1000,7 +1000,7 @@ class _ShoppingListDetailScreenState
           builder: (context, setState) {
             return Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
+                bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
               ),
               child: Container(
                 constraints: BoxConstraints(

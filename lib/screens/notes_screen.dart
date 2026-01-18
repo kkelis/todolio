@@ -290,7 +290,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
             builder: (context, setState) {
               return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
           ),
           child: Container(
             constraints: BoxConstraints(

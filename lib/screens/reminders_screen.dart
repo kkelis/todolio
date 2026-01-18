@@ -410,7 +410,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             builder: (context, setState) {
               return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
           ),
           child: Container(
             constraints: BoxConstraints(
@@ -631,9 +631,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       ),
                     )
                   else
-                    // Show all options when expanded
+                    // Show all options when expanded (exclude warranty - managed by guarantees)
                     Column(
-                      children: ReminderType.values.map((type) {
+                      children: ReminderType.values.where((type) => type != ReminderType.warranty).map((type) {
                         final isSelected = selectedType == type;
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1072,6 +1072,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         return Icons.event;
       case ReminderType.todo:
         return Icons.check_circle_outline;
+      case ReminderType.warranty:
+        return Icons.shield;
       case ReminderType.other:
         return Icons.notifications;
     }
@@ -1099,6 +1101,8 @@ class _ReminderCard extends StatelessWidget {
         return Icons.event;
       case ReminderType.todo:
         return Icons.check_circle_outline;
+      case ReminderType.warranty:
+        return Icons.shield;
       case ReminderType.other:
         return Icons.notifications;
     }
@@ -1112,6 +1116,8 @@ class _ReminderCard extends StatelessWidget {
         return const Color(0xFF6366F1); // Indigo-500
       case ReminderType.todo:
         return const Color(0xFF10B981); // Green-500
+      case ReminderType.warranty:
+        return const Color(0xFFF59E0B); // Amber-500
       case ReminderType.other:
         return const Color(0xFF8B5CF6); // Purple-500
     }

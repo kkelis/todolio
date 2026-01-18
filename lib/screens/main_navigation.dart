@@ -367,6 +367,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   }
 
   Widget _buildBottomNavigationBar(List<NavigationDestination> destinations) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.3),
@@ -377,7 +378,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
           ),
         ),
       ),
-      height: 70,
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      height: 70 + bottomPadding,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(destinations.length, (index) {
@@ -434,6 +436,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   }
 
   Widget _buildHorizontalScrollableNavigation(List<NavigationDestination> destinations) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.3),
@@ -444,7 +447,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
           ),
         ),
       ),
-      height: 70,
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      height: 70 + bottomPadding,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
