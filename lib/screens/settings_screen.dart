@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/app_settings.dart';
 import '../models/color_scheme.dart';
 import '../providers/settings_provider.dart';
@@ -46,8 +47,9 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSettingsContent(BuildContext context, WidgetRef ref, AppSettings settings) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -197,24 +199,23 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: 32),
-          // Version Info
-          FutureBuilder<PackageInfo>(
-            future: PackageInfo.fromPlatform(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final packageInfo = snapshot.data!;
-                return Center(
-                  child: Text(
-                    'v${packageInfo.version}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
+          // About Section
+          Text(
+            'About',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            'Legal information and app details',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildAboutSection(context),
           const SizedBox(height: 16),
         ],
       ),
@@ -519,6 +520,93 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildAboutSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Privacy Policy
+          ListTile(
+            leading: Icon(
+              Icons.privacy_tip_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: const Text(
+              'Privacy Policy',
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.open_in_new, size: 20, color: Colors.grey),
+            onTap: () => _launchUrl('https://kkelis.github.io/todolio/privacy.html'),
+          ),
+          const Divider(height: 1),
+          // Terms of Service
+          ListTile(
+            leading: Icon(
+              Icons.description_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: const Text(
+              'Terms of Service',
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.open_in_new, size: 20, color: Colors.grey),
+            onTap: () => _launchUrl('https://kkelis.github.io/todolio/terms.html'),
+          ),
+          const Divider(height: 1),
+          // Version Info
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              return ListTile(
+                leading: Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text(
+                  'Version',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: Text(
+                  snapshot.hasData ? 'v${snapshot.data!.version}' : '...',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   String _formatBackupDate(DateTime date) {
