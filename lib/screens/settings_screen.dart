@@ -550,8 +550,12 @@ class SettingsScreen extends ConsumerWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            trailing: const Icon(Icons.open_in_new, size: 20, color: Colors.grey),
-            onTap: () => _launchUrl('https://kkelis.github.io/todolio/privacy.html'),
+            trailing: Icon(
+              Icons.open_in_new,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+            ),
+            onTap: () => _launchUrl(context, 'https://kkelis.github.io/todolio/privacy.html'),
           ),
           const Divider(height: 1),
           // Terms of Service
@@ -567,8 +571,12 @@ class SettingsScreen extends ConsumerWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            trailing: const Icon(Icons.open_in_new, size: 20, color: Colors.grey),
-            onTap: () => _launchUrl('https://kkelis.github.io/todolio/terms.html'),
+            trailing: Icon(
+              Icons.open_in_new,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+            ),
+            onTap: () => _launchUrl(context, 'https://kkelis.github.io/todolio/terms.html'),
           ),
           const Divider(height: 1),
           // Version Info
@@ -602,10 +610,27 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _launchUrl(String url) async {
+  Future<void> _launchUrl(BuildContext context, String url) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open $url'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening link: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
