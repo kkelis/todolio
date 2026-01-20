@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
 
   # State Management
-  flutter_riverpod: ^3.1.0
+  flutter_riverpod: ^3.2.0
 
   # Image Handling
   image_picker: ^1.2.1
