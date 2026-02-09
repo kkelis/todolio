@@ -7,7 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -18,7 +18,7 @@ class MainActivity : FlutterActivity() {
         // Enable edge-to-edge for Android 15+ (Google Play recommendation).
         // Deprecated setStatusBarColor/setNavigationBarColor warnings come from Flutter engine;
         // see https://github.com/flutter/flutter/issues/165328
-        enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
     }
     private val CHANNEL = "com.todolio.todolio/alarm"
