@@ -6,6 +6,14 @@ enum ReminderType {
   other,
 }
 
+enum TasksFilter {
+  all,
+  reminders,
+  todos,
+  pending,
+  completed,
+}
+
 enum Priority {
   low,
   medium,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'reminders_screen.dart';
-import 'todos_screen.dart';
+import 'tasks_screen.dart';
 import 'shopping_lists_screen.dart';
 import 'loyalty_cards_screen.dart';
 import 'guarantees_screen.dart';
@@ -47,8 +46,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
 
   List<Widget> _getScreens(AppSettings settings) {
     final screens = <Widget>[];
-    if (settings.remindersEnabled) screens.add(const RemindersScreen());
-    if (settings.todosEnabled) screens.add(const TodosScreen());
+    if (settings.tasksEnabled) screens.add(const TasksScreen());
     if (settings.shoppingEnabled) screens.add(const ShoppingListsScreen(showAppBar: true));
     if (settings.loyaltyCardsEnabled) screens.add(const LoyaltyCardsScreen(showAppBar: true));
     if (settings.guaranteesEnabled) screens.add(const GuaranteesScreen());
@@ -58,18 +56,11 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
 
   List<NavigationDestination> _getDestinations(AppSettings settings) {
     final destinations = <NavigationDestination>[];
-    if (settings.remindersEnabled) {
+    if (settings.tasksEnabled) {
       destinations.add(const NavigationDestination(
-        icon: Icon(Icons.notifications_outlined),
-        selectedIcon: Icon(Icons.notifications),
-        label: 'Reminders',
-      ));
-    }
-    if (settings.todosEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.check_circle_outlined),
-        selectedIcon: Icon(Icons.check_circle),
-        label: 'Todos',
+        icon: Icon(Icons.task_outlined),
+        selectedIcon: Icon(Icons.task),
+        label: 'Tasks',
       ));
     }
     if (settings.shoppingEnabled) {
@@ -104,8 +95,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   }
 
   bool _areAllSectionsEnabled(AppSettings settings) {
-    return settings.remindersEnabled &&
-        settings.todosEnabled &&
+    return settings.tasksEnabled &&
         settings.shoppingEnabled &&
         settings.loyaltyCardsEnabled &&
         settings.guaranteesEnabled &&
