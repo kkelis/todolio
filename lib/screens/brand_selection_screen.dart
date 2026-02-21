@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/brand.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/brand_logo.dart';
+import '../l10n/app_localizations.dart';
 
 class BrandSelectionScreen extends ConsumerStatefulWidget {
   final Function(Brand?) onBrandSelected;
@@ -37,6 +38,7 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final filteredBrands = _getFilteredBrands();
 
     return PopScope(
@@ -49,7 +51,7 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-            title: const Text('Select Brand'),
+            title: Text(l10n.brandSelectionTitle),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
@@ -66,7 +68,7 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
                 controller: _searchController,
                 style: const TextStyle(color: Colors.black87),
                 decoration: InputDecoration(
-                  hintText: 'Search brands...',
+                  hintText: l10n.brandSearchHint,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -138,9 +140,9 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Create Custom Brand',
+                          l10n.createCustomBrand,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -162,11 +164,11 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Divider(),
             ),
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Text(
-                'Select a Brand',
-                style: TextStyle(
+                l10n.selectABrand,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -188,7 +190,7 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No brands found',
+                            l10n.noBrandsFound,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -323,7 +325,7 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Create Custom Brand'),
+          title: Text(AppLocalizations.of(context).createCustomBrand),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -370,7 +372,7 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
 
               // Brand name input
               Text(
-                'Brand Name',
+                AppLocalizations.of(context).brandNameLabel,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -381,7 +383,7 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
                 controller: _nameController,
                 style: const TextStyle(color: Colors.black87),
                 decoration: InputDecoration(
-                  hintText: 'Enter brand name',
+                  hintText: AppLocalizations.of(context).brandNameHint,
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -396,7 +398,7 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
 
               // Color selection
               Text(
-                'Select Color',
+                AppLocalizations.of(context).selectColor,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -467,7 +469,7 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
                           Navigator.pop(context, customBrand);
                         },
                   icon: const Icon(Icons.qr_code_scanner),
-                  label: const Text('Continue to Scan'),
+                  label: Text(AppLocalizations.of(context).continueToScan),
                 ),
               ),
             ],

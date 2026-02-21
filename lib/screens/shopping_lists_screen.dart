@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +25,7 @@ class ShoppingListsScreen extends ConsumerStatefulWidget {
 class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final listsAsync = ref.watch(shoppingListsProvider);
 
     return GradientBackground(
@@ -31,7 +33,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
         backgroundColor: Colors.transparent,
         appBar: widget.showAppBar
             ? AppBar(
-                title: const Text('Shopping Lists'),
+                title: Text(l10n.shoppingListsTitle),
                 leading: IconButton(
                   icon: const Icon(Icons.settings),
                   onPressed: () {
@@ -47,7 +49,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
                   IconButton(
                     icon: const Icon(Icons.file_upload),
                     onPressed: () => _importShoppingList(),
-                    tooltip: 'Import CSV',
+                    tooltip: l10n.tooltipImportCsv,
                   ),
                 ],
               )
@@ -70,7 +72,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'No shopping lists',
+                        l10n.noShoppingLists,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white.withValues(alpha: 0.6),
                             ),
@@ -112,10 +114,10 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Error: $error'),
+                  Text(l10n.errorWithDetails(error.toString())),
                   ElevatedButton(
                     onPressed: () => ref.invalidate(shoppingListsProvider),
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),
@@ -143,6 +145,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   }
 
   Future<void> _importShoppingList() async {
+    final l10n = AppLocalizations.of(context);
     try {
       final notifier = ref.read(shoppingListsNotifierProvider.notifier);
       final importedList = await notifier.importShoppingList();
@@ -151,7 +154,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Imported "${importedList.name}" with ${importedList.items.length} items',
+              l10n.importedListSuccess(importedList.name, importedList.items.length),
               style: const TextStyle(color: Colors.white),
             ),
             duration: const Duration(seconds: 2),
@@ -165,7 +168,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to import: ${e.toString()}',
+              l10n.failedToImport(e.toString()),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.red,
@@ -178,6 +181,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   }
 
   Future<void> _exportShoppingList(ShoppingList list) async {
+    final l10n = AppLocalizations.of(context);
     try {
       final notifier = ref.read(shoppingListsNotifierProvider.notifier);
       final success = await notifier.exportShoppingList(list);
@@ -187,8 +191,8 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
           // Only show success message if user actually shared
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(
-                'Shopping list exported!',
+              content: Text(
+                l10n.shoppingListExported,
                 style: TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
@@ -203,7 +207,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to export: $e',
+              l10n.failedToExport(e.toString()),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.red,
@@ -263,6 +267,7 @@ class _ShoppingListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final completedCount = list.items.where((item) => item.isCompleted).length;
     final totalCount = list.items.length;
     final theme = Theme.of(context);
@@ -324,7 +329,7 @@ class _ShoppingListCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      '$completedCount / $totalCount items',
+                      l10n.shoppingListItemsCount(completedCount, totalCount),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.grey[600],
                         fontSize: 12,
@@ -351,7 +356,7 @@ class _ShoppingListCard extends StatelessWidget {
                     onPressed: onExport,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: 'Export as CSV',
+                    tooltip: l10n.tooltipExportAsCsv,
                   ),
                 if (onDelete != null) ...[
                   const SizedBox(width: 8),
@@ -425,6 +430,7 @@ class _ShoppingListDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -437,13 +443,13 @@ class _ShoppingListDetailScreenState
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
               filled: true,
               fillColor: Colors.transparent,
-              hintText: 'List name',
+              hintText: l10n.shoppingListNameHint,
               hintStyle: TextStyle(color: Colors.white70),
               isDense: true,
               contentPadding: EdgeInsets.zero,
@@ -463,6 +469,7 @@ class _ShoppingListDetailScreenState
   }
 
   Widget _buildItemsList(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (_currentList.items.isEmpty) {
       return Center(
         child: Column(
@@ -475,7 +482,7 @@ class _ShoppingListDetailScreenState
             ),
             const SizedBox(height: 24),
             Text(
-              'No items yet\nStart adding below!',
+              l10n.shoppingListEmptyState,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Colors.white.withValues(alpha: 0.6),
@@ -667,6 +674,7 @@ class _ShoppingListDetailScreenState
   }
 
   Widget _buildInlineInputRow(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
@@ -688,7 +696,7 @@ class _ShoppingListDetailScreenState
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
                   child: Text(
-                    'Restore checked item',
+                    l10n.restoreCheckedItemLabel,
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey.shade500,
@@ -758,7 +766,7 @@ class _ShoppingListDetailScreenState
               onSubmitted: (_) => _addItem(),
               style: const TextStyle(color: Colors.black87, fontSize: 15),
               decoration: InputDecoration(
-                hintText: 'Item name…',
+                hintText: l10n.itemNameHint,
                 suffixIcon: _suggestions.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.close, size: 16),
@@ -886,7 +894,7 @@ class _ShoppingListDetailScreenState
         // Item is already active in the list
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('"$name" is already on the list'),
+            content: Text(AppLocalizations.of(context).itemAlreadyOnList(name)),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -927,6 +935,7 @@ class _ShoppingListDetailScreenState
   }
 
   void _showUnitRollerSheet(BuildContext context, ShoppingUnit current, ValueChanged<ShoppingUnit> onSelected) {
+    final l10n = AppLocalizations.of(context);
     final navBarHeight = MediaQuery.of(context).viewPadding.bottom;
     ShoppingUnit tempUnit = current;
     showModalBottomSheet(
@@ -941,18 +950,18 @@ class _ShoppingListDetailScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CupertinoButton(
-                    child: const Text('Cancel'),
+                    child: Text(l10n.cancel),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                   Text(
-                    'Unit',
+                    l10n.unit,
                     style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   CupertinoButton(
                     child: Text(
-                      'Done',
+                      l10n.done,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(ctx).colorScheme.primary,
@@ -1014,6 +1023,7 @@ class _ShoppingListDetailScreenState
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final l10n = AppLocalizations.of(context);
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
@@ -1035,7 +1045,7 @@ class _ShoppingListDetailScreenState
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Edit Item',
+                            l10n.editItemDialogTitle,
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -1056,7 +1066,7 @@ class _ShoppingListDetailScreenState
                         controller: nameController,
                         style: const TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
-                          labelText: 'Item Name',
+                          labelText: l10n.itemNameLabel,
                           labelStyle: TextStyle(color: Colors.grey.shade700),
                           border: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -1085,7 +1095,7 @@ class _ShoppingListDetailScreenState
                           FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                         ],
                         decoration: InputDecoration(
-                          labelText: 'Quantity',
+                          labelText: l10n.quantityLabel,
                           labelStyle: TextStyle(color: Colors.grey.shade700),
                           border: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -1106,7 +1116,7 @@ class _ShoppingListDetailScreenState
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Unit',
+                        l10n.unit,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -1151,7 +1161,7 @@ class _ShoppingListDetailScreenState
                           onPressed: () {
                             if (nameController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please enter an item name')),
+                                SnackBar(content: Text(l10n.pleaseEnterItemName)),
                               );
                               return;
                             }
@@ -1178,7 +1188,7 @@ class _ShoppingListDetailScreenState
 
                             Navigator.pop(context);
                           },
-                          child: const Text('Save'),
+                          child: Text(l10n.save),
                         ),
                       ),
                     ],
@@ -1192,5 +1202,4 @@ class _ShoppingListDetailScreenState
     );
   }
 }
-
 

@@ -1,0 +1,824 @@
+{
+  "@@locale": "en",
+
+  "@@comment_common": "=== COMMON / SHARED ===",
+
+  "save": "Save",
+  "@save": { "description": "Primary save button used in all edit/add dialogs across every screen" },
+
+  "cancel": "Cancel",
+  "@cancel": { "description": "Cancel button — dialogs, CupertinoButton in unit-roller sheet (shopping_lists_screen), restore-backup dialog (settings_screen)" },
+
+  "delete": "Delete",
+  "@delete": { "description": "Delete button in delete_confirmation_dialog.dart" },
+
+  "edit": "Edit",
+  "@edit": { "description": "IconButton tooltip in loyalty_cards_screen, guarantees detail dialog action button" },
+
+  "close": "Close",
+  "@close": { "description": "AlertDialog action button in guarantees detail dialog" },
+
+  "retry": "Retry",
+  "@retry": { "description": "ElevatedButton shown in every screen's error state (guarantees, loyalty_cards, notes, reminders, tasks, todos, settings, shopping, shopping_unified)" },
+
+  "done": "Done",
+  "@done": { "description": "CupertinoButton in unit-roller sheet — shopping_lists_screen" },
+
+  "ok": "OK",
+  "@ok": { "description": "TextButton in notification-status AlertDialog — main_navigation.dart" },
+
+  "errorWithDetails": "Error: {error}",
+  "@errorWithDetails": {
+    "description": "Generic error display used in every screen's AsyncValue.error block",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "errorLoadingSettings": "Error loading settings: {error}",
+  "@errorLoadingSettings": {
+    "description": "Error state in main_navigation.dart and shopping_unified_screen.dart",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "notSet": "Not set",
+  "@notSet": { "description": "Subtitle when no date is selected — reminders_screen, tasks_screen, todos_screen Date & Time tile" },
+
+  "dateAndTime": "Date & Time",
+  "@dateAndTime": { "description": "ListTile title for date+time picker in reminders_screen, tasks_screen, todos_screen edit dialogs" },
+
+  "priority": "Priority",
+  "@priority": { "description": "Section label for priority selection in reminders_screen, tasks_screen, todos_screen edit dialogs" },
+
+  "repeat": "Repeat",
+  "@repeat": { "description": "Section label for repeat-type selection in reminders_screen, tasks_screen, todos_screen edit dialogs" },
+
+  "pinned": "Pinned",
+  "@pinned": { "description": "ListTile title for the pin toggle switch in loyalty_cards_screen and notes_screen edit dialogs" },
+
+  "completed": "Completed",
+  "@completed": { "description": "Section header for completed items in reminders_screen, tasks_screen, todos_screen; also filter menu item in todos_screen and tasks_screen" },
+
+  "overdue": "Overdue",
+  "@overdue": { "description": "Section header for overdue items in reminders_screen, tasks_screen, todos_screen" },
+
+  "today": "Today",
+  "@today": { "description": "Time-period group label in reminders_screen._groupByTimePeriod and tasks_screen._groupByTimePeriod" },
+
+  "next7Days": "Next 7 Days",
+  "@next7Days": { "description": "Time-period group label in reminders_screen._groupByTimePeriod and tasks_screen._groupByTimePeriod" },
+
+  "later": "Later",
+  "@later": { "description": "Time-period group label in reminders_screen._groupByTimePeriod and tasks_screen._groupByTimePeriod" },
+
+  "pleaseEnterSomeText": "Please enter some text",
+  "@pleaseEnterSomeText": { "description": "Validation SnackBar in reminders_screen, tasks_screen, todos_screen save button" },
+
+  "titleCannotBeEmpty": "Title cannot be empty",
+  "@titleCannotBeEmpty": { "description": "Validation SnackBar in reminders_screen, tasks_screen, todos_screen save button" },
+
+  "repeatNone": "None",
+  "@repeatNone": { "description": "RepeatType.none label — used in reminders_screen, tasks_screen, todos_screen repeat chip" },
+
+  "repeatDaily": "Daily",
+  "@repeatDaily": { "description": "RepeatType.daily label — reminders_screen, tasks_screen, todos_screen" },
+
+  "repeatWeekly": "Weekly",
+  "@repeatWeekly": { "description": "RepeatType.weekly label — reminders_screen, tasks_screen, todos_screen" },
+
+  "repeatMonthly": "Monthly",
+  "@repeatMonthly": { "description": "RepeatType.monthly label — reminders_screen, tasks_screen, todos_screen" },
+
+  "repeatYearly": "Yearly",
+  "@repeatYearly": { "description": "RepeatType.yearly label — reminders_screen, tasks_screen, todos_screen" },
+
+  "all": "All",
+  "@all": { "description": "Filter chip/menu item for 'All' in notes_screen tag filter, reminders_screen popup menu, todos_screen popup menu" },
+
+  "pending": "Pending",
+  "@pending": { "description": "Filter menu item in todos_screen and tasks_screen" },
+
+  "color": "Color",
+  "@color": { "description": "Section label for color selection in notes_screen edit dialog" },
+
+  "colorNone": "None",
+  "@colorNone": { "description": "ChoiceChip label for 'no color' option in notes_screen color picker" },
+
+  "unit": "Unit",
+  "@unit": { "description": "Section label in shopping_lists_screen unit-roller sheet header and edit-item dialog" },
+
+
+  "@@comment_brand_selection": "=== BRAND SELECTION SCREEN ===",
+
+  "brandSelectionTitle": "Select Brand",
+  "@brandSelectionTitle": { "description": "AppBar title — brand_selection_screen.dart ~line 53" },
+
+  "brandSearchHint": "Search brands...",
+  "@brandSearchHint": { "description": "hintText on search TextField — brand_selection_screen.dart ~line 68" },
+
+  "createCustomBrand": "Create Custom Brand",
+  "@createCustomBrand": { "description": "Text in the custom-brand InkWell card and AppBar title of _CustomBrandScreen — brand_selection_screen.dart ~lines 130, 327" },
+
+  "selectABrand": "Select a Brand",
+  "@selectABrand": { "description": "Section label above brands grid — brand_selection_screen.dart ~line 155" },
+
+  "noBrandsFound": "No brands found",
+  "@noBrandsFound": { "description": "Empty state text when brand search yields no results — brand_selection_screen.dart ~line 173" },
+
+  "brandNameLabel": "Brand Name",
+  "@brandNameLabel": { "description": "Section label above brand name TextField in _CustomBrandScreen — brand_selection_screen.dart ~line 370" },
+
+  "brandNameHint": "Enter brand name",
+  "@brandNameHint": { "description": "hintText on brand name TextField in _CustomBrandScreen — brand_selection_screen.dart ~line 378" },
+
+  "selectColor": "Select Color",
+  "@selectColor": { "description": "Section label above color picker in _CustomBrandScreen — brand_selection_screen.dart ~line 387" },
+
+  "continueToScan": "Continue to Scan",
+  "@continueToScan": { "description": "ElevatedButton.icon label in _CustomBrandScreen — brand_selection_screen.dart ~line 435" },
+
+
+  "@@comment_guarantees": "=== GUARANTEES SCREEN ===",
+
+  "guaranteesTitle": "Guarantees",
+  "@guaranteesTitle": { "description": "AppBar title — guarantees_screen.dart ~line 34" },
+
+  "noGuarantees": "No guarantees",
+  "@noGuarantees": { "description": "Empty state text — guarantees_screen.dart ~line 61" },
+
+  "addGuarantee": "Add Guarantee",
+  "@addGuarantee": { "description": "Bottom-sheet dialog title when creating — guarantees_screen.dart ~line 171" },
+
+  "editGuarantee": "Edit Guarantee",
+  "@editGuarantee": { "description": "Bottom-sheet dialog title when editing — guarantees_screen.dart ~line 171" },
+
+  "productNameLabel": "Product Name",
+  "@productNameLabel": { "description": "labelText on product name TextField — guarantees_screen.dart ~line 185" },
+
+  "purchaseDate": "Purchase Date",
+  "@purchaseDate": { "description": "ListTile title and _DetailRow label — guarantees_screen.dart ~lines 200, 556" },
+
+  "expiryDate": "Expiry Date",
+  "@expiryDate": { "description": "ListTile title and _DetailRow label — guarantees_screen.dart ~lines 218, 557" },
+
+  "warrantyPhotoButton": "Warranty",
+  "@warrantyPhotoButton": { "description": "ElevatedButton.icon label for capturing warranty photo — guarantees_screen.dart ~line 267" },
+
+  "receiptPhotoButton": "Receipt",
+  "@receiptPhotoButton": { "description": "ElevatedButton.icon label for capturing receipt photo — guarantees_screen.dart ~line 283" },
+
+  "warrantyPhotoCaptured": "Warranty photo captured",
+  "@warrantyPhotoCaptured": { "description": "Status text shown after warranty photo is taken — guarantees_screen.dart ~line 299" },
+
+  "receiptPhotoCaptured": "Receipt photo captured",
+  "@receiptPhotoCaptured": { "description": "Status text shown after receipt photo is taken — guarantees_screen.dart ~line 301" },
+
+  "notesLabel": "Notes",
+  "@notesLabel": { "description": "labelText on notes TextField in guarantees and notes screens — guarantees_screen.dart ~line 317, notes_screen.dart" },
+
+  "setReminder": "Set Reminder",
+  "@setReminder": { "description": "Label next to the reminder toggle switch in guarantee edit dialog — guarantees_screen.dart ~line 401" },
+
+  "remindMe": "Remind me",
+  "@remindMe": { "description": "Label above reminder-months chip selector — guarantees_screen.dart ~line 418" },
+
+  "reminderMonthsBeforeSingular": "{count} month before",
+  "@reminderMonthsBeforeSingular": {
+    "description": "ChoiceChip label when reminderMonthsBefore == 1 — guarantees_screen.dart ~lines 433, 459",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "reminderMonthsBeforePlural": "{count} months before",
+  "@reminderMonthsBeforePlural": {
+    "description": "ChoiceChip label when reminderMonthsBefore > 1 — guarantees_screen.dart ~lines 433, 459",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "warrantyPhotoDetailLabel": "Warranty Photo:",
+  "@warrantyPhotoDetailLabel": { "description": "Bold label above warranty image in detail dialog — guarantees_screen.dart ~line 573" },
+
+  "receiptPhotoDetailLabel": "Receipt Photo:",
+  "@receiptPhotoDetailLabel": { "description": "Bold label above receipt image in detail dialog — guarantees_screen.dart ~line 581" },
+
+  "guaranteeExpiresOn": "Expires: {date}",
+  "@guaranteeExpiresOn": {
+    "description": "Expiry date subtitle in _GuaranteeCard — guarantees_screen.dart ~line 655",
+    "placeholders": { "date": { "type": "String" } }
+  },
+
+  "guaranteeExpired": "EXPIRED",
+  "@guaranteeExpired": { "description": "Status badge text on expired guarantee card — guarantees_screen.dart ~line 662" },
+
+  "guaranteeExpiringSoon": "Expiring soon",
+  "@guaranteeExpiringSoon": { "description": "Status badge text on soon-to-expire guarantee card — guarantees_screen.dart ~line 662" },
+
+
+  "@@comment_loyalty_cards": "=== LOYALTY CARDS SCREEN ===",
+
+  "loyaltyCardsTitle": "Loyalty Cards",
+  "@loyaltyCardsTitle": { "description": "AppBar title — loyalty_cards_screen.dart ~line 45" },
+
+  "loyaltyCardsSearchHint": "Search loyalty cards...",
+  "@loyaltyCardsSearchHint": { "description": "hintText on search TextField — loyalty_cards_screen.dart ~line 65" },
+
+  "noLoyaltyCards": "No loyalty cards",
+  "@noLoyaltyCards": { "description": "Empty state when no cards and no search query — loyalty_cards_screen.dart ~line 107" },
+
+  "noCardsFound": "No cards found",
+  "@noCardsFound": { "description": "Empty state when search yields no results — loyalty_cards_screen.dart ~line 107" },
+
+  "cardUnpinned": "Card unpinned",
+  "@cardUnpinned": { "description": "SnackBar content after unpinning a card — loyalty_cards_screen.dart ~line 183" },
+
+  "cardPinnedToTop": "Card pinned to top",
+  "@cardPinnedToTop": { "description": "SnackBar content after pinning a card — loyalty_cards_screen.dart ~line 184" },
+
+  "tooltipUnpin": "Unpin",
+  "@tooltipUnpin": { "description": "IconButton tooltip on pin icon when card is pinned — loyalty_cards_screen.dart ~line 188" },
+
+  "tooltipPinToTop": "Pin to top",
+  "@tooltipPinToTop": { "description": "IconButton tooltip on pin icon when card is not pinned — loyalty_cards_screen.dart ~line 188" },
+
+  "tooltipDelete": "Delete",
+  "@tooltipDelete": { "description": "IconButton tooltip on delete button in barcode-display sheet — loyalty_cards_screen.dart ~line 205" },
+
+  "defaultLoyaltyCardName": "Loyalty Card",
+  "@defaultLoyaltyCardName": { "description": "Fallback card name when brand is null — loyalty_cards_screen.dart ~line 254" },
+
+  "cardAddedSuccess": "Card \"{cardName}\" added successfully!",
+  "@cardAddedSuccess": {
+    "description": "SnackBar after successfully adding a loyalty card — loyalty_cards_screen.dart ~line 260",
+    "placeholders": { "cardName": { "type": "String" } }
+  },
+
+  "addLoyaltyCard": "Add Loyalty Card",
+  "@addLoyaltyCard": { "description": "Bottom-sheet title when creating a loyalty card — loyalty_cards_screen.dart ~line 436" },
+
+  "editLoyaltyCard": "Edit Loyalty Card",
+  "@editLoyaltyCard": { "description": "Bottom-sheet title when editing a loyalty card — loyalty_cards_screen.dart ~line 436" },
+
+  "cardNameLabel": "Card Name",
+  "@cardNameLabel": { "description": "labelText on card name TextField — loyalty_cards_screen.dart ~line 470" },
+
+  "brandFieldLabel": "Brand",
+  "@brandFieldLabel": { "description": "Small label above selected brand name in brand-tile — loyalty_cards_screen.dart ~line 539" },
+
+  "genericCardFallback": "Generic Card",
+  "@genericCardFallback": { "description": "Fallback brand name when no brand selected — loyalty_cards_screen.dart ~line 545" },
+
+  "barcodeNumberLabel": "Barcode Number",
+  "@barcodeNumberLabel": { "description": "labelText on barcode TextField — loyalty_cards_screen.dart ~line 576" },
+
+  "scanButtonLabel": "Scan",
+  "@scanButtonLabel": { "description": "Label on scan barcode ElevatedButton.icon — loyalty_cards_screen.dart ~line 594" },
+
+  "fillInCardNameAndBarcode": "Please fill in card name and barcode number",
+  "@fillInCardNameAndBarcode": { "description": "Validation SnackBar when saving loyalty card without required fields — loyalty_cards_screen.dart ~line 634" },
+
+  "scanBarcodeTitle": "Scan Barcode",
+  "@scanBarcodeTitle": { "description": "AppBar title of inline barcode scanner screen — loyalty_cards_screen.dart ~line 686" },
+
+  "tooltipPickFromGallery": "Pick from gallery",
+  "@tooltipPickFromGallery": { "description": "IconButton tooltip for gallery image picker on scanner screen — loyalty_cards_screen.dart ~line 693" },
+
+  "noBarcodeFoundInImage": "No barcode found in the selected image",
+  "@noBarcodeFoundInImage": { "description": "SnackBar when image scan finds no barcode — loyalty_cards_screen.dart ~line 801" },
+
+  "errorScanningImage": "Error scanning image: {error}",
+  "@errorScanningImage": {
+    "description": "SnackBar on image scan error — loyalty_cards_screen.dart ~line 807",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+
+  "@@comment_main_navigation": "=== MAIN NAVIGATION ===",
+
+  "navTasks": "Tasks",
+  "@navTasks": { "description": "NavigationDestination label for Tasks — main_navigation.dart ~line 64" },
+
+  "navShopping": "Shopping",
+  "@navShopping": { "description": "NavigationDestination label for Shopping — main_navigation.dart ~line 71" },
+
+  "navCards": "Cards",
+  "@navCards": { "description": "NavigationDestination label for Loyalty Cards — main_navigation.dart ~line 78" },
+
+  "navGuarantees": "Guarantees",
+  "@navGuarantees": { "description": "NavigationDestination label for Guarantees — main_navigation.dart ~line 85" },
+
+  "navNotes": "Notes",
+  "@navNotes": { "description": "NavigationDestination label for Notes — main_navigation.dart ~line 92" },
+
+  "noSectionsEnabled": "No sections enabled",
+  "@noSectionsEnabled": { "description": "Empty-state headline when all sections are toggled off — main_navigation.dart ~line 130" },
+
+  "enableAtLeastOneSection": "Enable at least one section in Settings",
+  "@enableAtLeastOneSection": { "description": "Empty-state subtitle below noSectionsEnabled — main_navigation.dart ~line 136" },
+
+  "openSettings": "Open Settings",
+  "@openSettings": { "description": "ElevatedButton.icon label in empty-state — main_navigation.dart ~line 143" },
+
+  "devModeDrawerHeader": "Dev Mode",
+  "@devModeDrawerHeader": { "description": "DrawerHeader title text — main_navigation.dart ~line 162" },
+
+  "drawerSettings": "Settings",
+  "@drawerSettings": { "description": "ListTile title in dev drawer — main_navigation.dart ~line 174" },
+
+  "drawerTestNotification": "Test Notification",
+  "@drawerTestNotification": { "description": "ListTile title in dev drawer — main_navigation.dart ~line 181" },
+
+  "drawerTestNotificationSubtitle": "Send a test notification",
+  "@drawerTestNotificationSubtitle": { "description": "ListTile subtitle in dev drawer — main_navigation.dart ~line 182" },
+
+  "testNotificationSent": "Test notification sent!",
+  "@testNotificationSent": { "description": "SnackBar content after sending test notification — main_navigation.dart ~line 192" },
+
+  "drawerRequestPermissions": "Request Permissions",
+  "@drawerRequestPermissions": { "description": "ListTile title in dev drawer — main_navigation.dart ~line 198" },
+
+  "drawerRequestPermissionsSubtitle": "Request notification permissions",
+  "@drawerRequestPermissionsSubtitle": { "description": "ListTile subtitle in dev drawer — main_navigation.dart ~line 199" },
+
+  "notificationPermissionsGranted": "Notification permissions granted! ✅",
+  "@notificationPermissionsGranted": { "description": "SnackBar when permissions are granted — main_navigation.dart ~line 207" },
+
+  "notificationPermissionsDenied": "Notification permissions denied. Please enable in settings.",
+  "@notificationPermissionsDenied": { "description": "SnackBar when permissions are denied — main_navigation.dart ~line 208" },
+
+  "drawerCheckNotificationStatus": "Check Notification Status",
+  "@drawerCheckNotificationStatus": { "description": "ListTile title in dev drawer — main_navigation.dart ~line 215" },
+
+  "drawerCheckNotificationStatusSubtitle": "View notification status and pending notifications",
+  "@drawerCheckNotificationStatusSubtitle": { "description": "ListTile subtitle in dev drawer — main_navigation.dart ~line 216" },
+
+  "notificationStatusDialogTitle": "Notification Status",
+  "@notificationStatusDialogTitle": { "description": "AlertDialog title showing notification status — main_navigation.dart ~line 229" },
+
+  "notificationsEnabledStatus": "Notifications Enabled: {status}",
+  "@notificationsEnabledStatus": {
+    "description": "Row in notification-status dialog — main_navigation.dart ~line 234",
+    "placeholders": { "status": { "type": "String" } }
+  },
+
+  "pendingNotificationsCount": "Pending Notifications: {count}",
+  "@pendingNotificationsCount": {
+    "description": "Row in notification-status dialog — main_navigation.dart ~line 236",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "notificationStatusPendingHeader": "Pending:",
+  "@notificationStatusPendingHeader": { "description": "Bold label above pending notifications list — main_navigation.dart ~line 240" },
+
+  "andNMore": "... and {count} more",
+  "@andNMore": {
+    "description": "Shown when pending notifications exceed 5 — main_navigation.dart ~line 244",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "notificationsDisabledWarning": "⚠️ Notifications are disabled. Please enable them in Settings.",
+  "@notificationsDisabledWarning": { "description": "Warning text in notification-status dialog — main_navigation.dart ~line 249" },
+
+  "devModeNoAuth": "Dev Mode - No Auth",
+  "@devModeNoAuth": { "description": "ListTile title at bottom of dev drawer — main_navigation.dart ~line 259" },
+
+  "devModeNoAuthSubtitle": "Authentication disabled for development",
+  "@devModeNoAuthSubtitle": { "description": "ListTile subtitle in dev drawer — main_navigation.dart ~line 260" },
+
+
+  "@@comment_notes": "=== NOTES SCREEN ===",
+
+  "notesTitle": "Notes",
+  "@notesTitle": { "description": "AppBar title — notes_screen.dart ~line 42" },
+
+  "notesSearchHint": "Search notes...",
+  "@notesSearchHint": { "description": "hintText on search TextField — notes_screen.dart ~line 63" },
+
+  "noNotes": "No notes",
+  "@noNotes": { "description": "Empty state text — notes_screen.dart ~line 114" },
+
+  "addNote": "Add Note",
+  "@addNote": { "description": "Bottom-sheet title when creating — notes_screen.dart ~line 295" },
+
+  "editNote": "Edit Note",
+  "@editNote": { "description": "Bottom-sheet title when editing — notes_screen.dart ~line 295" },
+
+  "noteTitleLabel": "Title",
+  "@noteTitleLabel": { "description": "labelText on title TextField in note edit dialog — notes_screen.dart ~line 318" },
+
+  "noteContentLabel": "Content",
+  "@noteContentLabel": { "description": "labelText on content TextField in note edit dialog — notes_screen.dart ~line 338" },
+
+  "noteTagsLabel": "Tags (comma separated)",
+  "@noteTagsLabel": { "description": "labelText on tags TextField in note edit dialog — notes_screen.dart ~line 360" },
+
+  "noteTagsHint": "work, personal, ideas",
+  "@noteTagsHint": { "description": "hintText on tags TextField — notes_screen.dart ~line 361" },
+
+
+  "@@comment_reminders": "=== REMINDERS SCREEN ===",
+
+  "remindersTitle": "Reminders",
+  "@remindersTitle": { "description": "AppBar title — reminders_screen.dart ~line 41" },
+
+  "noReminders": "No reminders",
+  "@noReminders": { "description": "Empty state text — reminders_screen.dart ~line 94" },
+
+  "addReminder": "Add Reminder",
+  "@addReminder": { "description": "Bottom-sheet title when creating — reminders_screen.dart ~line 437" },
+
+  "editReminder": "Edit Reminder",
+  "@editReminder": { "description": "Bottom-sheet title when editing — reminders_screen.dart ~line 437" },
+
+  "addReminderHint": "Add your reminder here",
+  "@addReminderHint": { "description": "hintText on main text field in reminder edit dialog — reminders_screen.dart ~line 460" },
+
+  "reminderTypeLabel": "Reminder type",
+  "@reminderTypeLabel": { "description": "Section label above type selector — reminders_screen.dart ~line 505" },
+
+  "reminderTypeBirthday": "Birthday",
+  "@reminderTypeBirthday": { "description": "ReminderType.birthday display name shown in type chips" },
+
+  "reminderTypeAppointment": "Appointment",
+  "@reminderTypeAppointment": { "description": "ReminderType.appointment display name shown in type chips" },
+
+  "reminderTypeTodo": "Todo",
+  "@reminderTypeTodo": { "description": "ReminderType.todo display label in reminder type chips (note: tasks_screen uses 'To-Do' via _getTypeLabel)" },
+
+  "reminderTypeOther": "Other",
+  "@reminderTypeOther": { "description": "ReminderType.other display name — reminders_screen type chip" },
+
+
+  "@@comment_settings": "=== SETTINGS SCREEN ===",
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": { "description": "AppBar title — settings_screen.dart ~line 29" },
+
+  "settingsAppSectionsHeader": "App Sections",
+  "@settingsAppSectionsHeader": { "description": "Section title — settings_screen.dart ~line 56" },
+
+  "settingsAppSectionsSubtitle": "Select which sections you want to see in the app",
+  "@settingsAppSectionsSubtitle": { "description": "Section subtitle — settings_screen.dart ~line 60" },
+
+  "sectionTasks": "Tasks",
+  "@sectionTasks": { "description": "Toggle title for Tasks section — settings_screen.dart ~line 68" },
+
+  "sectionShoppingLists": "Shopping Lists",
+  "@sectionShoppingLists": { "description": "Toggle title for Shopping Lists section — settings_screen.dart ~line 75" },
+
+  "sectionGuarantees": "Guarantees",
+  "@sectionGuarantees": { "description": "Toggle title for Guarantees section — settings_screen.dart ~line 82" },
+
+  "sectionNotes": "Notes",
+  "@sectionNotes": { "description": "Toggle title for Notes section — settings_screen.dart ~line 89" },
+
+  "sectionLoyaltyCards": "Loyalty Cards",
+  "@sectionLoyaltyCards": { "description": "Toggle title for Loyalty Cards section — settings_screen.dart ~line 96" },
+
+  "settingsColorSchemeHeader": "Color Scheme",
+  "@settingsColorSchemeHeader": { "description": "Section title — settings_screen.dart ~line 104" },
+
+  "settingsColorSchemeSubtitle": "Choose your preferred color theme",
+  "@settingsColorSchemeSubtitle": { "description": "Section subtitle — settings_screen.dart ~line 108" },
+
+  "settingsBackupHeader": "Backup & Restore",
+  "@settingsBackupHeader": { "description": "Section title — settings_screen.dart ~line 114" },
+
+  "settingsBackupSubtitle": "Backup your data to transfer to a new device",
+  "@settingsBackupSubtitle": { "description": "Section subtitle — settings_screen.dart ~line 118" },
+
+  "settingsAtLeastOneSection": "At least one section must be enabled",
+  "@settingsAtLeastOneSection": { "description": "Warning text when all sections are disabled — settings_screen.dart ~line 130" },
+
+  "settingsAboutHeader": "About",
+  "@settingsAboutHeader": { "description": "Section title — settings_screen.dart ~line 141" },
+
+  "settingsAboutSubtitle": "Legal information and app details",
+  "@settingsAboutSubtitle": { "description": "Section subtitle — settings_screen.dart ~line 145" },
+
+  "backupLastDate": "Last backup: {date}",
+  "@backupLastDate": {
+    "description": "Shows formatted last backup date — settings_screen.dart ~line 406",
+    "placeholders": { "date": { "type": "String" } }
+  },
+
+  "backupNeverBackedUp": "Never backed up",
+  "@backupNeverBackedUp": { "description": "Shown when no backup exists — settings_screen.dart ~line 417" },
+
+  "createBackupButton": "Create Backup",
+  "@createBackupButton": { "description": "ElevatedButton.icon label — settings_screen.dart ~line 430" },
+
+  "restoreButton": "Restore",
+  "@restoreButton": { "description": "ElevatedButton.icon label — settings_screen.dart ~line 440" },
+
+  "backupRemindersToggle": "Backup Reminders",
+  "@backupRemindersToggle": { "description": "Toggle label for backup reminder switch — settings_screen.dart ~line 459" },
+
+  "reminderFrequencyLabel": "Reminder Frequency",
+  "@reminderFrequencyLabel": { "description": "Label above backup reminder frequency segmented button — settings_screen.dart ~line 469" },
+
+  "frequencyDays": "{count} days",
+  "@frequencyDays": {
+    "description": "ButtonSegment labels: '7 days', '14 days', '30 days' — settings_screen.dart ~line 476",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "privacyPolicyTitle": "Privacy Policy",
+  "@privacyPolicyTitle": { "description": "ListTile title in About section — settings_screen.dart ~line 499" },
+
+  "termsOfServiceTitle": "Terms of Service",
+  "@termsOfServiceTitle": { "description": "ListTile title in About section — settings_screen.dart ~line 510" },
+
+  "versionLabel": "Version",
+  "@versionLabel": { "description": "ListTile title in About section — settings_screen.dart ~line 522" },
+
+  "couldNotOpenUrl": "Could not open {url}",
+  "@couldNotOpenUrl": {
+    "description": "SnackBar when URL fails to launch — settings_screen.dart ~line 539",
+    "placeholders": { "url": { "type": "String" } }
+  },
+
+  "errorOpeningLink": "Error opening link: {error}",
+  "@errorOpeningLink": {
+    "description": "SnackBar on link-launch exception — settings_screen.dart ~line 545",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "backupDateToday": "today",
+  "@backupDateToday": { "description": "_formatBackupDate return value — settings_screen.dart ~line 557" },
+
+  "backupDateYesterday": "yesterday",
+  "@backupDateYesterday": { "description": "_formatBackupDate return value — settings_screen.dart ~line 559" },
+
+  "backupDateDaysAgo": "{count} days ago",
+  "@backupDateDaysAgo": {
+    "description": "_formatBackupDate return value — settings_screen.dart ~line 561",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "backupDateWeekAgo": "{count} week ago",
+  "@backupDateWeekAgo": {
+    "description": "_formatBackupDate singular week — settings_screen.dart ~line 563",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "backupDateWeeksAgo": "{count} weeks ago",
+  "@backupDateWeeksAgo": {
+    "description": "_formatBackupDate plural weeks — settings_screen.dart ~line 563",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "backupDateMonthAgo": "{count} month ago",
+  "@backupDateMonthAgo": {
+    "description": "_formatBackupDate singular month — settings_screen.dart ~line 565",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "backupDateMonthsAgo": "{count} months ago",
+  "@backupDateMonthsAgo": {
+    "description": "_formatBackupDate plural months — settings_screen.dart ~line 565",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "restoreBackupDialogTitle": "Restore Backup",
+  "@restoreBackupDialogTitle": { "description": "AlertDialog title — settings_screen.dart ~line 575" },
+
+  "restoreBackupDialogContent": "How would you like to restore the backup?\n\n• Replace: Delete all current data and restore from backup\n• Merge: Combine backup data with current data",
+  "@restoreBackupDialogContent": { "description": "AlertDialog content text — settings_screen.dart ~line 576" },
+
+  "restoreMerge": "Merge",
+  "@restoreMerge": { "description": "TextButton label in restore dialog — settings_screen.dart ~line 584" },
+
+  "restoreReplace": "Replace",
+  "@restoreReplace": { "description": "TextButton label in restore dialog — settings_screen.dart ~line 587" },
+
+  "backupCreatedSuccess": "Backup created successfully!",
+  "@backupCreatedSuccess": { "description": "SnackBar after successful backup export — settings_screen.dart ~line 608" },
+
+  "backupCancelled": "Backup cancelled",
+  "@backupCancelled": { "description": "SnackBar when backup export is cancelled — settings_screen.dart ~line 616" },
+
+  "errorCreatingBackup": "Error creating backup: {error}",
+  "@errorCreatingBackup": {
+    "description": "SnackBar on backup creation error — settings_screen.dart ~line 624",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "backupRestoredSuccess": "Backup restored successfully! Data reloaded.",
+  "@backupRestoredSuccess": { "description": "SnackBar after successful restore — settings_screen.dart ~line 659" },
+
+  "restoreCancelled": "Restore cancelled",
+  "@restoreCancelled": { "description": "SnackBar when restore is cancelled — settings_screen.dart ~line 666" },
+
+  "errorRestoringBackup": "Error restoring backup: {error}",
+  "@errorRestoringBackup": {
+    "description": "SnackBar on restore error — settings_screen.dart ~line 674",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+
+  "@@comment_shopping_lists": "=== SHOPPING LISTS SCREEN ===",
+
+  "shoppingListsTitle": "Shopping Lists",
+  "@shoppingListsTitle": { "description": "AppBar title — shopping_lists_screen.dart ~line 36" },
+
+  "tooltipImportCsv": "Import CSV",
+  "@tooltipImportCsv": { "description": "IconButton tooltip for import button — shopping_lists_screen.dart ~line 48, shopping_unified_screen.dart" },
+
+  "noShoppingLists": "No shopping lists",
+  "@noShoppingLists": { "description": "Empty state — shopping_lists_screen.dart ~line 68" },
+
+  "importedListSuccess": "Imported \"{name}\" with {itemCount} items",
+  "@importedListSuccess": {
+    "description": "SnackBar after successful CSV import — shopping_lists_screen.dart ~line 127, shopping_unified_screen.dart ~line 40",
+    "placeholders": {
+      "name": { "type": "String" },
+      "itemCount": { "type": "int" }
+    }
+  },
+
+  "failedToImport": "Failed to import: {error}",
+  "@failedToImport": {
+    "description": "SnackBar on import failure — shopping_lists_screen.dart ~line 134, shopping_unified_screen.dart ~line 47",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "shoppingListExported": "Shopping list exported!",
+  "@shoppingListExported": { "description": "SnackBar after successful CSV export — shopping_lists_screen.dart ~line 152" },
+
+  "failedToExport": "Failed to export: {error}",
+  "@failedToExport": {
+    "description": "SnackBar on export failure — shopping_lists_screen.dart ~line 162",
+    "placeholders": { "error": { "type": "String" } }
+  },
+
+  "tooltipExportAsCsv": "Export as CSV",
+  "@tooltipExportAsCsv": { "description": "IconButton tooltip on shopping list card export button — shopping_lists_screen.dart ~line 312" },
+
+  "shoppingListItemsCount": "{completed} / {total} items",
+  "@shoppingListItemsCount": {
+    "description": "Item count subtitle on shopping list card — shopping_lists_screen.dart ~line 291",
+    "placeholders": {
+      "completed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "shoppingListNameHint": "List name",
+  "@shoppingListNameHint": { "description": "hintText on editable list-name TextField in AppBar — shopping_lists_screen.dart ~line 443" },
+
+  "shoppingListEmptyState": "No items yet\nStart adding below!",
+  "@shoppingListEmptyState": { "description": "Empty state text in ShoppingListDetailScreen — shopping_lists_screen.dart ~line 460" },
+
+  "restoreCheckedItemLabel": "Restore checked item",
+  "@restoreCheckedItemLabel": { "description": "Header label above suggestion strip — shopping_lists_screen.dart ~line 652" },
+
+  "itemNameHint": "Item name…",
+  "@itemNameHint": { "description": "hintText on item name input field — shopping_lists_screen.dart ~line 697" },
+
+  "itemAlreadyOnList": "\"{name}\" is already on the list",
+  "@itemAlreadyOnList": {
+    "description": "SnackBar when adding an already-active item — shopping_lists_screen.dart ~line 757",
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "editItemDialogTitle": "Edit Item",
+  "@editItemDialogTitle": { "description": "Bottom-sheet title for editing a shopping item — shopping_lists_screen.dart ~line 822" },
+
+  "itemNameLabel": "Item Name",
+  "@itemNameLabel": { "description": "labelText on item name field in edit-item dialog — shopping_lists_screen.dart ~line 840" },
+
+  "quantityLabel": "Quantity",
+  "@quantityLabel": { "description": "labelText on quantity field in edit-item dialog — shopping_lists_screen.dart ~line 857" },
+
+  "pleaseEnterItemName": "Please enter an item name",
+  "@pleaseEnterItemName": { "description": "Validation SnackBar in edit-item dialog save — shopping_lists_screen.dart ~line 896" },
+
+
+  "@@comment_shopping_unified": "=== SHOPPING UNIFIED SCREEN ===",
+
+  "shoppingTitle": "Shopping",
+  "@shoppingTitle": { "description": "AppBar title when both shopping & loyalty tabs are shown — shopping_unified_screen.dart ~line 77" },
+
+  "noSectionsEnabledShopping": "No sections enabled",
+  "@noSectionsEnabledShopping": { "description": "Fallback center text when neither shopping nor loyalty cards enabled — shopping_unified_screen.dart ~line 120" },
+
+  "tabShoppingLists": "Shopping Lists",
+  "@tabShoppingLists": { "description": "Tab label in TabBar — shopping_unified_screen.dart ~line 107" },
+
+  "tabLoyaltyCards": "Loyalty Cards",
+  "@tabLoyaltyCards": { "description": "Tab label in TabBar — shopping_unified_screen.dart ~line 111" },
+
+
+  "@@comment_tasks": "=== TASKS SCREEN ===",
+
+  "tasksTitle": "Tasks",
+  "@tasksTitle": { "description": "AppBar title — tasks_screen.dart ~line 27" },
+
+  "filterAllTasks": "All Tasks",
+  "@filterAllTasks": { "description": "Filter menu item and _filterLabel() — tasks_screen.dart ~lines 72, 1049" },
+
+  "filterReminders": "Reminders",
+  "@filterReminders": { "description": "Filter menu item — tasks_screen.dart ~line 74" },
+
+  "filterTodos": "Todos",
+  "@filterTodos": { "description": "Filter menu item and _filterLabel() — tasks_screen.dart ~lines 76, 1051" },
+
+  "noTasks": "No tasks",
+  "@noTasks": { "description": "Empty state text — tasks_screen.dart ~line 1061" },
+
+  "tasksFilterActive": "Filter: {filter}",
+  "@tasksFilterActive": {
+    "description": "Secondary empty-state line showing active filter name — tasks_screen.dart ~line 1068",
+    "placeholders": { "filter": { "type": "String" } }
+  },
+
+  "sectionNoDate": "No Date",
+  "@sectionNoDate": { "description": "Section header for tasks without a date — tasks_screen.dart ~line 1108" },
+
+  "sectionHighPriority": "High Priority",
+  "@sectionHighPriority": { "description": "Section header for high-priority todos without date — tasks_screen.dart ~line 1112" },
+
+  "sectionMediumPriority": "Medium Priority",
+  "@sectionMediumPriority": { "description": "Section header for medium-priority todos without date — tasks_screen.dart ~line 1113" },
+
+  "sectionLowPriority": "Low Priority",
+  "@sectionLowPriority": { "description": "Section header for low-priority todos without date — tasks_screen.dart ~line 1114" },
+
+  "addTask": "Add Task",
+  "@addTask": { "description": "Bottom-sheet title when creating a task — tasks_screen.dart ~line 211" },
+
+  "editTask": "Edit Task",
+  "@editTask": { "description": "Bottom-sheet title when editing a task — tasks_screen.dart ~line 211" },
+
+  "addTaskHint": "Add your task here",
+  "@addTaskHint": { "description": "hintText on main text field in task edit dialog — tasks_screen.dart ~line 237" },
+
+  "taskTypeLabel": "Task type",
+  "@taskTypeLabel": { "description": "Section label above type selector — tasks_screen.dart ~line 284" },
+
+  "taskTypeBirthday": "Birthday",
+  "@taskTypeBirthday": { "description": "_getTypeLabel(ReminderType.birthday) — tasks_screen.dart ~line 895" },
+
+  "taskTypeAppointment": "Appointment",
+  "@taskTypeAppointment": { "description": "_getTypeLabel(ReminderType.appointment) — tasks_screen.dart ~line 897" },
+
+  "taskTypeToDo": "To-Do",
+  "@taskTypeToDo": { "description": "_getTypeLabel(ReminderType.todo) — tasks_screen.dart ~line 899" },
+
+  "taskTypeWarranty": "Warranty",
+  "@taskTypeWarranty": { "description": "_getTypeLabel(ReminderType.warranty) — tasks_screen.dart ~line 901" },
+
+  "taskTypeOther": "Other",
+  "@taskTypeOther": { "description": "_getTypeLabel(ReminderType.other) — tasks_screen.dart ~line 903" },
+
+
+  "@@comment_todos": "=== TODOS SCREEN ===",
+
+  "todosTitle": "To-Dos",
+  "@todosTitle": { "description": "AppBar title — todos_screen.dart ~line 42" },
+
+  "noTodos": "No to-dos",
+  "@noTodos": { "description": "Empty state text — todos_screen.dart ~line 94" },
+
+  "addToDo": "Add To-Do",
+  "@addToDo": { "description": "Bottom-sheet title when creating — todos_screen.dart ~line 421" },
+
+  "editToDo": "Edit To-Do",
+  "@editToDo": { "description": "Bottom-sheet title when editing — todos_screen.dart ~line 421" },
+
+  "addToDoHint": "Add your to-do here",
+  "@addToDoHint": { "description": "hintText on main text field in to-do edit dialog — todos_screen.dart ~line 444" },
+
+
+  "@@comment_delete_dialog": "=== DELETE CONFIRMATION DIALOG ===",
+
+  "deleteDialogDefaultMessage": "This action cannot be undone.",
+  "@deleteDialogDefaultMessage": { "description": "Default dialog content when no custom message is provided — delete_confirmation_dialog.dart ~line 21" },
+
+
+  "@@comment_language": "=== LANGUAGE SETTINGS ===",
+
+  "settingsLanguageHeader": "Language",
+  "@settingsLanguageHeader": { "description": "Section title for language selection in settings_screen" },
+
+  "settingsLanguageSubtitle": "Choose the app language",
+  "@settingsLanguageSubtitle": { "description": "Section subtitle for language selection" },
+
+  "languageSystemDefault": "System default",
+  "@languageSystemDefault": { "description": "Option to follow device system locale" },
+
+  "languageEnglish": "English",
+  "@languageEnglish": { "description": "English language option" },
+
+  "languageCroatian": "Hrvatski (Croatian)",
+  "@languageCroatian": { "description": "Croatian language option" },
+
+  "languageGerman": "Deutsch (German)",
+  "@languageGerman": { "description": "German language option" },
+
+  "languageSpanish": "Español (Spanish)",
+  "@languageSpanish": { "description": "Spanish language option" },
+
+  "languageFrench": "Français (French)",
+  "@languageFrench": { "description": "French language option" },
+
+  "languageItalian": "Italiano (Italian)",
+  "@languageItalian": { "description": "Italian language option" }
+}

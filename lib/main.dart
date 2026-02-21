@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/main_navigation.dart';
 import 'theme/app_theme.dart';
 import 'services/notification_service.dart';
@@ -84,16 +85,16 @@ class ToDoLioApp extends ConsumerWidget {
         
         return MaterialApp(
           title: 'ToDoLio',
-          locale: const Locale('en', 'GB'), // Week starts on Monday
+          locale: settings.languageCode != null
+              ? Locale(settings.languageCode!)
+              : null, // null = follow device locale
           localizationsDelegates: const [
+            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en', 'GB'), // English (UK) - Monday first
-            Locale('en', 'US'), // English (US) - Sunday first
-          ],
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.light, // Always use light theme with custom color scheme
@@ -103,16 +104,13 @@ class ToDoLioApp extends ConsumerWidget {
       },
       loading: () => MaterialApp(
         title: 'ToDoLio',
-        locale: const Locale('en', 'GB'), // Week starts on Monday
         localizationsDelegates: const [
+          AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('en', 'GB'), // English (UK) - Monday first
-          Locale('en', 'US'), // English (US) - Sunday first
-        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme(AppColorScheme.blue),
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
@@ -125,16 +123,13 @@ class ToDoLioApp extends ConsumerWidget {
         debugPrint('❌ Error loading settings: $error');
         return MaterialApp(
           title: 'ToDoLio',
-          locale: const Locale('en', 'GB'), // Week starts on Monday
           localizationsDelegates: const [
+            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en', 'GB'), // English (UK) - Monday first
-            Locale('en', 'US'), // English (US) - Sunday first
-          ],
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.lightTheme(AppColorScheme.blue),
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,

@@ -7,12 +7,14 @@ import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
 import 'settings_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
     final remindersAsync = ref.watch(remindersProvider);
     final settings = appSettingsNotifier.hasValue ? appSettingsNotifier.value : null;
@@ -25,7 +27,7 @@ class TasksScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Tasks'),
+          title: Text(l10n.tasksTitle),
           leading: IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -70,13 +72,13 @@ class TasksScreen extends ConsumerWidget {
                 }
               },
               itemBuilder: (context) => [
-                _filterMenuItem(TasksFilter.all, 'All Tasks', Icons.list_alt, currentFilter),
+                _filterMenuItem(TasksFilter.all, l10n.filterAllTasks, Icons.list_alt, currentFilter),
                 if (remindersEnabled)
-                  _filterMenuItem(TasksFilter.reminders, 'Reminders', Icons.notifications_outlined, currentFilter),
+                  _filterMenuItem(TasksFilter.reminders, l10n.filterReminders, Icons.notifications_outlined, currentFilter),
                 if (todosEnabled)
-                  _filterMenuItem(TasksFilter.todos, 'Todos', Icons.check_circle_outline, currentFilter),
-                _filterMenuItem(TasksFilter.pending, 'Pending', Icons.hourglass_top_outlined, currentFilter),
-                _filterMenuItem(TasksFilter.completed, 'Completed', Icons.task_alt, currentFilter),
+                  _filterMenuItem(TasksFilter.todos, l10n.filterTodos, Icons.check_circle_outline, currentFilter),
+                _filterMenuItem(TasksFilter.pending, l10n.pending, Icons.hourglass_top_outlined, currentFilter),
+                _filterMenuItem(TasksFilter.completed, l10n.completed, Icons.task_alt, currentFilter),
               ],
             ),
           ],
@@ -95,10 +97,10 @@ class TasksScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Error: $error'),
+                Text(l10n.errorWithDetails(error.toString())),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(remindersProvider),
-                  child: const Text('Retry'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -194,6 +196,7 @@ class TasksScreen extends ConsumerWidget {
         builder: (context, ref, child) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final l10n = AppLocalizations.of(context);
               return Padding(
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom +
@@ -218,7 +221,7 @@ class TasksScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              item == null ? 'Add Task' : 'Edit Task',
+                              item == null ? l10n.addTask : l10n.editTask,
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineSmall
@@ -248,7 +251,7 @@ class TasksScreen extends ConsumerWidget {
                             controller: textController,
                             style: const TextStyle(color: Colors.black87),
                             decoration: InputDecoration(
-                              hintText: 'Add your task here',
+                              hintText: l10n.addTaskHint,
                               hintStyle: TextStyle(color: Colors.grey.shade600),
                               border: OutlineInputBorder(
                                 borderSide:
@@ -278,7 +281,7 @@ class TasksScreen extends ConsumerWidget {
                         // Date & Time
                         ListTile(
                           title: Text(
-                            'Date & Time',
+                            l10n.dateAndTime,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
@@ -288,7 +291,7 @@ class TasksScreen extends ConsumerWidget {
                             selectedDate != null
                                 ? DateFormat('MMM d, yyyy HH:mm')
                                     .format(selectedDate!)
-                                : 'Not set',
+                                : l10n.notSet,
                             style: TextStyle(
                               color: selectedDate != null
                                   ? Theme.of(context).colorScheme.onSurface
@@ -384,7 +387,7 @@ class TasksScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         // Type selection
                         Text(
-                          'Task type',
+                          l10n.taskTypeLabel,
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color:
@@ -407,7 +410,7 @@ class TasksScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    _getTypeLabel(selectedType),
+                                    _getTypeLabel(selectedType, l10n),
                                     style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.white,
@@ -459,7 +462,7 @@ class TasksScreen extends ConsumerWidget {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          _getTypeLabel(type),
+                                          _getTypeLabel(type, l10n),
                                           style: TextStyle(
                                             fontSize: 16,
                                             color: isSelected
@@ -509,7 +512,7 @@ class TasksScreen extends ConsumerWidget {
                         if (selectedType == ReminderType.todo) ...[
                           const SizedBox(height: 16),
                           Text(
-                            'Priority',
+                            l10n.priority,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -636,7 +639,7 @@ class TasksScreen extends ConsumerWidget {
                         // Repeat
                         const SizedBox(height: 16),
                         Text(
-                          'Repeat',
+                          l10n.repeat,
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
@@ -648,7 +651,7 @@ class TasksScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         if (!isRepeatExpanded)
                           Builder(builder: (context) {
-                            final info = _getRepeatInfo(selectedRepeat);
+                            final info = _getRepeatInfo(selectedRepeat, l10n);
                             return SizedBox(
                               width: double.infinity,
                               child: ChoiceChip(
@@ -690,7 +693,7 @@ class TasksScreen extends ConsumerWidget {
                           Column(
                             children: RepeatType.values.map((repeatType) {
                               final isSelected = selectedRepeat == repeatType;
-                              final info = _getRepeatInfo(repeatType);
+                              final info = _getRepeatInfo(repeatType, l10n);
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 4),
@@ -765,8 +768,8 @@ class TasksScreen extends ConsumerWidget {
                               final text = textController.text.trim();
                               if (text.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Please enter some text')),
+                                  SnackBar(
+                                      content: Text(l10n.pleaseEnterSomeText)),
                                 );
                                 return;
                               }
@@ -777,8 +780,8 @@ class TasksScreen extends ConsumerWidget {
                                   : null;
                               if (title.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Title cannot be empty')),
+                                  SnackBar(
+                                      content: Text(l10n.titleCannotBeEmpty)),
                                 );
                                 return;
                               }
@@ -826,7 +829,7 @@ class TasksScreen extends ConsumerWidget {
                               }
                               Navigator.pop(context);
                             },
-                            child: const Text('Save'),
+                            child: Text(l10n.save),
                           ),
                         ),
                       ],
@@ -856,18 +859,18 @@ class TasksScreen extends ConsumerWidget {
     }
   }
 
-  static String _getTypeLabel(ReminderType type) {
+  static String _getTypeLabel(ReminderType type, AppLocalizations l10n) {
     switch (type) {
       case ReminderType.birthday:
-        return 'Birthday';
+        return l10n.taskTypeBirthday;
       case ReminderType.appointment:
-        return 'Appointment';
+        return l10n.taskTypeAppointment;
       case ReminderType.todo:
-        return 'To-Do';
+        return l10n.taskTypeToDo;
       case ReminderType.warranty:
-        return 'Warranty';
+        return l10n.taskTypeWarranty;
       case ReminderType.other:
-        return 'Other';
+        return l10n.taskTypeOther;
     }
   }
 
@@ -882,18 +885,18 @@ class TasksScreen extends ConsumerWidget {
     }
   }
 
-  static (String, IconData) _getRepeatInfo(RepeatType type) {
+  static (String, IconData) _getRepeatInfo(RepeatType type, AppLocalizations l10n) {
     switch (type) {
       case RepeatType.none:
-        return ('None', Icons.close);
+        return (l10n.repeatNone, Icons.close);
       case RepeatType.daily:
-        return ('Daily', Icons.today);
+        return (l10n.repeatDaily, Icons.today);
       case RepeatType.weekly:
-        return ('Weekly', Icons.date_range);
+        return (l10n.repeatWeekly, Icons.date_range);
       case RepeatType.monthly:
-        return ('Monthly', Icons.calendar_month);
+        return (l10n.repeatMonthly, Icons.calendar_month);
       case RepeatType.yearly:
-        return ('Yearly', Icons.calendar_today);
+        return (l10n.repeatYearly, Icons.calendar_today);
     }
   }
 }
@@ -937,23 +940,24 @@ class _TasksBody extends ConsumerWidget {
     }
   }
 
-  String _filterLabel() {
+  String _filterLabel(AppLocalizations l10n) {
     switch (filter) {
       case TasksFilter.all:
-        return 'All Tasks';
+        return l10n.filterAllTasks;
       case TasksFilter.reminders:
-        return 'Reminders';
+        return l10n.filterReminders;
       case TasksFilter.todos:
-        return 'Todos';
+        return l10n.filterTodos;
       case TasksFilter.pending:
-        return 'Pending';
+        return l10n.pending;
       case TasksFilter.completed:
-        return 'Completed';
+        return l10n.completed;
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final filtered = _applyFilter(reminders);
 
     if (filtered.isEmpty) {
@@ -968,7 +972,7 @@ class _TasksBody extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'No tasks',
+              l10n.noTasks,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Colors.white.withValues(alpha: 0.6),
                   ),
@@ -976,7 +980,7 @@ class _TasksBody extends ConsumerWidget {
             if (filter != TasksFilter.all) ...[
               const SizedBox(height: 8),
               Text(
-                'Filter: ${_filterLabel()}',
+                l10n.tasksFilterActive(_filterLabel(l10n)),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withValues(alpha: 0.4),
                     ),
@@ -1012,14 +1016,14 @@ class _TasksBody extends ConsumerWidget {
     // No date (todos without dates, other reminders without dates)
     final noDate = active.where((r) => r.effectiveDateTime == null).toList();
 
-    final grouped = _groupByTimePeriod(withDate, now);
+    final grouped = _groupByTimePeriod(withDate, now, l10n);
 
     // Build section list
     final sections = <_Section>[];
 
     if (overdue.isNotEmpty) {
       sections.add(_Section(
-        label: 'Overdue',
+        label: l10n.overdue,
         labelColor: Colors.red.withValues(alpha: 0.9),
         items: overdue,
       ));
@@ -1034,17 +1038,17 @@ class _TasksBody extends ConsumerWidget {
     if (noDate.isNotEmpty) {
       // Sub-group todos by priority; other types just listed
       final todosByPriority =
-          _groupTodosByPriority(noDate.where((r) => r.type == ReminderType.todo).toList());
+          _groupTodosByPriority(noDate.where((r) => r.type == ReminderType.todo).toList(), l10n);
       final others = noDate.where((r) => r.type != ReminderType.todo).toList();
 
       if (others.isNotEmpty) {
-        sections.add(_Section(label: 'No Date', items: others));
+        sections.add(_Section(label: l10n.sectionNoDate, items: others));
       }
       for (final entry in todosByPriority.entries) {
         if (entry.value.isNotEmpty) {
           sections.add(_Section(
             label: entry.key,
-            labelColor: _priorityColor(entry.key),
+            labelColor: _priorityColor(entry.key, l10n),
             items: entry.value,
           ));
         }
@@ -1053,7 +1057,7 @@ class _TasksBody extends ConsumerWidget {
 
     if (completed.isNotEmpty) {
       sections.add(
-        _Section(label: 'Completed', items: completed, isCompleted: true),
+        _Section(label: l10n.completed, items: completed, isCompleted: true),
       );
     }
 
@@ -1142,7 +1146,7 @@ class _TasksBody extends ConsumerWidget {
   }
 
   Map<String, List<Reminder>> _groupByTimePeriod(
-      List<Reminder> items, DateTime now) {
+      List<Reminder> items, DateTime now, AppLocalizations l10n) {
     final today = DateTime(now.year, now.month, now.day);
     final nextWeek = today.add(const Duration(days: 7));
 
@@ -1167,9 +1171,9 @@ class _TasksBody extends ConsumerWidget {
     _sortByDate(laterList);
 
     final map = <String, List<Reminder>>{};
-    if (todayList.isNotEmpty) map['Today'] = todayList;
-    if (next7List.isNotEmpty) map['Next 7 Days'] = next7List;
-    if (laterList.isNotEmpty) map['Later'] = laterList;
+    if (todayList.isNotEmpty) map[l10n.today] = todayList;
+    if (next7List.isNotEmpty) map[l10n.next7Days] = next7List;
+    if (laterList.isNotEmpty) map[l10n.later] = laterList;
     return map;
   }
 
@@ -1181,7 +1185,7 @@ class _TasksBody extends ConsumerWidget {
     });
   }
 
-  Map<String, List<Reminder>> _groupTodosByPriority(List<Reminder> todos) {
+  Map<String, List<Reminder>> _groupTodosByPriority(List<Reminder> todos, AppLocalizations l10n) {
     final high = todos.where((t) => (t.priority ?? Priority.medium) == Priority.high).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final medium = todos.where((t) => (t.priority ?? Priority.medium) == Priority.medium).toList()
@@ -1190,16 +1194,16 @@ class _TasksBody extends ConsumerWidget {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     final map = <String, List<Reminder>>{};
-    if (high.isNotEmpty) map['High Priority'] = high;
-    if (medium.isNotEmpty) map['Medium Priority'] = medium;
-    if (low.isNotEmpty) map['Low Priority'] = low;
+    if (high.isNotEmpty) map[l10n.sectionHighPriority] = high;
+    if (medium.isNotEmpty) map[l10n.sectionMediumPriority] = medium;
+    if (low.isNotEmpty) map[l10n.sectionLowPriority] = low;
     return map;
   }
 
-  Color? _priorityColor(String label) {
-    if (label.startsWith('High')) return Colors.red.withValues(alpha: 0.9);
-    if (label.startsWith('Medium')) return Colors.orange.withValues(alpha: 0.9);
-    if (label.startsWith('Low')) return Colors.green.withValues(alpha: 0.9);
+  Color? _priorityColor(String label, AppLocalizations l10n) {
+    if (label == l10n.sectionHighPriority) return Colors.red.withValues(alpha: 0.9);
+    if (label == l10n.sectionMediumPriority) return Colors.orange.withValues(alpha: 0.9);
+    if (label == l10n.sectionLowPriority) return Colors.green.withValues(alpha: 0.9);
     return null;
   }
 }

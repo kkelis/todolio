@@ -12,19 +12,21 @@ import '../providers/notes_provider.dart';
 import '../providers/loyalty_cards_provider.dart';
 import '../services/backup_service.dart';
 import '../widgets/gradient_background.dart';
+import '../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final settingsAsync = ref.watch(appSettingsProvider);
 
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Settings'),
+          title: Text(l10n.settingsTitle),
         ),
         body: settingsAsync.when(
           data: (settings) => _buildSettingsContent(context, ref, settings),
@@ -33,10 +35,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Error: $error'),
+                Text(l10n.errorWithDetails(error.toString())),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(appSettingsProvider),
-                  child: const Text('Retry'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -47,6 +49,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSettingsContent(BuildContext context, WidgetRef ref, AppSettings settings) {
+    final l10n = AppLocalizations.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
@@ -54,7 +57,7 @@ class SettingsScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'App Sections',
+            l10n.settingsAppSectionsHeader,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -62,7 +65,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Select which sections you want to see in the app',
+            l10n.settingsAppSectionsSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
@@ -72,7 +75,7 @@ class SettingsScreen extends ConsumerWidget {
             context,
             ref,
             settings,
-            'Tasks',
+            l10n.sectionTasks,
             Icons.task_outlined,
             settings.tasksEnabled,
             (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
@@ -83,7 +86,7 @@ class SettingsScreen extends ConsumerWidget {
             context,
             ref,
             settings,
-            'Shopping Lists',
+            l10n.sectionShoppingLists,
             Icons.shopping_cart_outlined,
             settings.shoppingEnabled,
             (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
@@ -94,7 +97,7 @@ class SettingsScreen extends ConsumerWidget {
             context,
             ref,
             settings,
-            'Guarantees',
+            l10n.sectionGuarantees,
             Icons.verified_outlined,
             settings.guaranteesEnabled,
             (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
@@ -105,7 +108,7 @@ class SettingsScreen extends ConsumerWidget {
             context,
             ref,
             settings,
-            'Notes',
+            l10n.sectionNotes,
             Icons.note_outlined,
             settings.notesEnabled,
             (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
@@ -116,7 +119,7 @@ class SettingsScreen extends ConsumerWidget {
             context,
             ref,
             settings,
-            'Loyalty Cards',
+            l10n.sectionLoyaltyCards,
             Icons.card_membership_outlined,
             settings.loyaltyCardsEnabled,
             (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
@@ -126,7 +129,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 32),
           // Color Scheme Selection
           Text(
-            'Color Scheme',
+            l10n.settingsColorSchemeHeader,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -134,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Choose your preferred color theme',
+            l10n.settingsColorSchemeSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
@@ -144,7 +147,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 32),
           // Backup & Restore Section
           Text(
-            'Backup & Restore',
+            l10n.settingsBackupHeader,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -152,13 +155,31 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Backup your data to transfer to a new device',
+            l10n.settingsBackupSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 16),
           _buildBackupSection(context, ref, settings),
+          const SizedBox(height: 32),
+          // Language Section
+          Text(
+            l10n.settingsLanguageHeader,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.settingsLanguageSubtitle,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildLanguageSelector(context, ref, settings),
           const SizedBox(height: 32),
           // Warning if all sections are disabled
           if (!settings.tasksEnabled &&
@@ -179,7 +200,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'At least one section must be enabled',
+                      l10n.settingsAtLeastOneSection,
                       style: TextStyle(color: Colors.orange[300]),
                     ),
                   ),
@@ -189,7 +210,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 32),
           // About Section
           Text(
-            'About',
+            l10n.settingsAboutHeader,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -197,7 +218,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Legal information and app details',
+            l10n.settingsAboutSubtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
@@ -350,11 +371,79 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  // Supported locales: null = system default, 'en', 'hr', 'de', 'es', 'fr', 'it'
+  static const _languageOptions = <(String?, String Function(AppLocalizations))>[
+    (null, _langSystemDefault),
+    ('en', _langEnglish),
+    ('hr', _langCroatian),
+    ('de', _langGerman),
+    ('es', _langSpanish),
+    ('fr', _langFrench),
+    ('it', _langItalian),
+  ];
+
+  // Static helpers to avoid closures in const context
+  static String _langSystemDefault(AppLocalizations l) => l.languageSystemDefault;
+  static String _langEnglish(AppLocalizations l) => l.languageEnglish;
+  static String _langCroatian(AppLocalizations l) => l.languageCroatian;
+  static String _langGerman(AppLocalizations l) => l.languageGerman;
+  static String _langSpanish(AppLocalizations l) => l.languageSpanish;
+  static String _langFrench(AppLocalizations l) => l.languageFrench;
+  static String _langItalian(AppLocalizations l) => l.languageItalian;
+
+  Widget _buildLanguageSelector(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: _languageOptions.map(((String?, String Function(AppLocalizations)) opt) {
+          final (code, label) = opt;
+          final isSelected = settings.languageCode == code;
+          return RadioListTile<String?>(
+            value: code,
+            groupValue: settings.languageCode,
+            title: Text(
+              label(l10n),
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            activeColor: Theme.of(context).colorScheme.primary,
+            onChanged: (value) {
+              ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+                settings.copyWith(
+                  languageCode: value,
+                  clearLanguageCode: value == null,
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildBackupSection(
     BuildContext context,
     WidgetRef ref,
     AppSettings settings,
   ) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -386,7 +475,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Last backup: ${_formatBackupDate(settings.lastBackupDate!)}',
+                      l10n.backupLastDate(_formatBackupDate(context, settings.lastBackupDate!)),
                       style: TextStyle(
                         color: Colors.green[900],
                         fontSize: 14,
@@ -410,7 +499,7 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Never backed up',
+                      l10n.backupNeverBackedUp,
                       style: TextStyle(
                         color: Colors.orange[900],
                         fontSize: 14,
@@ -428,7 +517,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _createBackup(context, ref, settings),
                   icon: const Icon(Icons.backup),
-                  label: const Text('Create Backup'),
+                  label: Text(l10n.createBackupButton),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: Theme.of(context).colorScheme.primary,
@@ -441,7 +530,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _restoreBackup(context, ref),
                   icon: const Icon(Icons.restore),
-                  label: const Text('Restore'),
+                  label: Text(l10n.restoreButton),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: Colors.grey[700],
@@ -458,10 +547,10 @@ class SettingsScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Backup Reminders',
-                  style: TextStyle(
+                  l10n.backupRemindersToggle,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
@@ -483,19 +572,19 @@ class SettingsScreen extends ConsumerWidget {
           // Backup reminder frequency (shown only when reminders are enabled)
           if (settings.backupReminderEnabled) ...[
             const SizedBox(height: 12),
-            const Text(
-              'Reminder Frequency',
-              style: TextStyle(
+            Text(
+              l10n.reminderFrequencyLabel,
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black54,
               ),
             ),
             const SizedBox(height: 8),
             SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 7, label: Text('7 days')),
-                ButtonSegment(value: 14, label: Text('14 days')),
-                ButtonSegment(value: 30, label: Text('30 days')),
+              segments: [
+                ButtonSegment(value: 7, label: Text(l10n.frequencyDays(7))),
+                ButtonSegment(value: 14, label: Text(l10n.frequencyDays(14))),
+                ButtonSegment(value: 30, label: Text(l10n.frequencyDays(30))),
               ],
               selected: {settings.backupReminderFrequencyDays},
               onSelectionChanged: (Set<int> newSelection) {
@@ -511,6 +600,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildAboutSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -531,9 +621,9 @@ class SettingsScreen extends ConsumerWidget {
               Icons.privacy_tip_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: const Text(
-              'Privacy Policy',
-              style: TextStyle(
+            title: Text(
+              l10n.privacyPolicyTitle,
+              style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.w500,
               ),
@@ -552,9 +642,9 @@ class SettingsScreen extends ConsumerWidget {
               Icons.description_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: const Text(
-              'Terms of Service',
-              style: TextStyle(
+            title: Text(
+              l10n.termsOfServiceTitle,
+              style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.w500,
               ),
@@ -576,9 +666,9 @@ class SettingsScreen extends ConsumerWidget {
                   Icons.info_outline,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: const Text(
-                  'Version',
-                  style: TextStyle(
+                title: Text(
+                  l10n.versionLabel,
+                  style: const TextStyle(
                     color: Colors.black87,
                     fontWeight: FontWeight.w500,
                   ),
@@ -599,13 +689,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _launchUrl(BuildContext context, String url) async {
+    final l10n = AppLocalizations.of(context);
     final uri = Uri.parse(url);
     try {
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!launched && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open $url'),
+            content: Text(l10n.couldNotOpenUrl(url)),
             backgroundColor: Colors.red,
           ),
         );
@@ -614,7 +705,7 @@ class SettingsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error opening link: $e'),
+            content: Text(l10n.errorOpeningLink(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -622,26 +713,28 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  String _formatBackupDate(DateTime date) {
+  String _formatBackupDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'today';
+      return l10n.backupDateToday;
     } else if (difference.inDays == 1) {
-      return 'yesterday';
+      return l10n.backupDateYesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return l10n.backupDateDaysAgo(difference.inDays);
     } else if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
-      return '$weeks ${weeks == 1 ? 'week' : 'weeks'} ago';
+      return weeks == 1 ? l10n.backupDateWeekAgo(weeks) : l10n.backupDateWeeksAgo(weeks);
     } else {
       final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
+      return months == 1 ? l10n.backupDateMonthAgo(months) : l10n.backupDateMonthsAgo(months);
     }
   }
 
   Future<void> _createBackup(BuildContext context, WidgetRef ref, AppSettings settings) async {
+    final l10n = AppLocalizations.of(context);
     // Show loading indicator
     showDialog(
       context: context,
@@ -667,8 +760,8 @@ class SettingsScreen extends ConsumerWidget {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Backup created successfully!'),
+            SnackBar(
+              content: Text(l10n.backupCreatedSuccess),
               backgroundColor: Colors.green,
             ),
           );
@@ -676,8 +769,8 @@ class SettingsScreen extends ConsumerWidget {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Backup cancelled'),
+            SnackBar(
+              content: Text(l10n.backupCancelled),
               backgroundColor: Colors.orange,
             ),
           );
@@ -691,7 +784,7 @@ class SettingsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating backup: $e'),
+            content: Text(l10n.errorCreatingBackup(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -701,29 +794,26 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _restoreBackup(BuildContext context, WidgetRef ref) async {
     if (!context.mounted) return;
-    
+    final l10n = AppLocalizations.of(context);
+
     // Show mode selection dialog
     final mode = await showDialog<BackupImportMode>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Restore Backup'),
-        content: const Text(
-          'How would you like to restore the backup?\n\n'
-          '• Replace: Delete all current data and restore from backup\n'
-          '• Merge: Combine backup data with current data',
-        ),
+        title: Text(l10n.restoreBackupDialogTitle),
+        content: Text(l10n.restoreBackupDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(BackupImportMode.merge),
-            child: const Text('Merge'),
+            child: Text(l10n.restoreMerge),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(BackupImportMode.replace),
-            child: const Text('Replace'),
+            child: Text(l10n.restoreReplace),
           ),
         ],
       ),
@@ -773,18 +863,18 @@ class SettingsScreen extends ConsumerWidget {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Backup restored successfully! Data reloaded.'),
+            SnackBar(
+              content: Text(l10n.backupRestoredSuccess),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Restore cancelled'),
+            SnackBar(
+              content: Text(l10n.restoreCancelled),
               backgroundColor: Colors.orange,
             ),
           );
@@ -798,7 +888,7 @@ class SettingsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error restoring backup: $e'),
+            content: Text(l10n.errorRestoringBackup(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

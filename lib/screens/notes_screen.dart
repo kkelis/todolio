@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
+import '../l10n/app_localizations.dart';
 import 'settings_screen.dart';
 
 class NotesScreen extends ConsumerStatefulWidget {
@@ -30,13 +31,14 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final notesAsync = ref.watch(notesProvider);
 
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Notes'),
+          title: Text(l10n.notesTitle),
           leading: IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -64,7 +66,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search notes...',
+                  hintText: l10n.notesSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -118,7 +120,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'No notes',
+                          l10n.noNotes,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.6),
                               ),
@@ -140,7 +142,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           children: [
                             FilterChip(
-                              label: const Text('All'),
+                              label: Text(l10n.all),
                               selected: _selectedTag == null,
                               onSelected: (selected) {
                                 setState(() => _selectedTag = null);
@@ -241,7 +243,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     Text('Error: $error'),
                     ElevatedButton(
                       onPressed: () => ref.invalidate(notesProvider),
-                      child: const Text('Retry'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -288,6 +290,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
         builder: (context, ref, child) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final l10n = AppLocalizations.of(context);
               return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
@@ -309,7 +312,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        note == null ? 'Add Note' : 'Edit Note',
+                        note == null ? l10n.addNote : l10n.editNote,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -330,7 +333,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     controller: titleController,
                     style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
-                      labelText: 'Title',
+                      labelText: l10n.noteTitleLabel,
                       labelStyle: TextStyle(color: Colors.grey.shade700),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -359,7 +362,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                       controller: contentController,
                       style: const TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
-                        labelText: 'Content',
+                        labelText: l10n.noteContentLabel,
                         labelStyle: TextStyle(color: Colors.grey.shade700),
                         border: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -387,9 +390,9 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     controller: tagsController,
                     style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
-                      labelText: 'Tags (comma separated)',
+                      labelText: l10n.noteTagsLabel,
                       labelStyle: TextStyle(color: Colors.grey.shade700),
-                      hintText: 'work, personal, ideas',
+                      hintText: l10n.noteTagsHint,
                       hintStyle: TextStyle(color: Colors.grey.shade600),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -411,7 +414,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: Text(
-                      'Pinned',
+                      l10n.pinned,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -432,7 +435,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Color',
+                    l10n.color,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -445,7 +448,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     children: [
                       ChoiceChip(
                         label: Text(
-                          'None',
+                          l10n.colorNone,
                           style: TextStyle(
                             color: selectedColor == null
                                 ? Colors.white
@@ -536,7 +539,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
                         Navigator.pop(context);
                       },
-                      child: const Text('Save'),
+                      child: Text(l10n.save),
                     ),
                   ),
                 ],

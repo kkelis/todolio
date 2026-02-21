@@ -10,6 +10,7 @@ import '../services/local_image_service.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
 import '../widgets/glassmorphic_card.dart';
+import '../l10n/app_localizations.dart';
 import 'settings_screen.dart';
 
 class GuaranteesScreen extends ConsumerStatefulWidget {
@@ -24,13 +25,14 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final guaranteesAsync = ref.watch(guaranteesProvider);
 
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Guarantees'),
+          title: Text(l10n.guaranteesTitle),
           leading: IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -104,10 +106,10 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: $error'),
+              Text(l10n.errorWithDetails(error.toString())),
               ElevatedButton(
                 onPressed: () => ref.invalidate(guaranteesProvider),
-                child: const Text('Retry'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -156,6 +158,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
         builder: (context, ref, child) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final l10n = AppLocalizations.of(context);
               return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
@@ -178,7 +181,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        guarantee == null ? 'Add Guarantee' : 'Edit Guarantee',
+                        guarantee == null ? l10n.addGuarantee : l10n.editGuarantee,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -199,7 +202,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                     controller: productNameController,
                     style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
-                      labelText: 'Product Name',
+                      labelText: l10n.productNameLabel,
                       labelStyle: TextStyle(color: Colors.grey.shade700),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -221,7 +224,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: Text(
-                      'Purchase Date',
+                      l10n.purchaseDate,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -267,7 +270,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   ),
                   ListTile(
                     title: Text(
-                      'Expiry Date',
+                      l10n.expiryDate,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -333,7 +336,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                             }
                           },
                           icon: const Icon(Icons.camera_alt),
-                          label: const Text('Warranty'),
+                          label: Text(l10n.warrantyPhotoButton),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -356,7 +359,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                             }
                           },
                           icon: const Icon(Icons.receipt),
-                          label: const Text('Receipt'),
+                          label: Text(l10n.receiptPhotoButton),
                         ),
                       ),
                     ],
@@ -364,15 +367,15 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   if (warrantyImagePath != null || receiptImagePath != null)
                     const SizedBox(height: 16),
                   if (warrantyImagePath != null)
-                    Text('Warranty photo captured', style: TextStyle(color: Colors.green[700])),
+                    Text(l10n.warrantyPhotoCaptured, style: TextStyle(color: Colors.green[700])),
                   if (receiptImagePath != null)
-                    Text('Receipt photo captured', style: TextStyle(color: Colors.green[700])),
+                    Text(l10n.receiptPhotoCaptured, style: TextStyle(color: Colors.green[700])),
                   const SizedBox(height: 16),
                   TextField(
                     controller: notesController,
                     style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
-                      labelText: 'Notes',
+                      labelText: l10n.notesLabel,
                       labelStyle: TextStyle(color: Colors.grey.shade700),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -398,7 +401,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Set Reminder',
+                          l10n.setReminder,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -432,7 +435,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   if (reminderEnabled) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Remind me',
+                      l10n.remindMe,
                       key: reminderOptionsKey,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
@@ -449,7 +452,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                '$reminderMonthsBefore ${reminderMonthsBefore == 1 ? 'month' : 'months'} before',
+                                reminderMonthsBefore == 1 ? l10n.reminderMonthsBeforeSingular(reminderMonthsBefore) : l10n.reminderMonthsBeforePlural(reminderMonthsBefore),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -489,7 +492,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      '$months ${months == 1 ? 'month' : 'months'} before',
+                                      months == 1 ? l10n.reminderMonthsBeforeSingular(months) : l10n.reminderMonthsBeforePlural(months),
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: isSelected
@@ -553,7 +556,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
 
                         Navigator.pop(context);
                       },
-                      child: const Text('Save'),
+                      child: Text(l10n.save),
                     ),
                   ),
                 ],
@@ -571,7 +574,9 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
   void _showDetailDialog(Guarantee guarantee) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(
@@ -586,13 +591,13 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _DetailRow('Purchase Date', DateFormat('MMM d, yyyy').format(guarantee.purchaseDate)),
-              _DetailRow('Expiry Date', DateFormat('MMM d, yyyy').format(guarantee.expiryDate)),
-              if (guarantee.notes != null) _DetailRow('Notes', guarantee.notes!),
+              _DetailRow(l10n.purchaseDate, DateFormat('MMM d, yyyy').format(guarantee.purchaseDate)),
+              _DetailRow(l10n.expiryDate, DateFormat('MMM d, yyyy').format(guarantee.expiryDate)),
+              if (guarantee.notes != null) _DetailRow(l10n.notesLabel, guarantee.notes!),
               if (guarantee.warrantyImagePath != null) ...[
                 const SizedBox(height: 16),
                 Text(
-                  'Warranty Photo:',
+                  l10n.warrantyPhotoDetailLabel,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -604,7 +609,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
               if (guarantee.receiptImagePath != null) ...[
                 const SizedBox(height: 16),
                 Text(
-                  'Receipt Photo:',
+                  l10n.receiptPhotoDetailLabel,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -620,7 +625,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Close',
+              l10n.close,
               style: TextStyle(color: Colors.grey[700]),
             ),
           ),
@@ -632,10 +637,11 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
               Navigator.pop(context);
               _showEditDialog(guarantee);
             },
-            child: const Text('Edit'),
+            child: Text(l10n.edit),
           ),
         ],
-      ),
+        );
+      },
     );
   }
 }
@@ -688,6 +694,7 @@ class _GuaranteeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isExpired = guarantee.expiryDate.isBefore(DateTime.now());
     final isExpiringSoon = guarantee.expiryDate
         .isBefore(DateTime.now().add(const Duration(days: 30)));
@@ -753,7 +760,7 @@ class _GuaranteeCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Expires: ${DateFormat('MMM d, yyyy').format(guarantee.expiryDate)}',
+                      l10n.guaranteeExpiresOn(DateFormat('MMM d, yyyy').format(guarantee.expiryDate)),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.grey[600],
                         fontSize: 12,
@@ -765,7 +772,7 @@ class _GuaranteeCard extends StatelessWidget {
                 if (isExpired || isExpiringSoon) ...[
                   const SizedBox(height: 4),
                   Text(
-                    isExpired ? 'EXPIRED' : 'Expiring soon',
+                    isExpired ? l10n.guaranteeExpired : l10n.guaranteeExpiringSoon,
                     style: TextStyle(
                       color: statusColor,
                       fontWeight: FontWeight.bold,

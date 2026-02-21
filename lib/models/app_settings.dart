@@ -13,6 +13,10 @@ class AppSettings {
   // Tasks filter (persistent filter for the unified Tasks screen)
   final TasksFilter tasksFilter;
 
+  // Language
+  /// null = follow the device system locale
+  final String? languageCode;
+
   // Backup settings
   final DateTime? lastBackupDate;
   final bool backupReminderEnabled;
@@ -30,6 +34,7 @@ class AppSettings {
     this.loyaltyCardsEnabled = true,
     this.colorScheme = AppColorScheme.blue,
     this.tasksFilter = TasksFilter.all,
+    this.languageCode,
     this.lastBackupDate,
     this.backupReminderEnabled = false,
     this.backupReminderFrequencyDays = 14,
@@ -45,6 +50,7 @@ class AppSettings {
       'loyaltyCardsEnabled': loyaltyCardsEnabled,
       'colorScheme': colorScheme.toJson(),
       'tasksFilter': tasksFilter.name,
+      'languageCode': languageCode,
       'lastBackupDate': lastBackupDate?.toIso8601String(),
       'backupReminderEnabled': backupReminderEnabled,
       'backupReminderFrequencyDays': backupReminderFrequencyDays,
@@ -68,6 +74,7 @@ class AppSettings {
               orElse: () => TasksFilter.all,
             )
           : TasksFilter.all,
+      languageCode: map['languageCode'] as String?,
       lastBackupDate: map['lastBackupDate'] != null
           ? DateTime.parse(map['lastBackupDate'])
           : null,
@@ -85,6 +92,8 @@ class AppSettings {
     bool? loyaltyCardsEnabled,
     AppColorScheme? colorScheme,
     TasksFilter? tasksFilter,
+    String? languageCode,
+    bool clearLanguageCode = false,
     DateTime? lastBackupDate,
     bool? backupReminderEnabled,
     int? backupReminderFrequencyDays,
@@ -98,6 +107,7 @@ class AppSettings {
       loyaltyCardsEnabled: loyaltyCardsEnabled ?? this.loyaltyCardsEnabled,
       colorScheme: colorScheme ?? this.colorScheme,
       tasksFilter: tasksFilter ?? this.tasksFilter,
+      languageCode: clearLanguageCode ? null : (languageCode ?? this.languageCode),
       lastBackupDate: lastBackupDate ?? this.lastBackupDate,
       backupReminderEnabled: backupReminderEnabled ?? this.backupReminderEnabled,
       backupReminderFrequencyDays: backupReminderFrequencyDays ?? this.backupReminderFrequencyDays,

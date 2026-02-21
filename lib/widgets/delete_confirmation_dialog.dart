@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 Future<bool?> showDeleteConfirmationDialog(
   BuildContext context, {
@@ -7,7 +8,9 @@ Future<bool?> showDeleteConfirmationDialog(
 }) async {
   return showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) {
+      final l10n = AppLocalizations.of(context);
+      return AlertDialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -20,14 +23,14 @@ Future<bool?> showDeleteConfirmationDialog(
         ),
       ),
       content: Text(
-        message ?? 'This action cannot be undone.',
+        message ?? l10n.deleteDialogDefaultMessage,
         style: const TextStyle(color: Colors.black87),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
-            'Cancel',
+            l10n.cancel,
             style: TextStyle(
               color: Colors.grey.shade700,
             ),
@@ -39,10 +42,11 @@ Future<bool?> showDeleteConfirmationDialog(
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
           ),
-          child: const Text('Delete'),
+          child: Text(l10n.delete),
         ),
       ],
-    ),
+    );
+    },
   );
 }
 
