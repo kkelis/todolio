@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -825,7 +826,14 @@ class _ShoppingListDetailScreenState
           const SizedBox(width: 6),
           // Unit button
           GestureDetector(
-            onTap: () => _showUnitPicker(context),
+            onTap: () => _showUnitRollerSheet(
+              context,
+              _selectedUnit,
+              (unit) {
+                setState(() => _selectedUnit = unit);
+                _itemNameFocus.requestFocus();
+              },
+            ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
               decoration: BoxDecoration(
@@ -918,41 +926,72 @@ class _ShoppingListDetailScreenState
     ref.read(shoppingListsNotifierProvider.notifier).updateShoppingList(_currentList);
   }
 
-  void _showUnitPicker(BuildContext context) {
-    // Capture viewPadding before opening sheet — padding.bottom can be 0
-    // when the keyboard is open, but viewPadding.bottom always reflects
-    // the physical nav bar / home indicator height.
+  void _showUnitRollerSheet(BuildContext context, ShoppingUnit current, ValueChanged<ShoppingUnit> onSelected) {
     final navBarHeight = MediaQuery.of(context).viewPadding.bottom;
+    ShoppingUnit tempUnit = current;
     showModalBottomSheet(
       context: context,
       builder: (ctx) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                'Select Unit',
-                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(ctx).colorScheme.primary,
+        return Container(
+          color: Colors.white,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    child: const Text('Cancel'),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                  Text(
+                    'Unit',
+                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  CupertinoButton(
+                    child: Text(
+                      'Done',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(ctx).colorScheme.primary,
+                      ),
+                    ),
+                    onPressed: () {
+                      onSelected(tempUnit);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                ],
               ),
-            ),
-            const Divider(height: 1),
-            ...ShoppingUnit.values.map((unit) => ListTile(
-                  title: Text(unit.displayName),
-                  leading: _selectedUnit == unit
-                      ? Icon(Icons.check, color: Theme.of(ctx).colorScheme.primary)
-                      : const SizedBox(width: 24),
-                  onTap: () {
-                    setState(() => _selectedUnit = unit);
-                    Navigator.pop(ctx);
-                    _itemNameFocus.requestFocus();
+              const Divider(height: 1),
+              SizedBox(
+                height: 180,
+                child: CupertinoPicker(
+                  scrollController: FixedExtentScrollController(
+                    initialItem: ShoppingUnit.values.indexOf(current),
+                  ),
+                  itemExtent: 44,
+                  onSelectedItemChanged: (index) {
+                    tempUnit = ShoppingUnit.values[index];
                   },
-                )),
-            SizedBox(height: navBarHeight + 48),
-          ],
+                  children: ShoppingUnit.values
+                      .map((unit) => Center(
+                            child: Text(
+                              unit.displayName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+              SizedBox(height: navBarHeight),
+            ],
+          ),
         );
       },
     );
@@ -966,7 +1005,6 @@ class _ShoppingListDetailScreenState
         : item.quantity.toStringAsFixed(2);
     final quantityController = TextEditingController(text: quantityText);
     ShoppingUnit selectedUnit = item.unit;
-    bool isUnitExpanded = false;
 
     showModalBottomSheet(
       context: context,
@@ -1075,87 +1113,32 @@ class _ShoppingListDetailScreenState
                         ),
                       ),
                       const SizedBox(height: 8),
-                      if (!isUnitExpanded)
-                        // Show only selected option when collapsed
-                        SizedBox(
-                          width: double.infinity,
-                          child: ChoiceChip(
-                            label: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  selectedUnit.displayName.toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            ),
-                            selected: true,
-                            onSelected: (selected) {
-                              setState(() => isUnitExpanded = true);
-                            },
-                            selectedColor: Theme.of(context).colorScheme.primary,
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                      SizedBox(
+                        height: 160,
+                        child: CupertinoPicker(
+                          scrollController: FixedExtentScrollController(
+                            initialItem: ShoppingUnit.values.indexOf(selectedUnit),
                           ),
-                        )
-                      else
-                        // Show all options when expanded
-                        Column(
-                          children: ShoppingUnit.values.map((unit) {
-                            final isSelected = selectedUnit == unit;
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ChoiceChip(
-                                  label: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        unit.displayName.toUpperCase(),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Theme.of(context).colorScheme.primary,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                        ),
+                          itemExtent: 44,
+                          onSelectedItemChanged: (index) {
+                            setState(() => selectedUnit = ShoppingUnit.values[index]);
+                          },
+                          children: ShoppingUnit.values
+                              .map((unit) => Center(
+                                    child: Text(
+                                      unit.displayName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.black87,
+                                        fontWeight: selectedUnit == unit
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
                                       ),
-                                    ],
-                                  ),
-                                  selected: isSelected,
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      selectedUnit = unit;
-                                      isUnitExpanded = false; // Collapse after selection
-                                    });
-                                  },
-                                  selectedColor: Theme.of(context).colorScheme.primary,
-                                  backgroundColor: Colors.white,
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey.shade300,
-                                    width: isSelected ? 2 : 1,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                                    ),
+                                  ))
+                              .toList(),
                         ),
+                      ),
                       const SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
