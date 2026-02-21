@@ -396,6 +396,7 @@ class _ShoppingListDetailScreenState
   late TextEditingController _itemQtyController;
   late FocusNode _itemNameFocus;
   ShoppingUnit _selectedUnit = ShoppingUnit.piece;
+  List<ShoppingItem> _suggestions = [];
 
   @override
   void initState() {
@@ -494,12 +495,11 @@ class _ShoppingListDetailScreenState
       itemBuilder: (context, index) {
         final item = sortedItems[index];
         final theme = Theme.of(context);
-        final iconColor = theme.colorScheme.primary;
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(14),
             color: item.isCompleted
                 ? theme.colorScheme.primary
                 : Colors.white,
@@ -508,14 +508,8 @@ class _ShoppingListDetailScreenState
                 : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 5,
+                color: Colors.black.withValues(alpha: 0.07),
+                blurRadius: 6,
                 offset: const Offset(0, 2),
                 spreadRadius: 0,
               ),
@@ -523,9 +517,9 @@ class _ShoppingListDetailScreenState
           ),
           child: InkWell(
             onTap: () => _showEditItemDialog(item),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(14),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Row(
                 children: [
                   // Checkbox
@@ -549,6 +543,7 @@ class _ShoppingListDetailScreenState
                     ),
                     child: Checkbox(
                       value: item.isCompleted,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onChanged: (value) {
                         final updatedItems = _currentList.items.map((i) {
                           if (i.id == item.id) {
@@ -566,87 +561,40 @@ class _ShoppingListDetailScreenState
                       },
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  // Icon with gradient effect
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          iconColor.withValues(alpha: 0.2),
-                          iconColor.withValues(alpha: 0.1),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  const SizedBox(width: 4),
+                  // Name
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+                        decorationColor: item.isCompleted ? Colors.white70 : null,
+                        color: item.isCompleted ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
                       ),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: item.isCompleted
-                            ? Colors.white
-                            : iconColor.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.shopping_bag,
-                      color: item.isCompleted
-                          ? Colors.white
-                          : iconColor.withValues(alpha: 1.0),
-                      size: 22,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  // Title and quantity
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            decoration: item.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
-                            color: item.isCompleted
-                                ? Colors.white
-                                : Colors.black87,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.numbers,
-                              size: 13,
-                              color: item.isCompleted
-                                  ? Colors.white.withValues(alpha: 0.9)
-                                  : Colors.grey[600],
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Quantity: ${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: item.isCompleted
-                                    ? Colors.white.withValues(alpha: 0.9)
-                                    : Colors.grey[600],
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                  const SizedBox(width: 8),
+                  // Quantity badge
+                  Text(
+                    '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: item.isCompleted
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.grey[500],
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   // Delete button
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline,
-                      size: 22,
-                      color: Colors.red,
+                      size: 18,
+                      color: item.isCompleted
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.red.withValues(alpha: 0.7),
                     ),
                     onPressed: () async {
                       if (!context.mounted) return;
@@ -677,7 +625,7 @@ class _ShoppingListDetailScreenState
                       );
                     },
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   ),
                 ],
               ),
@@ -688,19 +636,111 @@ class _ShoppingListDetailScreenState
     );
   }
 
+  void _onItemNameChanged(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      setState(() => _suggestions = []);
+      return;
+    }
+    final lower = trimmed.toLowerCase();
+    final matches = _currentList.items
+        .where((i) => i.isCompleted && i.name.toLowerCase().contains(lower))
+        .toList();
+    setState(() => _suggestions = matches);
+  }
+
+  void _restoreItem(ShoppingItem item) {
+    final updatedItems = _currentList.items.map((i) {
+      if (i.id == item.id) return i.copyWith(isCompleted: false);
+      return i;
+    }).toList();
+    setState(() {
+      _currentList = _currentList.copyWith(items: updatedItems);
+      _suggestions = [];
+      _itemNameController.clear();
+      _itemQtyController.text = '1';
+      _selectedUnit = ShoppingUnit.piece;
+    });
+    ref.read(shoppingListsNotifierProvider.notifier).updateShoppingList(_currentList);
+    _itemNameFocus.requestFocus();
+  }
+
   Widget _buildInlineInputRow(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.only(
-        left: 12,
-        right: 8,
-        top: 10,
-        bottom: MediaQuery.of(context).padding.bottom + 10,
-      ),
-      child: Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_suggestions.isNotEmpty)
+          Container(
+            color: Colors.white,
+            constraints: const BoxConstraints(maxHeight: 150),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Divider(height: 1, color: Colors.grey.shade200),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
+                  child: Text(
+                    'Restore checked item',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    shrinkWrap: true,
+                    itemCount: _suggestions.length,
+                    itemBuilder: (context, index) {
+                      final s = _suggestions[index];
+                      return InkWell(
+                        onTap: () => _restoreItem(s),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.undo, size: 16, color: primaryColor),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  s.name,
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${s.quantity.toStringAsFixed(s.quantity.truncateToDouble() == s.quantity ? 0 : 2)} ${s.unit.displayName}',
+                                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(
+            left: 12,
+            right: 8,
+            top: 10,
+            bottom: MediaQuery.of(context).padding.bottom + 10,
+          ),
+          child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Item name field
@@ -709,10 +749,23 @@ class _ShoppingListDetailScreenState
               controller: _itemNameController,
               focusNode: _itemNameFocus,
               textInputAction: TextInputAction.done,
+              onChanged: _onItemNameChanged,
               onSubmitted: (_) => _addItem(),
               style: const TextStyle(color: Colors.black87, fontSize: 15),
               decoration: InputDecoration(
                 hintText: 'Item name…',
+                suffixIcon: _suggestions.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close, size: 16),
+                        onPressed: () {
+                          _itemNameController.clear();
+                          setState(() => _suggestions = []);
+                          _itemNameFocus.requestFocus();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      )
+                    : null,
                 hintStyle: TextStyle(color: Colors.grey.shade500),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -798,7 +851,9 @@ class _ShoppingListDetailScreenState
             constraints: const BoxConstraints(),
           ),
         ],
+        ),
       ),
+      ],
     );
   }
 
@@ -820,6 +875,7 @@ class _ShoppingListDetailScreenState
       _itemNameController.clear();
       _itemQtyController.text = '1';
       _selectedUnit = ShoppingUnit.piece;
+      _suggestions = [];
     });
 
     ref.read(shoppingListsNotifierProvider.notifier).updateShoppingList(_currentList);
@@ -837,8 +893,9 @@ class _ShoppingListDetailScreenState
   void _showUnitPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).padding.bottom;
+        return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
@@ -863,9 +920,10 @@ class _ShoppingListDetailScreenState
                     _itemNameFocus.requestFocus();
                   },
                 )),
+            SizedBox(height: bottomPadding),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
