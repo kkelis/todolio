@@ -437,6 +437,10 @@ class _ShoppingListDetailScreenState
             ),
             decoration: const InputDecoration(
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              filled: true,
+              fillColor: Colors.transparent,
               hintText: 'List name',
               hintStyle: TextStyle(color: Colors.white70),
               isDense: true,
