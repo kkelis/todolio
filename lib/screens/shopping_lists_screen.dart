@@ -647,6 +647,10 @@ class _ShoppingListDetailScreenState
         .where((i) => i.isCompleted && i.name.toLowerCase().contains(lower))
         .toList();
     setState(() => _suggestions = matches);
+    // Re-request focus so the keyboard is not dismissed on rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _itemNameFocus.requestFocus();
+    });
   }
 
   void _restoreItem(ShoppingItem item) {
@@ -860,6 +864,30 @@ class _ShoppingListDetailScreenState
   void _addItem() {
     final name = _itemNameController.text.trim();
     if (name.isEmpty) return;
+
+    final lower = name.toLowerCase();
+    final existing = _currentList.items
+        .where((i) => i.name.toLowerCase() == lower)
+        .firstOrNull;
+
+    if (existing != null) {
+      if (existing.isCompleted) {
+        // Item exists but is checked off — restore it instead of duplicating
+        _restoreItem(existing);
+      } else {
+        // Item is already active in the list
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"$name" is already on the list'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        _itemNameController.clear();
+        setState(() => _suggestions = []);
+        _itemNameFocus.requestFocus();
+      }
+      return;
+    }
 
     final newItem = ShoppingItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
