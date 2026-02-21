@@ -647,10 +647,6 @@ class _ShoppingListDetailScreenState
         .where((i) => i.isCompleted && i.name.toLowerCase().contains(lower))
         .toList();
     setState(() => _suggestions = matches);
-    // Re-request focus so the keyboard is not dismissed on rebuild
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _itemNameFocus.requestFocus();
-    });
   }
 
   void _restoreItem(ShoppingItem item) {
@@ -676,10 +672,13 @@ class _ShoppingListDetailScreenState
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (_suggestions.isNotEmpty)
-          Container(
-            color: Colors.white,
-            constraints: const BoxConstraints(maxHeight: 150),
+        // Suggestions strip — always in the tree so focus is never lost;
+        // height animates to 0 when there are no suggestions.
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          constraints: BoxConstraints(maxHeight: _suggestions.isNotEmpty ? 160 : 0),
+          color: Colors.white,
+          child: ClipRect(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,7 +714,7 @@ class _ShoppingListDetailScreenState
                               Expanded(
                                 child: Text(
                                   s.name,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.black87,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -736,6 +735,7 @@ class _ShoppingListDetailScreenState
               ],
             ),
           ),
+        ),
         Container(
           color: Colors.white,
           padding: EdgeInsets.only(
@@ -919,10 +919,13 @@ class _ShoppingListDetailScreenState
   }
 
   void _showUnitPicker(BuildContext context) {
+    // Capture viewPadding before opening sheet — padding.bottom can be 0
+    // when the keyboard is open, but viewPadding.bottom always reflects
+    // the physical nav bar / home indicator height.
+    final navBarHeight = MediaQuery.of(context).viewPadding.bottom;
     showModalBottomSheet(
       context: context,
       builder: (ctx) {
-        final bottomPadding = MediaQuery.of(ctx).padding.bottom;
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -948,7 +951,7 @@ class _ShoppingListDetailScreenState
                     _itemNameFocus.requestFocus();
                   },
                 )),
-            SizedBox(height: bottomPadding),
+            SizedBox(height: navBarHeight),
           ],
         );
       },
