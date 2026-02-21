@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../models/reminder.dart';
-import '../models/app_settings.dart';
 import '../providers/reminders_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
@@ -16,7 +15,7 @@ class TasksScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
     final remindersAsync = ref.watch(remindersProvider);
-    final settings = appSettingsNotifier.valueOrNull;
+    final settings = appSettingsNotifier.hasValue ? appSettingsNotifier.value : null;
 
     final currentFilter = settings?.tasksFilter ?? TasksFilter.all;
     final remindersEnabled = settings?.remindersEnabled ?? true;
@@ -114,7 +113,7 @@ class TasksScreen extends ConsumerWidget {
 
             return FloatingActionButton(
               onPressed: () {
-                final filter = appSettingsNotifier.valueOrNull?.tasksFilter ?? TasksFilter.all;
+                final filter = appSettingsNotifier.hasValue ? appSettingsNotifier.value!.tasksFilter : TasksFilter.all;
                 final defaultType = filter == TasksFilter.todos
                     ? ReminderType.todo
                     : ReminderType.other;

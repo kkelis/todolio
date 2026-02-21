@@ -70,9 +70,7 @@ class BackupService {
       
       // Encode and write ZIP file
       final zipData = ZipEncoder().encode(archive);
-      if (zipData != null) {
-        await File(zipFilePath).writeAsBytes(zipData);
-      }
+      await File(zipFilePath).writeAsBytes(zipData);
 
       // Clean up temporary backup directory
       await backupDir.delete(recursive: true);
