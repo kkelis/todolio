@@ -72,22 +72,11 @@ class SettingsScreen extends ConsumerWidget {
             context,
             ref,
             settings,
-            'Reminders',
-            Icons.notifications_outlined,
-            settings.remindersEnabled,
+            'Tasks',
+            Icons.task_outlined,
+            settings.tasksEnabled,
             (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
-              settings.copyWith(remindersEnabled: value),
-            ),
-          ),
-          _buildSectionToggle(
-            context,
-            ref,
-            settings,
-            'Todos',
-            Icons.check_circle_outline,
-            settings.todosEnabled,
-            (value) => ref.read(appSettingsNotifierProvider.notifier).updateSettings(
-              settings.copyWith(todosEnabled: value),
+              settings.copyWith(remindersEnabled: value, todosEnabled: value),
             ),
           ),
           _buildSectionToggle(
@@ -172,8 +161,7 @@ class SettingsScreen extends ConsumerWidget {
           _buildBackupSection(context, ref, settings),
           const SizedBox(height: 32),
           // Warning if all sections are disabled
-          if (!settings.remindersEnabled &&
-              !settings.todosEnabled &&
+          if (!settings.tasksEnabled &&
               !settings.shoppingEnabled &&
               !settings.guaranteesEnabled &&
               !settings.notesEnabled &&

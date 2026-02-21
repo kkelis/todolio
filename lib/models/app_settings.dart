@@ -1,4 +1,5 @@
 import 'color_scheme.dart';
+import 'reminder.dart';
 
 class AppSettings {
   final bool remindersEnabled;
@@ -9,10 +10,16 @@ class AppSettings {
   final bool loyaltyCardsEnabled;
   final AppColorScheme colorScheme;
   
+  // Tasks filter (persistent filter for the unified Tasks screen)
+  final TasksFilter tasksFilter;
+
   // Backup settings
   final DateTime? lastBackupDate;
   final bool backupReminderEnabled;
   final int backupReminderFrequencyDays; // 7, 14, or 30 days
+
+  // Computed: the Tasks tab is visible when either reminders or todos is enabled
+  bool get tasksEnabled => remindersEnabled || todosEnabled;
 
   AppSettings({
     this.remindersEnabled = true,
@@ -22,6 +29,7 @@ class AppSettings {
     this.notesEnabled = true,
     this.loyaltyCardsEnabled = true,
     this.colorScheme = AppColorScheme.blue,
+    this.tasksFilter = TasksFilter.all,
     this.lastBackupDate,
     this.backupReminderEnabled = false,
     this.backupReminderFrequencyDays = 14,
@@ -36,6 +44,7 @@ class AppSettings {
       'notesEnabled': notesEnabled,
       'loyaltyCardsEnabled': loyaltyCardsEnabled,
       'colorScheme': colorScheme.toJson(),
+      'tasksFilter': tasksFilter.name,
       'lastBackupDate': lastBackupDate?.toIso8601String(),
       'backupReminderEnabled': backupReminderEnabled,
       'backupReminderFrequencyDays': backupReminderFrequencyDays,
@@ -53,6 +62,12 @@ class AppSettings {
       colorScheme: map['colorScheme'] != null
           ? AppColorScheme.fromString(map['colorScheme'])
           : AppColorScheme.blue,
+      tasksFilter: map['tasksFilter'] != null
+          ? TasksFilter.values.firstWhere(
+              (e) => e.name == map['tasksFilter'],
+              orElse: () => TasksFilter.all,
+            )
+          : TasksFilter.all,
       lastBackupDate: map['lastBackupDate'] != null
           ? DateTime.parse(map['lastBackupDate'])
           : null,
@@ -69,6 +84,7 @@ class AppSettings {
     bool? notesEnabled,
     bool? loyaltyCardsEnabled,
     AppColorScheme? colorScheme,
+    TasksFilter? tasksFilter,
     DateTime? lastBackupDate,
     bool? backupReminderEnabled,
     int? backupReminderFrequencyDays,
@@ -81,6 +97,7 @@ class AppSettings {
       notesEnabled: notesEnabled ?? this.notesEnabled,
       loyaltyCardsEnabled: loyaltyCardsEnabled ?? this.loyaltyCardsEnabled,
       colorScheme: colorScheme ?? this.colorScheme,
+      tasksFilter: tasksFilter ?? this.tasksFilter,
       lastBackupDate: lastBackupDate ?? this.lastBackupDate,
       backupReminderEnabled: backupReminderEnabled ?? this.backupReminderEnabled,
       backupReminderFrequencyDays: backupReminderFrequencyDays ?? this.backupReminderFrequencyDays,
@@ -91,8 +108,7 @@ class AppSettings {
   List<int> getEnabledSectionIndices() {
     final indices = <int>[];
     int index = 0;
-    if (remindersEnabled) indices.add(index++);
-    if (todosEnabled) indices.add(index++);
+    if (tasksEnabled) indices.add(index++);
     if (shoppingEnabled) indices.add(index++);
     if (guaranteesEnabled) indices.add(index++);
     if (notesEnabled) indices.add(index++);
