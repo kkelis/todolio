@@ -951,7 +951,7 @@ class _ShoppingListDetailScreenState
                     _itemNameFocus.requestFocus();
                   },
                 )),
-            SizedBox(height: navBarHeight),
+            SizedBox(height: navBarHeight + 48),
           ],
         );
       },
