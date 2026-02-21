@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_item.dart';
 import '../providers/shopping_lists_provider.dart';
@@ -222,108 +223,23 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   }
 
   void _showCreateDialog() {
-    final nameController = TextEditingController();
+    final now = DateTime.now();
+    final defaultName = 'Shopping – ${DateFormat('d MMM').format(now)}';
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
-        ),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Create Shopping List',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                Divider(color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameController,
-                  style: const TextStyle(color: Colors.black87),
-                  decoration: InputDecoration(
-                    labelText: 'List Name',
-                    labelStyle: TextStyle(color: Colors.grey.shade700),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.all(16),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  autofocus: true,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      // Let theme handle backgroundColor and foregroundColor
-                    ),
-                    onPressed: () {
-                      if (nameController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a list name')),
-                        );
-                        return;
-                      }
+    final list = ShoppingList(
+      id: now.millisecondsSinceEpoch.toString(),
+      name: defaultName,
+      createdAt: now,
+    );
 
-                      final list = ShoppingList(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: nameController.text,
-                        createdAt: DateTime.now(),
-                      );
+    ref.read(shoppingListsNotifierProvider.notifier).createShoppingList(list);
 
-                      final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-                      notifier.createShoppingList(list);
-
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Create'),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShoppingListDetailScreen(
+          list: list,
+          isNewList: true,
         ),
       ),
     );
@@ -459,8 +375,13 @@ class _ShoppingListCard extends StatelessWidget {
 
 class ShoppingListDetailScreen extends ConsumerStatefulWidget {
   final ShoppingList list;
+  final bool isNewList;
 
-  const ShoppingListDetailScreen({super.key, required this.list});
+  const ShoppingListDetailScreen({
+    super.key,
+    required this.list,
+    this.isNewList = false,
+  });
 
   @override
   ConsumerState<ShoppingListDetailScreen> createState() =>
@@ -470,11 +391,34 @@ class ShoppingListDetailScreen extends ConsumerStatefulWidget {
 class _ShoppingListDetailScreenState
     extends ConsumerState<ShoppingListDetailScreen> {
   late ShoppingList _currentList;
+  late TextEditingController _titleController;
+  late TextEditingController _itemNameController;
+  late TextEditingController _itemQtyController;
+  late FocusNode _itemNameFocus;
+  ShoppingUnit _selectedUnit = ShoppingUnit.piece;
 
   @override
   void initState() {
     super.initState();
     _currentList = widget.list;
+    _titleController = TextEditingController(text: _currentList.name);
+    _itemNameController = TextEditingController();
+    _itemQtyController = TextEditingController(text: '1');
+    _itemNameFocus = FocusNode();
+    if (widget.isNewList) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _itemNameFocus.requestFocus();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _itemNameController.dispose();
+    _itemQtyController.dispose();
+    _itemNameFocus.dispose();
+    super.dispose();
   }
 
   @override
@@ -482,500 +426,441 @@ class _ShoppingListDetailScreenState
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text(_currentList.name),
-        ),
-        body: _currentList.items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 80,
-                    color: Colors.white.withValues(alpha: 0.3),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'No items',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ),
-            )
-          : Builder(
-              builder: (context) {
-                // Separate completed and uncompleted items, move completed to end
-                final uncompletedItems = _currentList.items.where((i) => !i.isCompleted).toList();
-                final completedItems = _currentList.items.where((i) => i.isCompleted).toList();
-                final sortedItems = [...uncompletedItems, ...completedItems];
-                
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: sortedItems.length,
-                  itemBuilder: (context, index) {
-                    final item = sortedItems[index];
-                    final theme = Theme.of(context);
-                    final iconColor = theme.colorScheme.primary;
-                
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: item.isCompleted 
-                        ? theme.colorScheme.primary
-                        : Colors.white,
-                    border: item.isCompleted
-                        ? Border.all(color: Colors.white, width: 1.5)
-                        : null,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                        spreadRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                        spreadRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: InkWell(
-                    onTap: () => _showEditItemDialog(item),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(
-                    children: [
-                      // Checkbox
-                      CheckboxTheme(
-                        data: CheckboxThemeData(
-                          side: item.isCompleted
-                              ? const BorderSide(color: Colors.white, width: 2)
-                              : const BorderSide(color: Colors.grey, width: 2),
-                          fillColor: WidgetStateProperty.resolveWith((states) {
-                            if (item.isCompleted && states.contains(WidgetState.selected)) {
-                              return Colors.white; // White fill for completed items
-                            }
-                            return null; // Use theme default
-                          }),
-                          checkColor: WidgetStateProperty.resolveWith((states) {
-                            if (item.isCompleted && states.contains(WidgetState.selected)) {
-                              return theme.colorScheme.primary; // Primary color checkmark on white
-                            }
-                            return Colors.white; // White checkmark on primary
-                          }),
-                        ),
-                        child: Checkbox(
-                          value: item.isCompleted,
-                          onChanged: (value) {
-                            final updatedItems = _currentList.items.map((i) {
-                              if (i.id == item.id) {
-                                return i.copyWith(isCompleted: value ?? false);
-                              }
-                              return i;
-                            }).toList();
-
-                            setState(() {
-                              _currentList = _currentList.copyWith(items: updatedItems);
-                            });
-
-                            final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-                            notifier.updateShoppingList(_currentList);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Icon with gradient effect
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              iconColor.withValues(alpha: 0.2),
-                              iconColor.withValues(alpha: 0.1),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: item.isCompleted
-                                ? Colors.white
-                                : iconColor.withValues(alpha: 0.4),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.shopping_bag,
-                          color: item.isCompleted
-                              ? Colors.white
-                              : iconColor.withValues(alpha: 1.0),
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Title and quantity
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              item.name,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                decoration: item.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: item.isCompleted
-                                    ? Colors.white
-                                    : Colors.black87,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.numbers,
-                                  size: 13,
-                                  color: item.isCompleted
-                                      ? Colors.white.withValues(alpha: 0.9)
-                                      : Colors.grey[600],
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Quantity: ${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: item.isCompleted
-                                        ? Colors.white.withValues(alpha: 0.9)
-                                        : Colors.grey[600],
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Delete button
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline,
-                          size: 22,
-                          color: Colors.red,
-                        ),
-                        onPressed: () async {
-                          if (!context.mounted) return;
-                          final itemCopy = item;
-                          final listBeforeDelete = _currentList;
-                          final updatedItems = _currentList.items
-                              .where((i) => i.id != item.id)
-                              .toList();
-
-                          setState(() {
-                            _currentList = _currentList.copyWith(items: updatedItems);
-                          });
-
-                          final notifier = ref.read(shoppingListsNotifierProvider.notifier);
-                          notifier.updateShoppingList(_currentList);
-                          
-                          showUndoDeletionSnackBar(
-                            context,
-                            itemName: item.name,
-                            onUndo: () {
-                              // Restore the item
-                              final restoredItems = [..._currentList.items, itemCopy];
-                              final restoredList = listBeforeDelete.copyWith(items: restoredItems);
-                              setState(() {
-                                _currentList = restoredList;
-                              });
-                              notifier.updateShoppingList(restoredList);
-                            },
-                          );
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                      ),
-                    ),
-                  ),
-                );
-                  },
-                );
-              },
+          title: TextField(
+            controller: _titleController,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-      floatingActionButton: Consumer(
-        builder: (context, ref, child) {
-          // Watch app settings notifier for immediate updates
-          final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
-          final primaryColor = appSettingsNotifier.hasValue 
-              ? appSettingsNotifier.value!.colorScheme.primaryColor
-              : Theme.of(context).colorScheme.primary;
-          
-          return FloatingActionButton(
-            onPressed: () => _showAddItemDialog(),
-            backgroundColor: primaryColor,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add),
-          );
-        },
-      ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: 'List name',
+              hintStyle: TextStyle(color: Colors.white70),
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            textInputAction: TextInputAction.done,
+            onSubmitted: _updateListName,
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(child: _buildItemsList(context)),
+            _buildInlineInputRow(context),
+          ],
+        ),
       ),
     );
   }
 
-  void _showAddItemDialog() {
-    final nameController = TextEditingController();
-    final quantityController = TextEditingController(text: '1');
+  Widget _buildItemsList(BuildContext context) {
+    if (_currentList.items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.shopping_bag_outlined,
+              size: 80,
+              color: Colors.white.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No items yet\nStart adding below!',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+            ),
+          ],
+        ),
+      );
+    }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: true,
-      enableDrag: true,
-      builder: (context) => Consumer(
-        builder: (context, ref, child) {
-          ShoppingUnit selectedUnit = ShoppingUnit.piece;
-          bool isUnitExpanded = false;
-          
-          return StatefulBuilder(
-            builder: (context, setState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
+    final uncompletedItems = _currentList.items.where((i) => !i.isCompleted).toList();
+    final completedItems = _currentList.items.where((i) => i.isCompleted).toList();
+    final sortedItems = [...uncompletedItems, ...completedItems];
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: sortedItems.length,
+      itemBuilder: (context, index) {
+        final item = sortedItems[index];
+        final theme = Theme.of(context);
+        final iconColor = theme.colorScheme.primary;
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: item.isCompleted
+                ? theme.colorScheme.primary
+                : Colors.white,
+            border: item.isCompleted
+                ? Border.all(color: Colors.white, width: 1.5)
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
               ),
-              child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.9,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Add Item',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: InkWell(
+            onTap: () => _showEditItemDialog(item),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  // Checkbox
+                  CheckboxTheme(
+                    data: CheckboxThemeData(
+                      side: item.isCompleted
+                          ? const BorderSide(color: Colors.white, width: 2)
+                          : const BorderSide(color: Colors.grey, width: 2),
+                      fillColor: WidgetStateProperty.resolveWith((states) {
+                        if (item.isCompleted && states.contains(WidgetState.selected)) {
+                          return Colors.white;
+                        }
+                        return null;
+                      }),
+                      checkColor: WidgetStateProperty.resolveWith((states) {
+                        if (item.isCompleted && states.contains(WidgetState.selected)) {
+                          return theme.colorScheme.primary;
+                        }
+                        return Colors.white;
+                      }),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                Divider(color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameController,
-                  style: const TextStyle(color: Colors.black87),
-                  decoration: InputDecoration(
-                    labelText: 'Item Name',
-                    labelStyle: TextStyle(color: Colors.grey.shade700),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.all(16),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  autofocus: true,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: quantityController,
-                  style: const TextStyle(color: Colors.black87),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    labelStyle: TextStyle(color: Colors.grey.shade700),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.all(16),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Unit',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (!isUnitExpanded)
-                  // Show only selected option when collapsed
-                  SizedBox(
-                    width: double.infinity,
-                    child: ChoiceChip(
-                      label: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            selectedUnit.displayName.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-                      selected: true,
-                      onSelected: (selected) {
-                        setState(() => isUnitExpanded = true);
+                    child: Checkbox(
+                      value: item.isCompleted,
+                      onChanged: (value) {
+                        final updatedItems = _currentList.items.map((i) {
+                          if (i.id == item.id) {
+                            return i.copyWith(isCompleted: value ?? false);
+                          }
+                          return i;
+                        }).toList();
+
+                        setState(() {
+                          _currentList = _currentList.copyWith(items: updatedItems);
+                        });
+
+                        final notifier = ref.read(shoppingListsNotifierProvider.notifier);
+                        notifier.updateShoppingList(_currentList);
                       },
-                      selectedColor: Theme.of(context).colorScheme.primary,
-                      side: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                  )
-                else
-                  // Show all options when expanded
-                  Column(
-                    children: ShoppingUnit.values.map((unit) {
-                      final isSelected = selectedUnit == unit;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ChoiceChip(
-                            label: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  unit.displayName.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Theme.of(context).colorScheme.primary,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                selectedUnit = unit;
-                                isUnitExpanded = false; // Collapse after selection
-                              });
-                            },
-                            selectedColor: Theme.of(context).colorScheme.primary,
-                            backgroundColor: Colors.white,
-                            side: BorderSide(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey.shade300,
-                              width: isSelected ? 2 : 1,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  const SizedBox(width: 12),
+                  // Icon with gradient effect
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          iconColor.withValues(alpha: 0.2),
+                          iconColor.withValues(alpha: 0.1),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: item.isCompleted
+                            ? Colors.white
+                            : iconColor.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.shopping_bag,
+                      color: item.isCompleted
+                          ? Colors.white
+                          : iconColor.withValues(alpha: 1.0),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Title and quantity
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          item.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            decoration: item.isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: item.isCompleted
+                                ? Colors.white
+                                : Colors.black87,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      // Let theme handle backgroundColor and foregroundColor
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.numbers,
+                              size: 13,
+                              color: item.isCompleted
+                                  ? Colors.white.withValues(alpha: 0.9)
+                                  : Colors.grey[600],
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Quantity: ${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: item.isCompleted
+                                    ? Colors.white.withValues(alpha: 0.9)
+                                    : Colors.grey[600],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    onPressed: () {
-                      if (nameController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter an item name')),
-                        );
-                        return;
-                      }
+                  ),
+                  // Delete button
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 22,
+                      color: Colors.red,
+                    ),
+                    onPressed: () async {
+                      if (!context.mounted) return;
+                      final itemCopy = item;
+                      final listBeforeDelete = _currentList;
+                      final updatedItems = _currentList.items
+                          .where((i) => i.id != item.id)
+                          .toList();
 
-                      final newItem = ShoppingItem(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: nameController.text,
-                        quantity: double.tryParse(quantityController.text) ?? 1.0,
-                        unit: selectedUnit,
-                        addedBy: 'local',
-                      );
-
-                      final updatedItems = [..._currentList.items, newItem];
-
-                      // Use the parent setState to update the list
-                      this.setState(() {
+                      setState(() {
                         _currentList = _currentList.copyWith(items: updatedItems);
                       });
 
                       final notifier = ref.read(shoppingListsNotifierProvider.notifier);
                       notifier.updateShoppingList(_currentList);
 
-                      Navigator.pop(context);
+                      showUndoDeletionSnackBar(
+                        context,
+                        itemName: item.name,
+                        onUndo: () {
+                          final restoredItems = [..._currentList.items, itemCopy];
+                          final restoredList = listBeforeDelete.copyWith(items: restoredItems);
+                          setState(() {
+                            _currentList = restoredList;
+                          });
+                          notifier.updateShoppingList(restoredList);
+                        },
+                      );
                     },
-                    child: const Text('Add'),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInlineInputRow(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        left: 12,
+        right: 8,
+        top: 10,
+        bottom: MediaQuery.of(context).padding.bottom + 10,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Item name field
+          Expanded(
+            child: TextField(
+              controller: _itemNameController,
+              focusNode: _itemNameFocus,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _addItem(),
+              style: const TextStyle(color: Colors.black87, fontSize: 15),
+              decoration: InputDecoration(
+                hintText: 'Item name…',
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                isDense: true,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          // Quantity field
+          SizedBox(
+            width: 60,
+            child: TextField(
+              controller: _itemQtyController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
               ],
-                  ),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _addItem(),
+              style: const TextStyle(color: Colors.black87, fontSize: 15),
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                hintText: '1',
+                hintStyle: TextStyle(color: Colors.grey.shade500),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                isDense: true,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          // Unit button
+          GestureDetector(
+            onTap: () => _showUnitPicker(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              decoration: BoxDecoration(
+                color: primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: primaryColor.withValues(alpha: 0.5),
+                  width: 1.5,
                 ),
               ),
-            );
-          },
-        );
-        },
+              child: Text(
+                _selectedUnit.displayName.toUpperCase(),
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          // Confirm button
+          IconButton(
+            icon: Icon(Icons.check_circle, color: primaryColor, size: 32),
+            onPressed: _addItem,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addItem() {
+    final name = _itemNameController.text.trim();
+    if (name.isEmpty) return;
+
+    final newItem = ShoppingItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      quantity: double.tryParse(_itemQtyController.text) ?? 1.0,
+      unit: _selectedUnit,
+      addedBy: 'local',
+    );
+
+    final updatedItems = [..._currentList.items, newItem];
+    setState(() {
+      _currentList = _currentList.copyWith(items: updatedItems);
+      _itemNameController.clear();
+      _itemQtyController.text = '1';
+      _selectedUnit = ShoppingUnit.piece;
+    });
+
+    ref.read(shoppingListsNotifierProvider.notifier).updateShoppingList(_currentList);
+    _itemNameFocus.requestFocus();
+  }
+
+  void _updateListName(String name) {
+    if (name.trim().isEmpty) return;
+    setState(() {
+      _currentList = _currentList.copyWith(name: name.trim());
+    });
+    ref.read(shoppingListsNotifierProvider.notifier).updateShoppingList(_currentList);
+  }
+
+  void _showUnitPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Select Unit',
+                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(ctx).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            const Divider(height: 1),
+            ...ShoppingUnit.values.map((unit) => ListTile(
+                  title: Text(unit.displayName),
+                  leading: _selectedUnit == unit
+                      ? Icon(Icons.check, color: Theme.of(ctx).colorScheme.primary)
+                      : const SizedBox(width: 24),
+                  onTap: () {
+                    setState(() => _selectedUnit = unit);
+                    Navigator.pop(ctx);
+                    _itemNameFocus.requestFocus();
+                  },
+                )),
+          ],
+        ),
       ),
     );
   }
