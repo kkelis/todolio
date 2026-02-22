@@ -96,14 +96,6 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     return destinations;
   }
 
-  bool _areAllSectionsEnabled(AppSettings settings) {
-    return settings.tasksEnabled &&
-        settings.shoppingEnabled &&
-        settings.loyaltyCardsEnabled &&
-        settings.guaranteesEnabled &&
-        settings.notesEnabled;
-  }
-
   @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(appSettingsProvider);
@@ -113,8 +105,6 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         final l10n = AppLocalizations.of(context);
         final screens = _getScreens(settings);
         final destinations = _getDestinations(context, settings);
-        final allSectionsEnabled = _areAllSectionsEnabled(settings);
-        
         // Ensure current index is valid
         if (_currentIndex >= screens.length) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -179,9 +169,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                   ),
             bottomNavigationBar: screens.isEmpty || destinations.length < 2
                 ? null
-                : allSectionsEnabled
-                    ? _buildHorizontalScrollableNavigation(destinations)
-                    : _buildBottomNavigationBar(destinations),
+                : _buildBottomNavigationBar(destinations),
             drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -429,74 +417,5 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     );
   }
 
-  Widget _buildHorizontalScrollableNavigation(List<NavigationDestination> destinations) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
-          ),
-        ),
-      ),
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      height: 70 + bottomPadding,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: destinations.length,
-        itemBuilder: (context, index) {
-          final destination = destinations[index];
-          final isSelected = index == _currentIndex;
-          final iconWidget = isSelected 
-              ? destination.selectedIcon
-              : destination.icon;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _currentIndex = index;
-              });
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconTheme(
-                    data: IconThemeData(
-                      color: isSelected ? Colors.black : Colors.white,
-                      size: 24,
-                    ),
-                    child: iconWidget ?? const SizedBox(),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    destination.label,
-                    style: TextStyle(
-                      color: isSelected ? Colors.black : Colors.white,
-                      fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
 
