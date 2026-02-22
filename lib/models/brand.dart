@@ -429,6 +429,12 @@ class BrandDatabase {
       logoAssetPath: 'assets/images/brands/aldo.svg',
       primaryColor: Color(0xFF000000),
     ),
+    Brand(
+      id: 'kikomilano',
+      name: 'Kiko Milano',
+      logoAssetPath: 'assets/images/brands/kikomilano.svg',
+      primaryColor: Color(0xFF000000),
+    ),
   ];
 
   static int _compareBrandNames(Brand a, Brand b) {
