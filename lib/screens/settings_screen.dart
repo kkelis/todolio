@@ -372,14 +372,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   // Supported locales: null = system default, 'en', 'hr', 'de', 'es', 'fr', 'it'
-  static const _languageOptions = <(String?, String Function(AppLocalizations))>[
-    (null, _langSystemDefault),
-    ('en', _langEnglish),
-    ('hr', _langCroatian),
-    ('de', _langGerman),
-    ('es', _langSpanish),
-    ('fr', _langFrench),
-    ('it', _langItalian),
+  static const _languageOptions = <(String?, String, String Function(AppLocalizations))>[
+    (null,  '🌐', _langSystemDefault),
+    ('en',  '🇬🇧', _langEnglish),
+    ('hr',  '🇭🇷', _langCroatian),
+    ('de',  '🇩🇪', _langGerman),
+    ('es',  '🇪🇸', _langSpanish),
+    ('fr',  '🇫🇷', _langFrench),
+    ('it',  '🇮🇹', _langItalian),
   ];
 
   // Static helpers to avoid closures in const context
@@ -398,6 +398,7 @@ class SettingsScreen extends ConsumerWidget {
   ) {
     final l10n = AppLocalizations.of(context);
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -409,31 +410,43 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      child: Column(
-        children: _languageOptions.map(((String?, String Function(AppLocalizations)) opt) {
-          final (code, label) = opt;
-          final isSelected = settings.languageCode == code;
-          return RadioListTile<String?>(
+      child: DropdownButton<String?>(
+        value: settings.languageCode,
+        isExpanded: true,
+        underline: const SizedBox.shrink(),
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        items: _languageOptions
+            .map(((String?, String, String Function(AppLocalizations)) opt) {
+          final (code, flag, label) = opt;
+          return DropdownMenuItem<String?>(
             value: code,
-            groupValue: settings.languageCode,
-            title: Text(
-              label(l10n),
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-            activeColor: Theme.of(context).colorScheme.primary,
-            onChanged: (value) {
-              ref.read(appSettingsNotifierProvider.notifier).updateSettings(
-                settings.copyWith(
-                  languageCode: value,
-                  clearLanguageCode: value == null,
+            child: Row(
+              children: [
+                Text(flag, style: const TextStyle(fontSize: 22)),
+                const SizedBox(width: 12),
+                Text(
+                  label(l10n),
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              );
-            },
+              ],
+            ),
           );
         }).toList(),
+        onChanged: (value) {
+          ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+            settings.copyWith(
+              languageCode: value,
+              clearLanguageCode: value == null,
+            ),
+          );
+        },
       ),
     );
   }
