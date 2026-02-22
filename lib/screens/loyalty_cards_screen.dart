@@ -199,6 +199,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.85,
@@ -408,6 +409,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
+      useSafeArea: true,
       builder: (context) => Consumer(
         builder: (context, ref, child) {
           return StatefulBuilder(
@@ -415,7 +417,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
               final l10n = AppLocalizations.of(context);
               return Padding(
                 padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
                 child: Container(
                   constraints: BoxConstraints(
