@@ -6,6 +6,7 @@ import '../providers/reminders_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
+import '../l10n/app_localizations.dart';
 import 'settings_screen.dart';
 
 class RemindersScreen extends ConsumerStatefulWidget {
@@ -22,6 +23,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
   Widget build(BuildContext context) {
     // Watch app settings notifier for immediate updates when color scheme changes
     final appSettingsNotifier = ref.watch(appSettingsNotifierProvider);
+    final l10n = AppLocalizations.of(context);
     final remindersAsync = ref.watch(remindersProvider);
     
     // Get current color scheme for debugging
@@ -34,7 +36,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Reminders'),
+          title: Text(l10n.remindersTitle),
           leading: IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -101,7 +103,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'No reminders',
+                    l10n.noReminders,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Colors.white.withValues(alpha: 0.6),
                         ),
@@ -156,7 +158,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                         child: Text(
-                          'Overdue',
+                          l10n.overdue,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.red.withValues(alpha: 0.9),
@@ -201,7 +203,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                         child: Text(
-                          entry.key,
+                          entry.key == 'Today' ? l10n.today : entry.key == 'Next 7 Days' ? l10n.next7Days : l10n.later,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white.withValues(alpha: 0.9),
@@ -243,7 +245,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                       child: Text(
-                        'Completed',
+                        l10n.completed,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.white.withValues(alpha: 0.9),
@@ -285,10 +287,10 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: $error'),
+              Text(l10n.errorWithDetails(error.toString())),
               ElevatedButton(
                 onPressed: () => ref.invalidate(remindersProvider),
-                child: const Text('Retry'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -408,6 +410,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         builder: (context, ref, child) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final l10n = AppLocalizations.of(context);
               return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
@@ -430,7 +433,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        reminder == null ? 'Add Reminder' : 'Edit Reminder',
+                        reminder == null ? l10n.addReminder : l10n.editReminder,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -457,7 +460,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                       controller: textController,
                       style: const TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'Add your reminder here',
+                        hintText: l10n.addReminderHint,
                         hintStyle: TextStyle(color: Colors.grey.shade600),
                         border: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -485,7 +488,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   // Date & Time selection
                   ListTile(
                     title: Text(
-                      'Date & Time',
+                      l10n.dateAndTime,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -494,7 +497,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                     subtitle: Text(
                       selectedDate != null
                           ? DateFormat('MMM d, yyyy HH:mm').format(selectedDate!)
-                          : 'Not set',
+                          : l10n.notSet,
                       style: TextStyle(
                         color: selectedDate != null ? Theme.of(context).colorScheme.onSurface : Colors.grey.shade600,
                       ),
@@ -582,7 +585,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   const SizedBox(height: 16),
                   // Type selection
                   Text(
-                    'Reminder type',
+                    l10n.reminderTypeLabel,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -604,7 +607,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              selectedType.name.toUpperCase(),
+                              _getTypeName(selectedType, l10n).toUpperCase(),
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.white,
@@ -652,7 +655,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    type.name.toUpperCase(),
+                                    _getTypeName(type, l10n).toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: isSelected
@@ -694,7 +697,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   if (selectedType == ReminderType.todo) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Priority',
+                      l10n.priority,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -813,7 +816,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   // Repeat selection
                   const SizedBox(height: 16),
                   Text(
-                    'Repeat',
+                    l10n.repeat,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -828,23 +831,23 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         IconData icon;
                         switch (selectedRepeat) {
                           case RepeatType.none:
-                            label = 'None';
+                            label = l10n.repeatNone;
                             icon = Icons.close;
                             break;
                           case RepeatType.daily:
-                            label = 'Daily';
+                            label = l10n.repeatDaily;
                             icon = Icons.today;
                             break;
                           case RepeatType.weekly:
-                            label = 'Weekly';
+                            label = l10n.repeatWeekly;
                             icon = Icons.date_range;
                             break;
                           case RepeatType.monthly:
-                            label = 'Monthly';
+                            label = l10n.repeatMonthly;
                             icon = Icons.calendar_month;
                             break;
                           case RepeatType.yearly:
-                            label = 'Yearly';
+                            label = l10n.repeatYearly;
                             icon = Icons.calendar_today;
                             break;
                         }
@@ -898,23 +901,23 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         IconData icon;
                         switch (repeatType) {
                           case RepeatType.none:
-                            label = 'None';
+                            label = l10n.repeatNone;
                             icon = Icons.close;
                             break;
                           case RepeatType.daily:
-                            label = 'Daily';
+                            label = l10n.repeatDaily;
                             icon = Icons.today;
                             break;
                           case RepeatType.weekly:
-                            label = 'Weekly';
+                            label = l10n.repeatWeekly;
                             icon = Icons.date_range;
                             break;
                           case RepeatType.monthly:
-                            label = 'Monthly';
+                            label = l10n.repeatMonthly;
                             icon = Icons.calendar_month;
                             break;
                           case RepeatType.yearly:
-                            label = 'Yearly';
+                            label = l10n.repeatYearly;
                             icon = Icons.calendar_today;
                             break;
                         }
@@ -980,7 +983,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                         final text = textController.text.trim();
                         if (text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter some text')),
+                            SnackBar(content: Text(l10n.pleaseEnterSomeText)),
                           );
                           return;
                         }
@@ -993,7 +996,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
                         if (title.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Title cannot be empty')),
+                            SnackBar(content: Text(l10n.titleCannotBeEmpty)),
                           );
                           return;
                         }
@@ -1061,6 +1064,21 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         return Colors.orange;
       case Priority.low:
         return Colors.green;
+    }
+  }
+
+  String _getTypeName(ReminderType type, AppLocalizations l10n) {
+    switch (type) {
+      case ReminderType.birthday:
+        return l10n.reminderTypeBirthday;
+      case ReminderType.appointment:
+        return l10n.reminderTypeAppointment;
+      case ReminderType.todo:
+        return l10n.reminderTypeTodo;
+      case ReminderType.warranty:
+        return type.name;
+      case ReminderType.other:
+        return l10n.reminderTypeOther;
     }
   }
 

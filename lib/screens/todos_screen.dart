@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/reminder.dart';
 import '../providers/todos_provider.dart';
 import '../providers/reminders_provider.dart';
@@ -32,13 +33,14 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final todosAsync = ref.watch(todosProvider);
 
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('To-Dos'),
+          title: Text(l10n.todosTitle),
           leading: IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -63,15 +65,15 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'all',
-                  child: Text('All', style: TextStyle(color: Colors.black87)),
+                  child: Text(l10n.all, style: TextStyle(color: Colors.black87)),
                 ),
                 PopupMenuItem(
                   value: 'pending',
-                  child: Text('Pending', style: TextStyle(color: Colors.black87)),
+                  child: Text(l10n.pending, style: TextStyle(color: Colors.black87)),
                 ),
                 PopupMenuItem(
                   value: 'completed',
-                  child: Text('Completed', style: TextStyle(color: Colors.black87)),
+                  child: Text(l10n.completed, style: TextStyle(color: Colors.black87)),
                 ),
               ],
             ),
@@ -97,7 +99,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'No to-dos',
+                      l10n.noTodos,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
@@ -151,7 +153,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                           child: Text(
-                            'Overdue',
+                            l10n.overdue,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.red.withValues(alpha: 0.9),
@@ -254,7 +256,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                         child: Text(
-                          'Completed',
+                          l10n.completed,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white.withValues(alpha: 0.9),
@@ -296,10 +298,10 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Error: $error'),
+                Text(l10n.errorWithDetails(error.toString())),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(todosProvider),
-                  child: const Text('Retry'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -395,6 +397,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
         builder: (context, ref, child) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final l10n = AppLocalizations.of(context);
               return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
@@ -417,7 +420,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        todo == null ? 'Add To-Do' : 'Edit To-Do',
+                        todo == null ? l10n.addToDo : l10n.editToDo,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.bold,
@@ -444,7 +447,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                       controller: textController,
                       style: const TextStyle(color: Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'Add your to-do here',
+                        hintText: l10n.addToDoHint,
                         hintStyle: TextStyle(color: Colors.grey.shade600),
                         border: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -472,7 +475,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                   // Date & Time selection
                   ListTile(
                     title: Text(
-                      'Date & Time',
+                      l10n.dateAndTime,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -481,7 +484,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                     subtitle: Text(
                       selectedDate != null
                           ? DateFormat('MMM d, yyyy HH:mm').format(selectedDate!)
-                          : 'Not set',
+                          : l10n.notSet,
                       style: TextStyle(
                         color: selectedDate != null ? Theme.of(context).colorScheme.onSurface : Colors.grey.shade600,
                       ),
@@ -569,7 +572,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                   const SizedBox(height: 16),
                   // Priority selection
                   Text(
-                    'Priority',
+                    l10n.priority,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -687,7 +690,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                   // Repeat selection
                   const SizedBox(height: 16),
                   Text(
-                    'Repeat',
+                    l10n.repeat,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -702,23 +705,23 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         IconData icon;
                         switch (selectedRepeat) {
                           case RepeatType.none:
-                            label = 'None';
+                            label = l10n.repeatNone;
                             icon = Icons.close;
                             break;
                           case RepeatType.daily:
-                            label = 'Daily';
+                            label = l10n.repeatDaily;
                             icon = Icons.today;
                             break;
                           case RepeatType.weekly:
-                            label = 'Weekly';
+                            label = l10n.repeatWeekly;
                             icon = Icons.date_range;
                             break;
                           case RepeatType.monthly:
-                            label = 'Monthly';
+                            label = l10n.repeatMonthly;
                             icon = Icons.calendar_month;
                             break;
                           case RepeatType.yearly:
-                            label = 'Yearly';
+                            label = l10n.repeatYearly;
                             icon = Icons.calendar_today;
                             break;
                         }
@@ -772,23 +775,23 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         IconData icon;
                         switch (repeatType) {
                           case RepeatType.none:
-                            label = 'None';
+                            label = l10n.repeatNone;
                             icon = Icons.close;
                             break;
                           case RepeatType.daily:
-                            label = 'Daily';
+                            label = l10n.repeatDaily;
                             icon = Icons.today;
                             break;
                           case RepeatType.weekly:
-                            label = 'Weekly';
+                            label = l10n.repeatWeekly;
                             icon = Icons.date_range;
                             break;
                           case RepeatType.monthly:
-                            label = 'Monthly';
+                            label = l10n.repeatMonthly;
                             icon = Icons.calendar_month;
                             break;
                           case RepeatType.yearly:
-                            label = 'Yearly';
+                            label = l10n.repeatYearly;
                             icon = Icons.calendar_today;
                             break;
                         }
@@ -854,7 +857,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
                         final text = textController.text.trim();
                         if (text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter some text')),
+                            SnackBar(content: Text(l10n.pleaseEnterSomeText)),
                           );
                           return;
                         }
@@ -867,7 +870,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
 
                         if (title.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Title cannot be empty')),
+                            SnackBar(content: Text(l10n.titleCannotBeEmpty)),
                           );
                           return;
                         }
@@ -912,7 +915,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
 
                         Navigator.pop(context);
                       },
-                      child: const Text('Save'),
+                      child: Text(l10n.save),
                     ),
                   ),
                 ],

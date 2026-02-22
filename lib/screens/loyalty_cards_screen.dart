@@ -13,6 +13,7 @@ import '../widgets/barcode_display_widget.dart';
 import '../widgets/brand_logo.dart';
 import 'settings_screen.dart';
 import 'brand_selection_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class LoyaltyCardsScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -35,6 +36,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final cardsAsync = ref.watch(loyaltyCardsProvider);
 
     return GradientBackground(
@@ -42,7 +44,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
         backgroundColor: Colors.transparent,
         appBar: widget.showAppBar
             ? AppBar(
-                title: const Text('Loyalty Cards'),
+                title: Text(l10n.loyaltyCardsTitle),
                 leading: IconButton(
                   icon: const Icon(Icons.settings),
                   onPressed: () {
@@ -63,7 +65,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search loyalty cards...',
+                  hintText: l10n.loyaltyCardsSearchHint,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -111,7 +113,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            _searchQuery.isEmpty ? 'No loyalty cards' : 'No cards found',
+                            _searchQuery.isEmpty ? l10n.noLoyaltyCards : l10n.noCardsFound,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.6),
                                 ),
@@ -150,10 +152,10 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: $error'),
+                      Text(l10n.errorWithDetails(error.toString())),
                       ElevatedButton(
                         onPressed: () => ref.invalidate(loyaltyCardsProvider),
-                        child: const Text('Retry'),
+                        child: Text(l10n.retry),
                       ),
                     ],
                   ),
@@ -182,6 +184,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
   }
 
   void _showBarcodeDisplay(LoyaltyCard card) {
+    final l10n = AppLocalizations.of(context);
     final brand = card.brandId != null
         ? BrandDatabase.getBrandById(card.brandId!)
         : null;
@@ -196,6 +199,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.85,
@@ -237,14 +241,14 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                             SnackBar(
                               content: Text(
                                 card.isPinned
-                                    ? 'Card unpinned'
-                                    : 'Card pinned to top',
+                                    ? l10n.cardUnpinned
+                                    : l10n.cardPinnedToTop,
                               ),
                               duration: const Duration(seconds: 1),
                             ),
                           );
                         },
-                        tooltip: card.isPinned ? 'Unpin' : 'Pin to top',
+                        tooltip: card.isPinned ? l10n.tooltipUnpin : l10n.tooltipPinToTop,
                       ),
                       IconButton(
                         icon: Icon(Icons.edit_outlined, color: textColor),
@@ -252,7 +256,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                           Navigator.pop(context);
                           _showEditDialog(card);
                         },
-                        tooltip: 'Edit',
+                        tooltip: l10n.edit,
                       ),
                       IconButton(
                         icon: Icon(Icons.delete_outline, color: textColor),
@@ -270,7 +274,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                             },
                           );
                         },
-                        tooltip: 'Delete',
+                        tooltip: l10n.tooltipDelete,
                       ),
                       IconButton(
                         icon: Icon(Icons.close, color: textColor),
@@ -345,13 +349,14 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
   }
 
   void _showBarcodeScannerWithBrand(BuildContext context, Brand? brand) {
+    final l10n = AppLocalizations.of(context);
     _showBarcodeScanner(
       context,
       (barcode, type) {
         // Create card with brand info
         final newCard = LoyaltyCard(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          cardName: brand?.name ?? 'Loyalty Card',
+          cardName: brand?.name ?? l10n.defaultLoyaltyCardName,
           barcodeNumber: barcode,
           barcodeType: type,
           cardImagePath: null,
@@ -369,7 +374,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Card "${newCard.cardName}" added successfully!'),
+              content: Text(l10n.cardAddedSuccess(newCard.cardName)),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -404,13 +409,15 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
       isScrollControlled: true,
       isDismissible: true,
       enableDrag: true,
+      useSafeArea: true,
       builder: (context) => Consumer(
         builder: (context, ref, child) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final l10n = AppLocalizations.of(context);
               return Padding(
                 padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
                 child: Container(
                   constraints: BoxConstraints(
@@ -429,7 +436,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              card == null ? 'Add Loyalty Card' : 'Edit Loyalty Card',
+                              card == null ? l10n.addLoyaltyCard : l10n.editLoyaltyCard,
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                     color: Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
@@ -450,7 +457,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                           controller: cardNameController,
                           style: const TextStyle(color: Colors.black87),
                           decoration: InputDecoration(
-                            labelText: 'Card Name',
+                            labelText: l10n.cardNameLabel,
                             labelStyle: TextStyle(color: Colors.grey.shade700),
                             border: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -546,7 +553,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Brand',
+                                        l10n.brandFieldLabel,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade600,
@@ -554,7 +561,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        selectedBrand?.name ?? 'Generic Card',
+                                        selectedBrand?.name ?? l10n.genericCardFallback,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -577,7 +584,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 controller: barcodeNumberController,
                                 style: const TextStyle(color: Colors.black87),
                                 decoration: InputDecoration(
-                                  labelText: 'Barcode Number',
+                                  labelText: l10n.barcodeNumberLabel,
                                   labelStyle: TextStyle(color: Colors.grey.shade700),
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -612,14 +619,14 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 },
                               ),
                               icon: const Icon(Icons.qr_code_scanner),
-                              label: const Text('Scan'),
+                              label: Text(l10n.scanButtonLabel),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         ListTile(
                           title: Text(
-                            'Pinned',
+                            l10n.pinned,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
@@ -649,8 +656,8 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                               if (cardNameController.text.isEmpty ||
                                   barcodeNumberController.text.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please fill in card name and barcode number'),
+                                  SnackBar(
+                                    content: Text(l10n.fillInCardNameAndBarcode),
                                   ),
                                 );
                                 return;
@@ -680,7 +687,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
 
                               Navigator.pop(context);
                             },
-                            child: const Text('Save'),
+                            child: Text(l10n.save),
                           ),
                         ),
                       ],
@@ -699,6 +706,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     BuildContext context,
     Function(String barcode, loyalty_card.BarcodeType type) onScanned,
   ) {
+    final l10n = AppLocalizations.of(context);
     final controller = mobile_scanner.MobileScannerController(
       detectionSpeed: mobile_scanner.DetectionSpeed.noDuplicates,
       facing: mobile_scanner.CameraFacing.back,
@@ -709,13 +717,13 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: const Text('Scan Barcode'),
+            title: Text(l10n.scanBarcodeTitle),
             backgroundColor: Colors.black,
             actions: [
               IconButton(
                 icon: const Icon(Icons.photo_library, color: Colors.white),
                 onPressed: () => _pickImageAndScan(context, controller, onScanned),
-                tooltip: 'Pick from gallery',
+                tooltip: l10n.tooltipPickFromGallery,
               ),
               IconButton(
                 icon: const Icon(Icons.flash_on, color: Colors.white),
@@ -775,6 +783,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     mobile_scanner.MobileScannerController controller,
     Function(String barcode, loyalty_card.BarcodeType type) onScanned,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
@@ -840,9 +849,9 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
       // No barcode found in image
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No barcode found in the selected image'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(l10n.noBarcodeFoundInImage),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -851,7 +860,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
       Navigator.pop(context); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error scanning image: $e'),
+          content: Text(l10n.errorScanningImage(e.toString())),
           duration: const Duration(seconds: 3),
         ),
       );

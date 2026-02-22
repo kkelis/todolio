@@ -11,6 +11,7 @@ import '../services/notification_service.dart';
 import '../providers/reminders_provider.dart';
 import '../providers/settings_provider.dart';
 import '../models/app_settings.dart';
+import '../l10n/app_localizations.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -54,52 +55,45 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     return screens;
   }
 
-  List<NavigationDestination> _getDestinations(AppSettings settings) {
+  List<NavigationDestination> _getDestinations(BuildContext context, AppSettings settings) {
+    final l10n = AppLocalizations.of(context);
     final destinations = <NavigationDestination>[];
     if (settings.tasksEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.task_outlined),
-        selectedIcon: Icon(Icons.task),
-        label: 'Tasks',
+      destinations.add(NavigationDestination(
+        icon: const Icon(Icons.task_outlined),
+        selectedIcon: const Icon(Icons.task),
+        label: l10n.navTasks,
       ));
     }
     if (settings.shoppingEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.shopping_cart_outlined),
-        selectedIcon: Icon(Icons.shopping_cart),
-        label: 'Shopping',
+      destinations.add(NavigationDestination(
+        icon: const Icon(Icons.shopping_cart_outlined),
+        selectedIcon: const Icon(Icons.shopping_cart),
+        label: l10n.navShopping,
       ));
     }
     if (settings.loyaltyCardsEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.card_membership_outlined),
-        selectedIcon: Icon(Icons.card_membership),
-        label: 'Cards',
+      destinations.add(NavigationDestination(
+        icon: const Icon(Icons.card_membership_outlined),
+        selectedIcon: const Icon(Icons.card_membership),
+        label: l10n.navCards,
       ));
     }
     if (settings.guaranteesEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.verified_outlined),
-        selectedIcon: Icon(Icons.verified),
-        label: 'Guarantees',
+      destinations.add(NavigationDestination(
+        icon: const Icon(Icons.verified_outlined),
+        selectedIcon: const Icon(Icons.verified),
+        label: l10n.navGuarantees,
       ));
     }
     if (settings.notesEnabled) {
-      destinations.add(const NavigationDestination(
-        icon: Icon(Icons.note_outlined),
-        selectedIcon: Icon(Icons.note),
-        label: 'Notes',
+      destinations.add(NavigationDestination(
+        icon: const Icon(Icons.note_outlined),
+        selectedIcon: const Icon(Icons.note),
+        label: l10n.navNotes,
       ));
     }
     return destinations;
-  }
-
-  bool _areAllSectionsEnabled(AppSettings settings) {
-    return settings.tasksEnabled &&
-        settings.shoppingEnabled &&
-        settings.loyaltyCardsEnabled &&
-        settings.guaranteesEnabled &&
-        settings.notesEnabled;
   }
 
   @override
@@ -108,10 +102,9 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     
     return settingsAsync.when(
       data: (settings) {
+        final l10n = AppLocalizations.of(context);
         final screens = _getScreens(settings);
-        final destinations = _getDestinations(settings);
-        final allSectionsEnabled = _areAllSectionsEnabled(settings);
-        
+        final destinations = _getDestinations(context, settings);
         // Ensure current index is valid
         if (_currentIndex >= screens.length) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -137,14 +130,14 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'No sections enabled',
+                          l10n.noSectionsEnabled,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Enable at least one section in Settings',
+                          l10n.enableAtLeastOneSection,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.white.withValues(alpha: 0.5),
                           ),
@@ -160,7 +153,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                             );
                           },
                           icon: const Icon(Icons.settings),
-                          label: const Text('Open Settings'),
+                          label: Text(l10n.openSettings),
                         ),
                       ],
                     ),
@@ -176,9 +169,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                   ),
             bottomNavigationBar: screens.isEmpty || destinations.length < 2
                 ? null
-                : allSectionsEnabled
-                    ? _buildHorizontalScrollableNavigation(destinations)
-                    : _buildBottomNavigationBar(destinations),
+                : _buildBottomNavigationBar(destinations),
             drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -216,7 +207,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
+                  title: Text(l10n.drawerSettings),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -229,17 +220,17 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.notifications_active),
-                  title: const Text('Test Notification'),
-                  subtitle: const Text('Send a test notification'),
+                  title: Text(l10n.drawerTestNotification),
+                  subtitle: Text(l10n.drawerTestNotificationSubtitle),
                   onTap: () async {
                     Navigator.pop(context);
                     final notificationService = NotificationService();
                     await notificationService.showTestNotification();
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Test notification sent!'),
-                          duration: Duration(seconds: 2),
+                        SnackBar(
+                          content: Text(l10n.testNotificationSent),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     }
@@ -247,8 +238,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.notification_add),
-                  title: const Text('Request Permissions'),
-                  subtitle: const Text('Request notification permissions'),
+                  title: Text(l10n.drawerRequestPermissions),
+                  subtitle: Text(l10n.drawerRequestPermissionsSubtitle),
                   onTap: () async {
                     Navigator.pop(context);
                     final notificationService = NotificationService();
@@ -258,8 +249,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                         SnackBar(
                           content: Text(
                             granted
-                                ? 'Notification permissions granted! ✅'
-                                : 'Notification permissions denied. Please enable in settings.',
+                                ? l10n.notificationPermissionsGranted
+                                : l10n.notificationPermissionsDenied,
                           ),
                           duration: const Duration(seconds: 3),
                         ),
@@ -269,8 +260,8 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.list),
-                  title: const Text('Check Notification Status'),
-                  subtitle: const Text('View notification status and pending notifications'),
+                  title: Text(l10n.drawerCheckNotificationStatus),
+                  subtitle: Text(l10n.drawerCheckNotificationStatusSubtitle),
                   onTap: () async {
                     Navigator.pop(context);
                     final notificationService = NotificationService();
@@ -278,37 +269,38 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                     final pending = await notificationService.getPendingNotifications();
                     
                     if (context.mounted) {
+                      final l10nDialog = AppLocalizations.of(context);
                       final enabled = status['notificationsEnabled'] ?? false;
                       final pendingCount = status['pendingCount'] ?? 0;
                       
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Notification Status'),
+                          title: Text(l10nDialog.notificationStatusDialogTitle),
                           content: SingleChildScrollView(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Notifications Enabled: ${enabled ? "✅ Yes" : "❌ No"}'),
+                                Text(l10nDialog.notificationsEnabledStatus(enabled ? '✅ Yes' : '❌ No')),
                                 const SizedBox(height: 8),
-                                Text('Pending Notifications: $pendingCount'),
+                                Text(l10nDialog.pendingNotificationsCount(pendingCount)),
                                 if (pending.isNotEmpty) ...[
                                   const SizedBox(height: 16),
-                                  const Text('Pending:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  Text(l10nDialog.notificationStatusPendingHeader, style: const TextStyle(fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 8),
                                   ...pending.take(5).map((n) => Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 4),
                                     child: Text('• ${n.title ?? "No title"} (ID: ${n.id})'),
                                   )),
                                   if (pending.length > 5)
-                                    Text('... and ${pending.length - 5} more'),
+                                    Text(l10nDialog.andNMore(pending.length - 5)),
                                 ],
                                 if (!enabled) ...[
                                   const SizedBox(height: 16),
-                                  const Text(
-                                    '⚠️ Notifications are disabled. Please enable them in Settings.',
-                                    style: TextStyle(color: Colors.orange),
+                                  Text(
+                                    l10nDialog.notificationsDisabledWarning,
+                                    style: const TextStyle(color: Colors.orange),
                                   ),
                                 ],
                               ],
@@ -317,7 +309,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text('OK'),
+                              child: Text(l10nDialog.ok),
                             ),
                           ],
                         ),
@@ -325,10 +317,10 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
                     }
                   },
                 ),
-                const ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text('Dev Mode - No Auth'),
-                  subtitle: Text('Authentication disabled for development'),
+                ListTile(
+                  leading: const Icon(Icons.info),
+                  title: Text(l10n.devModeNoAuth),
+                  subtitle: Text(l10n.devModeNoAuthSubtitle),
                 ),
               ],
             ),
@@ -344,10 +336,10 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error loading settings: $error'),
+              Text(AppLocalizations.of(context).errorLoadingSettings(error.toString())),
               ElevatedButton(
                 onPressed: () => ref.invalidate(appSettingsProvider),
-                child: const Text('Retry'),
+                child: Text(AppLocalizations.of(context).retry),
               ),
             ],
           ),
@@ -425,74 +417,5 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     );
   }
 
-  Widget _buildHorizontalScrollableNavigation(List<NavigationDestination> destinations) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
-          ),
-        ),
-      ),
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      height: 70 + bottomPadding,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: destinations.length,
-        itemBuilder: (context, index) {
-          final destination = destinations[index];
-          final isSelected = index == _currentIndex;
-          final iconWidget = isSelected 
-              ? destination.selectedIcon
-              : destination.icon;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _currentIndex = index;
-              });
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconTheme(
-                    data: IconThemeData(
-                      color: isSelected ? Colors.black : Colors.white,
-                      size: 24,
-                    ),
-                    child: iconWidget ?? const SizedBox(),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    destination.label,
-                    style: TextStyle(
-                      color: isSelected ? Colors.black : Colors.white,
-                      fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
 

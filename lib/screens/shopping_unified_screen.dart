@@ -5,6 +5,7 @@ import 'loyalty_cards_screen.dart';
 import '../widgets/gradient_background.dart';
 import '../providers/shopping_lists_provider.dart';
 import '../providers/settings_provider.dart';
+import '../l10n/app_localizations.dart';
 import 'settings_screen.dart';
 
 class ShoppingUnifiedScreen extends ConsumerStatefulWidget {
@@ -30,10 +31,11 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
       final importedList = await notifier.importShoppingList();
       
       if (importedList != null && mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Imported "${importedList.name}" with ${importedList.items.length} items',
+              l10n.importedListSuccess(importedList.name, importedList.items.length),
               style: const TextStyle(color: Colors.white),
             ),
             duration: const Duration(seconds: 2),
@@ -43,10 +45,11 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to import: ${e.toString()}',
+              l10n.failedToImport(e.toString()),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.red,
@@ -59,6 +62,7 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final settingsAsync = ref.watch(appSettingsProvider);
     
     return settingsAsync.when(
@@ -82,12 +86,12 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
 
         // Determine app bar title based on enabled features
         final appBarTitle = showTabs
-            ? 'Shopping'
+            ? l10n.shoppingTitle
             : showShoppingLists
-                ? 'Shopping Lists'
+                ? l10n.shoppingListsTitle
                 : showLoyaltyCards
-                    ? 'Loyalty Cards'
-                    : 'Shopping';
+                    ? l10n.loyaltyCardsTitle
+                    : l10n.shoppingTitle;
 
         return GradientBackground(
           child: Scaffold(
@@ -110,7 +114,7 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
                   IconButton(
                     icon: const Icon(Icons.file_upload),
                     onPressed: () => _importShoppingList(),
-                    tooltip: 'Import CSV',
+                    tooltip: l10n.tooltipImportCsv,
                   ),
               ],
               bottom: showTabs && _tabController != null
@@ -119,14 +123,14 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
                       labelColor: Colors.white,
                       unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
                       indicatorColor: Colors.white,
-                      tabs: const [
+                      tabs: [
                         Tab(
-                          icon: Icon(Icons.shopping_cart, color: Colors.white),
-                          text: 'Shopping Lists',
+                          icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                          text: l10n.tabShoppingLists,
                         ),
                         Tab(
-                          icon: Icon(Icons.card_membership, color: Colors.white),
-                          text: 'Loyalty Cards',
+                          icon: const Icon(Icons.card_membership, color: Colors.white),
+                          text: l10n.tabLoyaltyCards,
                         ),
                       ],
                     )
@@ -144,7 +148,7 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
                     ? const ShoppingListsScreen(showAppBar: false)
                     : showLoyaltyCards
                         ? const LoyaltyCardsScreen(showAppBar: false)
-                        : const Center(child: Text('No sections enabled')),
+                        : Center(child: Text(l10n.noSectionsEnabledShopping)),
           ),
         );
       },
@@ -156,10 +160,10 @@ class _ShoppingUnifiedScreenState extends ConsumerState<ShoppingUnifiedScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error loading settings: $error'),
+              Text(l10n.errorLoadingSettings(error.toString())),
               ElevatedButton(
                 onPressed: () => ref.invalidate(appSettingsProvider),
-                child: const Text('Retry'),
+                child: Text(l10n.retry),
               ),
             ],
           ),

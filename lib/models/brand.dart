@@ -417,6 +417,24 @@ class BrandDatabase {
       logoAssetPath: 'assets/images/brands/diesel.svg',
       primaryColor: Color(0xFFEB292D),
     ),
+    Brand(
+      id: 'tommy',
+      name: 'Tommy Hilfiger',
+      logoAssetPath: 'assets/images/brands/tommy.svg',
+      primaryColor: Color(0xFFDD0935),
+    ),
+    Brand(
+      id: 'aldo',
+      name: 'Aldo',
+      logoAssetPath: 'assets/images/brands/aldo.svg',
+      primaryColor: Color(0xFF000000),
+    ),
+    Brand(
+      id: 'kikomilano',
+      name: 'Kiko Milano',
+      logoAssetPath: 'assets/images/brands/kikomilano.svg',
+      primaryColor: Color(0xFF000000),
+    ),
   ];
 
   static int _compareBrandNames(Brand a, Brand b) {
