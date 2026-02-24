@@ -419,7 +419,7 @@ class BrandDatabase {
     ),
     Brand(
       id: 'tommy',
-      name: 'Tommy Hilfiger',
+      name: 'Tommy',
       logoAssetPath: 'assets/images/brands/tommy.svg',
       primaryColor: Color(0xFFDD0935),
     ),
