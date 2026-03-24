@@ -202,7 +202,7 @@ class _BrandSelectionScreenState extends ConsumerState<BrandSelectionScreen> {
                       ),
                     )
                   : GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
@@ -328,7 +328,7 @@ class _CustomBrandScreenState extends State<_CustomBrandScreen> {
           title: Text(AppLocalizations.of(context).createCustomBrand),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(context).padding.bottom),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

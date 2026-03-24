@@ -129,7 +129,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                     },
                     color: Theme.of(context).colorScheme.primary,
                     child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
@@ -772,7 +772,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
           ),
               // Gallery FAB at the bottom center
               Positioned(
-                bottom: 32,
+                bottom: 32 + MediaQuery.of(context).padding.bottom,
                 left: 0,
                 right: 0,
                 child: Center(

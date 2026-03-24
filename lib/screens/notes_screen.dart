@@ -169,7 +169,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                         },
                         child: _isGridView
                             ? GridView.builder(
-                                padding: const EdgeInsets.all(8),
+                                padding: EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
@@ -201,7 +201,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                                 },
                               )
                             : ListView.builder(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: EdgeInsets.only(top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
                                 itemCount: filteredNotes.length,
                                 itemBuilder: (context, index) {
                                   final note = filteredNotes[index];

@@ -142,7 +142,7 @@ class _TodosScreenState extends ConsumerState<TodosScreen> {
               },
               color: Theme.of(context).colorScheme.primary,
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.only(top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
                 itemCount: (hasOverdue ? 1 : 0) + grouped.length + (hasCompleted ? 1 : 0),
                 itemBuilder: (context, index) {
                   // Show overdue section first

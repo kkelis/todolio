@@ -1065,7 +1065,7 @@ class _TasksBody extends ConsumerWidget {
       onRefresh: () async => ref.invalidate(remindersProvider),
       color: Theme.of(context).colorScheme.primary,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.only(top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
         itemCount: sections.length,
         itemBuilder: (context, index) {
           final section = sections[index];
