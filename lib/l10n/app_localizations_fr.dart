@@ -757,6 +757,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addTaskHint => 'Ajoutez votre tâche ici';
 
   @override
+  String get clearCompletedTasks => 'Effacer les terminées';
+
+  @override
+  String get clearCompletedTasksDialogTitle => 'Effacer les tâches terminées ?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Cela supprimera définitivement toutes les tâches terminées. Cette action est irréversible.';
+
+  @override
   String get taskTypeLabel => 'Type de tâche';
 
   @override

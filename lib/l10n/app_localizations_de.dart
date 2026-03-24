@@ -755,6 +755,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addTaskHint => 'Aufgabe hier hinzufügen';
 
   @override
+  String get clearCompletedTasks => 'Abgeschlossene löschen';
+
+  @override
+  String get clearCompletedTasksDialogTitle =>
+      'Abgeschlossene Aufgaben löschen?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Alle abgeschlossenen Aufgaben werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
   String get taskTypeLabel => 'Aufgabentyp';
 
   @override

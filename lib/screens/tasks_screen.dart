@@ -6,6 +6,7 @@ import '../providers/reminders_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../utils/undo_deletion_helper.dart';
+import '../widgets/delete_confirmation_dialog.dart';
 import 'settings_screen.dart';
 import '../l10n/app_localizations.dart';
 
@@ -40,6 +41,28 @@ class TasksScreen extends ConsumerWidget {
             },
           ),
           actions: [
+            // Show "clear completed" button only when there are completed tasks
+            if (remindersAsync.hasValue)
+              Builder(builder: (context) {
+                final hasCompleted = remindersAsync.value!
+                    .where((r) => !r.isSystemReminder && r.isCompleted)
+                    .isNotEmpty;
+                if (!hasCompleted) return const SizedBox.shrink();
+                return IconButton(
+                  icon: const Icon(Icons.playlist_remove),
+                  tooltip: l10n.clearCompletedTasks,
+                  onPressed: () async {
+                    final confirmed = await showDeleteConfirmationDialog(
+                      context,
+                      title: l10n.clearCompletedTasksDialogTitle,
+                      message: l10n.clearCompletedTasksDialogMessage,
+                    );
+                    if (confirmed == true) {
+                      ref.read(remindersNotifierProvider.notifier).deleteAllCompleted();
+                    }
+                  },
+                );
+              }),
             PopupMenuButton<TasksFilter>(
               icon: Stack(
                 clipBehavior: Clip.none,

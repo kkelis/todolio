@@ -786,6 +786,15 @@
   "addTaskHint": "Add your task here",
   "@addTaskHint": { "description": "hintText on main text field in task edit dialog — tasks_screen.dart ~line 237" },
 
+  "clearCompletedTasks": "Clear Completed",
+  "@clearCompletedTasks": { "description": "AppBar action button label to delete all completed tasks — tasks_screen.dart" },
+
+  "clearCompletedTasksDialogTitle": "Clear completed tasks?",
+  "@clearCompletedTasksDialogTitle": { "description": "Confirmation dialog title — tasks_screen.dart" },
+
+  "clearCompletedTasksDialogMessage": "This will permanently delete all completed tasks. This action cannot be undone.",
+  "@clearCompletedTasksDialogMessage": { "description": "Confirmation dialog message — tasks_screen.dart" },
+
   "taskTypeLabel": "Task type",
   "@taskTypeLabel": { "description": "Section label above type selector — tasks_screen.dart ~line 284" },
 

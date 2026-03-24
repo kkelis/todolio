@@ -195,6 +195,27 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
+  /// Delete all completed (non-system) reminders.
+  Future<void> deleteAllCompleted() async {
+    state = const AsyncValue.loading();
+    try {
+      final storageService = ref.read(localStorageServiceProvider);
+      final notificationService = ref.read(notificationServiceProvider);
+      final reminders = await storageService.getReminders().first;
+      final completed = reminders
+          .where((r) => r.isCompleted && !r.isSystemReminder)
+          .toList();
+      for (final r in completed) {
+        await storageService.deleteReminder(r.id);
+        await notificationService.cancelNotification(r.id.hashCode);
+      }
+      debugPrint('🗑️ Deleted ${completed.length} completed tasks');
+      state = const AsyncValue.data(null);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
   /// Reschedule all existing reminders for notifications
   /// This should be called on app startup to ensure all reminders have notifications
   Future<void> rescheduleAllReminders() async {

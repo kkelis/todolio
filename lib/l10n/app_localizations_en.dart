@@ -750,6 +750,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTaskHint => 'Add your task here';
 
   @override
+  String get clearCompletedTasks => 'Clear Completed';
+
+  @override
+  String get clearCompletedTasksDialogTitle => 'Clear completed tasks?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'This will permanently delete all completed tasks. This action cannot be undone.';
+
+  @override
   String get taskTypeLabel => 'Task type';
 
   @override

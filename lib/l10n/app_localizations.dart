@@ -1450,6 +1450,24 @@ abstract class AppLocalizations {
   /// **'Add your task here'**
   String get addTaskHint;
 
+  /// AppBar action button label to delete all completed tasks — tasks_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Completed'**
+  String get clearCompletedTasks;
+
+  /// Confirmation dialog title — tasks_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Clear completed tasks?'**
+  String get clearCompletedTasksDialogTitle;
+
+  /// Confirmation dialog message — tasks_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all completed tasks. This action cannot be undone.'**
+  String get clearCompletedTasksDialogMessage;
+
   /// Section label above type selector — tasks_screen.dart ~line 284
   ///
   /// In en, this message translates to:

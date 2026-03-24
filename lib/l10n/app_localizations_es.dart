@@ -756,6 +756,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addTaskHint => 'Añade tu tarea aquí';
 
   @override
+  String get clearCompletedTasks => 'Limpiar completadas';
+
+  @override
+  String get clearCompletedTasksDialogTitle => '¿Limpiar tareas completadas?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Esto eliminará permanentemente todas las tareas completadas. Esta acción no se puede deshacer.';
+
+  @override
   String get taskTypeLabel => 'Tipo de tarea';
 
   @override

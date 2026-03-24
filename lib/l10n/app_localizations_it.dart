@@ -754,6 +754,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get addTaskHint => 'Aggiungi la tua attività qui';
 
   @override
+  String get clearCompletedTasks => 'Cancella completate';
+
+  @override
+  String get clearCompletedTasksDialogTitle =>
+      'Cancellare le attività completate?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Questo eliminerà definitivamente tutte le attività completate. L\'azione non può essere annullata.';
+
+  @override
   String get taskTypeLabel => 'Tipo di attività';
 
   @override

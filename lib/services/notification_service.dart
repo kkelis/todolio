@@ -11,7 +11,9 @@ class NotificationService {
   // Callback for handling notification actions
   Function(String reminderId, String action)? onNotificationAction;
 
-  Future<void> initialize() async {
+  Future<void> initialize({
+    void Function(NotificationResponse)? backgroundHandler,
+  }) async {
     tz.initializeTimeZones();
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -29,7 +31,8 @@ class NotificationService {
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
-      onDidReceiveBackgroundNotificationResponse: _onBackgroundNotificationTapped,
+      onDidReceiveBackgroundNotificationResponse:
+          backgroundHandler ?? _onBackgroundNotificationTapped,
     );
 
     // Create notification channels for Android

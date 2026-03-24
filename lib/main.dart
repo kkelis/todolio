@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,6 +14,24 @@ import 'providers/settings_provider.dart';
 import 'models/reminder.dart';
 import 'models/color_scheme.dart';
 
+/// Top-level background notification handler — runs in a separate isolate.
+/// Must be a top-level (or static) function and initialise its own Hive instance.
+@pragma('vm:entry-point')
+Future<void> _onBackgroundNotificationAction(NotificationResponse response) async {
+  await Hive.initFlutter();
+  final storageService = LocalStorageService();
+  await storageService.init();
+
+  final actionId = response.actionId;
+  final notificationId = response.id;
+  final payload = response.payload;
+
+  final reminderId = payload ?? notificationId?.toString() ?? '';
+  if (reminderId.isEmpty || actionId == null) return;
+
+  await _handleNotificationAction(reminderId, actionId, storageService);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -23,7 +42,7 @@ void main() async {
 
   // Initialize notifications
   final notificationService = NotificationService();
-  await notificationService.initialize();
+  await notificationService.initialize(backgroundHandler: _onBackgroundNotificationAction);
   
   // Request notification permissions
   await notificationService.requestPermissions();
@@ -212,7 +231,7 @@ Future<void> _migrateBackupReminder(
 }
 
 // Handle notification actions (called from background or foreground)
-void _handleNotificationAction(String reminderId, String action, LocalStorageService storageService) async {
+Future<void> _handleNotificationAction(String reminderId, String action, LocalStorageService storageService) async {
   try {
     debugPrint('🔔 Handling notification action: reminderId=$reminderId, action=$action');
     final reminders = await storageService.getReminders().first;

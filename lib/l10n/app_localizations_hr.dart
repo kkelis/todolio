@@ -750,6 +750,16 @@ class AppLocalizationsHr extends AppLocalizations {
   String get addTaskHint => 'Ovdje dodajte zadatak';
 
   @override
+  String get clearCompletedTasks => 'Obriši dovršene';
+
+  @override
+  String get clearCompletedTasksDialogTitle => 'Obrisati dovršene zadatke?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Svi dovršeni zadaci biti će trajno obrisani. Ova radnja se ne može poništiti.';
+
+  @override
   String get taskTypeLabel => 'Vrsta zadatka';
 
   @override
