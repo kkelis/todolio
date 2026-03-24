@@ -86,7 +86,7 @@ class TasksScreen extends ConsumerWidget {
         body: remindersAsync.when(
           data: (reminders) {
             return _TasksBody(
-              reminders: reminders,
+              reminders: reminders.where((r) => !r.isSystemReminder).toList(),
               filter: currentFilter,
               remindersEnabled: remindersEnabled,
               todosEnabled: todosEnabled,

@@ -59,6 +59,8 @@ class AppSettingsNotifier extends Notifier<AsyncValue<AppSettings>> {
       // Also invalidate the stream provider to ensure it refreshes
       ref.invalidate(appSettingsProvider);
       debugPrint('   Provider invalidated, state should trigger rebuilds');
+      // Sync the backup system reminder whenever settings are saved
+      ref.read(remindersNotifierProvider.notifier).syncBackupReminder(settings);
     } catch (e, stack) {
       debugPrint('❌ Error updating settings: $e');
       debugPrint('   Stack: $stack');

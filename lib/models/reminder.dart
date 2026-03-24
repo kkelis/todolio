@@ -41,6 +41,7 @@ class Reminder {
   final bool isCompleted;
   final DateTime createdAt;
   final String? linkedGuaranteeId; // Link to guarantee (for warranty reminders)
+  final bool isSystemReminder; // Hidden system reminders (e.g. backup reminder)
 
   Reminder({
     required this.id,
@@ -55,6 +56,7 @@ class Reminder {
     this.isCompleted = false,
     required this.createdAt,
     this.linkedGuaranteeId,
+    this.isSystemReminder = false,
   });
 
   // Get effective dateTime (snooze if set, otherwise original)
@@ -74,6 +76,7 @@ class Reminder {
       'isCompleted': isCompleted,
       'createdAt': createdAt.toIso8601String(),
       'linkedGuaranteeId': linkedGuaranteeId,
+      'isSystemReminder': isSystemReminder,
     };
   }
 
@@ -113,6 +116,7 @@ class Reminder {
           ? DateTime.parse(map['createdAt'])
           : (map['createdAt'] as DateTime? ?? DateTime.now()),
       linkedGuaranteeId: map['linkedGuaranteeId'],
+      isSystemReminder: map['isSystemReminder'] ?? false,
     );
   }
 
@@ -129,6 +133,7 @@ class Reminder {
     bool? isCompleted,
     DateTime? createdAt,
     String? linkedGuaranteeId,
+    bool? isSystemReminder,
   }) {
     return Reminder(
       id: id ?? this.id,
@@ -143,6 +148,7 @@ class Reminder {
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
       linkedGuaranteeId: linkedGuaranteeId ?? this.linkedGuaranteeId,
+      isSystemReminder: isSystemReminder ?? this.isSystemReminder,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/reminder.dart';
+import '../models/app_settings.dart';
 import '../services/local_storage_service.dart';
 import '../services/notification_service.dart';
 
@@ -255,6 +256,80 @@ class RemindersNotifier extends Notifier<AsyncValue<void>> {
       debugPrint('📬 Final pending notifications: ${pendingAfter.length}');
     } catch (e, stack) {
       debugPrint('❌ Error rescheduling reminders: $e');
+      debugPrint('Stack trace: $stack');
+    }
+  }
+
+  static const String _backupSystemReminderId = 'backup_reminder_system';
+
+  /// Sync the hidden backup system reminder based on current settings.
+  /// Call this whenever backup settings change or on app startup.
+  Future<void> syncBackupReminder(AppSettings settings) async {
+    try {
+      final storageService = ref.read(localStorageServiceProvider);
+      final notificationService = ref.read(notificationServiceProvider);
+      final all = await storageService.getReminders().first;
+      final existing = all.cast<Reminder?>().firstWhere(
+        (r) => r!.isSystemReminder,
+        orElse: () => null,
+      );
+
+      if (!settings.backupReminderEnabled) {
+        if (existing != null) {
+          await notificationService.cancelNotification(existing.id.hashCode);
+          await storageService.deleteReminder(existing.id);
+          debugPrint('🗑️ Backup system reminder removed (reminders disabled)');
+        }
+        return;
+      }
+
+      // Compute the target time: lastBackupDate + frequencyDays at 10:00 AM
+      final base = settings.lastBackupDate ?? DateTime.now();
+      var target = DateTime(
+        base.year, base.month, base.day + settings.backupReminderFrequencyDays, 10, 0,
+      );
+      if (target.isBefore(DateTime.now())) {
+        final now = DateTime.now();
+        target = DateTime(
+          now.year, now.month, now.day + settings.backupReminderFrequencyDays, 10, 0,
+        );
+      }
+
+      // If an existing reminder is already scheduled for a similar time, leave it alone
+      if (existing != null) {
+        final existingTime = existing.effectiveDateTime;
+        if (existingTime != null &&
+            (existingTime.difference(target).abs() < const Duration(hours: 1))) {
+          debugPrint('✅ Backup system reminder already scheduled for $existingTime — no change');
+          return;
+        }
+        // Cancel and remove outdated reminder
+        await notificationService.cancelNotification(existing.id.hashCode);
+        await storageService.deleteReminder(existing.id);
+      }
+
+      final reminder = Reminder(
+        id: _backupSystemReminderId,
+        title: 'Backup Reminder',
+        description: 'Time to create a backup of your data.',
+        originalDateTime: target,
+        dateTime: target,
+        type: ReminderType.other,
+        repeatType: RepeatType.none,
+        isCompleted: false,
+        isSystemReminder: true,
+        createdAt: DateTime.now(),
+      );
+      await storageService.createReminder(reminder);
+      await notificationService.scheduleReminderNotification(
+        id: reminder.id.hashCode,
+        title: reminder.title,
+        body: reminder.description ?? 'Reminder',
+        scheduledDate: target,
+      );
+      debugPrint('📅 Backup system reminder scheduled for $target');
+    } catch (e, stack) {
+      debugPrint('❌ Error syncing backup reminder: $e');
       debugPrint('Stack trace: $stack');
     }
   }
