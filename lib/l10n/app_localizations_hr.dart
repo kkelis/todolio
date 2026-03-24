@@ -106,7 +106,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get colorNone => 'Bez boje';
 
   @override
-  String get unit => 'Jedinica';
+  String get unit => 'Količina';
 
   @override
   String get brandSelectionTitle => 'Odaberi brend';

@@ -32,7 +32,7 @@
   "pending": "Na čekanju",
   "color": "Boja",
   "colorNone": "Bez boje",
-  "unit": "Jedinica",
+  "unit": "Količina",
 
   "brandSelectionTitle": "Odaberi brend",
   "brandSearchHint": "Pretraži brendove...",
