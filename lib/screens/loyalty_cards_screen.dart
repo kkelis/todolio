@@ -721,17 +721,14 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
             backgroundColor: Colors.black,
             actions: [
               IconButton(
-                icon: const Icon(Icons.photo_library, color: Colors.white),
-                onPressed: () => _pickImageAndScan(context, controller, onScanned),
-                tooltip: l10n.tooltipPickFromGallery,
-              ),
-              IconButton(
                 icon: const Icon(Icons.flash_on, color: Colors.white),
                 onPressed: () => controller.toggleTorch(),
               ),
             ],
           ),
-          body: mobile_scanner.MobileScanner(
+          body: Stack(
+            children: [
+              mobile_scanner.MobileScanner(
             controller: controller,
             onDetect: (capture) {
               final List<mobile_scanner.Barcode> barcodes = capture.barcodes;
@@ -772,6 +769,30 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                 }
               }
             },
+          ),
+              // Gallery FAB at the bottom center
+              Positioned(
+                bottom: 32,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _pickImageAndScan(context, controller, onScanned),
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(l10n.tooltipPickFromGallery),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      elevation: 6,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
