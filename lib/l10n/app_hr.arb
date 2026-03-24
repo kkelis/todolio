@@ -150,7 +150,7 @@
   "settingsDefaultSectionHeader": "Zadana sekcija",
   "settingsDefaultSectionSubtitle": "Odaberite koja se sekcija otvara pri pokretanju aplikacije",
   "settingsDefaultSectionAuto": "Prva aktivna (automatski)",
-  "settingsColorSchemeHeader": "Shema boja",
+  "settingsColorSchemeHeader": "Izbor teme",
   "settingsColorSchemeSubtitle": "Odaberite željenu temu boja",
   "settingsBackupHeader": "Backup i obnova",
   "settingsBackupSubtitle": "Napravite backup podataka za prijenos na novi uređaj",

@@ -464,7 +464,7 @@ class AppLocalizationsHr extends AppLocalizations {
   String get settingsDefaultSectionAuto => 'Prva aktivna (automatski)';
 
   @override
-  String get settingsColorSchemeHeader => 'Shema boja';
+  String get settingsColorSchemeHeader => 'Izbor teme';
 
   @override
   String get settingsColorSchemeSubtitle => 'Odaberite željenu temu boja';
