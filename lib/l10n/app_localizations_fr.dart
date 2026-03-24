@@ -458,6 +458,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sectionLoyaltyCards => 'Cartes de fidélité';
 
   @override
+  String get settingsDefaultSectionHeader => 'Section par défaut';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Choisissez quelle section s\'ouvre au lancement de l\'application';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Première activée (automatique)';
+
+  @override
   String get settingsColorSchemeHeader => 'Schéma de couleurs';
 
   @override

@@ -471,6 +471,15 @@
   "sectionLoyaltyCards": "Loyalty Cards",
   "@sectionLoyaltyCards": { "description": "Toggle title for Loyalty Cards section — settings_screen.dart ~line 96" },
 
+  "settingsDefaultSectionHeader": "Default Section",
+  "@settingsDefaultSectionHeader": { "description": "Label for the default opening section picker — settings_screen.dart" },
+
+  "settingsDefaultSectionSubtitle": "Choose which section opens when you launch the app",
+  "@settingsDefaultSectionSubtitle": { "description": "Subtitle for the default section picker — settings_screen.dart" },
+
+  "settingsDefaultSectionAuto": "First enabled (auto)",
+  "@settingsDefaultSectionAuto": { "description": "Dropdown option meaning no explicit default — settings_screen.dart" },
+
   "settingsColorSchemeHeader": "Color Scheme",
   "@settingsColorSchemeHeader": { "description": "Section title — settings_screen.dart ~line 104" },
 

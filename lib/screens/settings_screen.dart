@@ -126,6 +126,10 @@ class SettingsScreen extends ConsumerWidget {
               settings.copyWith(loyaltyCardsEnabled: value),
             ),
           ),
+          if (settings.getEnabledSections().length > 1) ...[
+            const SizedBox(height: 16),
+            _buildDefaultSectionSelector(context, ref, settings),
+          ],
           const SizedBox(height: 32),
           // Color Scheme Selection
           Text(
@@ -283,6 +287,121 @@ class SettingsScreen extends ConsumerWidget {
           inactiveThumbColor: Colors.grey.shade400,
         ),
       ),
+    );
+  }
+
+  Widget _buildDefaultSectionSelector(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final enabledSections = settings.getEnabledSections();
+
+    final sectionLabels = <AppSection, String>{
+      AppSection.tasks: l10n.sectionTasks,
+      AppSection.shopping: l10n.sectionShoppingLists,
+      AppSection.loyaltyCards: l10n.sectionLoyaltyCards,
+      AppSection.guarantees: l10n.sectionGuarantees,
+      AppSection.notes: l10n.sectionNotes,
+    };
+    final sectionIcons = <AppSection, IconData>{
+      AppSection.tasks: Icons.task_outlined,
+      AppSection.shopping: Icons.shopping_cart_outlined,
+      AppSection.loyaltyCards: Icons.card_membership_outlined,
+      AppSection.guarantees: Icons.verified_outlined,
+      AppSection.notes: Icons.note_outlined,
+    };
+
+    // Resolve the effective default: the stored value if still enabled, else null
+    final effectiveDefault = (settings.defaultSection != null &&
+            enabledSections.contains(settings.defaultSection))
+        ? settings.defaultSection
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.settingsDefaultSectionHeader,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.settingsDefaultSectionSubtitle,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownButton<AppSection?>(
+            value: effectiveDefault,
+            isExpanded: true,
+            underline: const SizedBox.shrink(),
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            items: [
+              DropdownMenuItem<AppSection?>(
+                value: null,
+                child: Row(
+                  children: [
+                    Icon(Icons.dynamic_feed_outlined,
+                        color: Theme.of(context).colorScheme.primary, size: 22),
+                    const SizedBox(width: 12),
+                    Text(
+                      l10n.settingsDefaultSectionAuto,
+                      style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+              ...enabledSections.map((section) => DropdownMenuItem<AppSection?>(
+                value: section,
+                child: Row(
+                  children: [
+                    Icon(sectionIcons[section],
+                        color: Theme.of(context).colorScheme.primary, size: 22),
+                    const SizedBox(width: 12),
+                    Text(
+                      sectionLabels[section] ?? section.name,
+                      style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              )),
+            ],
+            onChanged: (value) {
+              ref.read(appSettingsNotifierProvider.notifier).updateSettings(
+                    settings.copyWith(defaultSection: value),
+                  );
+            },
+          ),
+        ),
+      ],
     );
   }
 

@@ -457,6 +457,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sectionLoyaltyCards => 'Treuekarten';
 
   @override
+  String get settingsDefaultSectionHeader => 'Standardbereich';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Wählen Sie, welcher Bereich beim Start der App geöffnet wird';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Erster aktivierter (automatisch)';
+
+  @override
   String get settingsColorSchemeHeader => 'Farbschema';
 
   @override

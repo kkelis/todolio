@@ -940,6 +940,24 @@ abstract class AppLocalizations {
   /// **'Loyalty Cards'**
   String get sectionLoyaltyCards;
 
+  /// Label for the default opening section picker — settings_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Default Section'**
+  String get settingsDefaultSectionHeader;
+
+  /// Subtitle for the default section picker — settings_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which section opens when you launch the app'**
+  String get settingsDefaultSectionSubtitle;
+
+  /// Dropdown option meaning no explicit default — settings_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'First enabled (auto)'**
+  String get settingsDefaultSectionAuto;
+
   /// Section title — settings_screen.dart ~line 104
   ///
   /// In en, this message translates to:

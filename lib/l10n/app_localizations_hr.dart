@@ -454,6 +454,16 @@ class AppLocalizationsHr extends AppLocalizations {
   String get sectionLoyaltyCards => 'Kartice vjernosti';
 
   @override
+  String get settingsDefaultSectionHeader => 'Zadana sekcija';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Odaberite koja se sekcija otvara pri pokretanju aplikacije';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Prva aktivna (automatski)';
+
+  @override
   String get settingsColorSchemeHeader => 'Shema boja';
 
   @override
