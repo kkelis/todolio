@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -14,20 +15,48 @@ import 'providers/settings_provider.dart';
 import 'models/reminder.dart';
 import 'models/color_scheme.dart';
 
-/// Top-level background notification handler — runs in a separate isolate.
-/// Must be a top-level (or static) function and initialise its own Hive instance.
+/// Top-level background notification handler — runs in a separate Android isolate
+/// when the app is completely killed.
+/// Must be a top-level function with @pragma('vm:entry-point') to survive tree-shaking.
+/// Crucially, it must NOT call Hive.initFlutter() (which uses path_provider via platform
+/// channels that are unavailable in this isolate). Instead, the Hive directory path is
+/// embedded in the notification payload and extracted here.
 @pragma('vm:entry-point')
 Future<void> _onBackgroundNotificationAction(NotificationResponse response) async {
-  await Hive.initFlutter();
+  final rawPayload = response.payload;
+  final notificationId = response.id;
+  final actionId = response.actionId;
+
+  if (actionId == null) return;
+
+  // Parse payload — new format: JSON {"i": reminderId, "d": hiveDir}; old: plain ID string
+  String reminderId;
+  String? hiveDir;
+  if (rawPayload != null) {
+    try {
+      final decoded = jsonDecode(rawPayload) as Map<String, dynamic>;
+      reminderId = (decoded['i'] as String?) ?? rawPayload;
+      hiveDir = decoded['d'] as String?;
+    } catch (_) {
+      reminderId = rawPayload; // backward compat: old notifications stored plain ID
+    }
+  } else {
+    reminderId = notificationId?.toString() ?? '';
+  }
+
+  if (reminderId.isEmpty) return;
+
+  // Initialise Hive using the embedded path — does NOT require platform channels.
+  // Falls back to Hive.initFlutter() for old-format notifications (still works when
+  // the background isolate can access path_provider, which happens on some devices).
+  if (hiveDir != null) {
+    Hive.init(hiveDir);
+  } else {
+    await Hive.initFlutter();
+  }
+
   final storageService = LocalStorageService();
   await storageService.init();
-
-  final actionId = response.actionId;
-  final notificationId = response.id;
-  final payload = response.payload;
-
-  final reminderId = payload ?? notificationId?.toString() ?? '';
-  if (reminderId.isEmpty || actionId == null) return;
 
   await _handleNotificationAction(reminderId, actionId, storageService);
 }

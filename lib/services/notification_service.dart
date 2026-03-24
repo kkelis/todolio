@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter/services.dart';
@@ -274,21 +276,32 @@ class NotificationService {
 
   void _handleNotificationResponse(NotificationResponse response) {
     final actionId = response.actionId;
-    final payload = response.payload;
+    final rawPayload = response.payload;
     final notificationId = response.id;
-    
-    // Use notification ID as reminder ID (it's the hash of reminder.id)
-    final reminderId = payload ?? notificationId.toString();
-    
-    debugPrint('📱 Notification action: actionId=$actionId, payload=$payload, id=$notificationId');
-    
+
+    // Parse payload — new format: JSON {"i": id, "d": hivePath}; old format: plain ID string
+    String reminderId;
+    if (rawPayload != null) {
+      try {
+        final decoded = jsonDecode(rawPayload) as Map<String, dynamic>;
+        reminderId = (decoded['i'] as String?) ?? rawPayload;
+      } catch (_) {
+        reminderId = rawPayload; // old-format notifications: raw ID string
+      }
+    } else {
+      reminderId = notificationId?.toString() ?? '';
+    }
+
+    debugPrint('📱 Notification action: actionId=$actionId, reminderId=$reminderId, id=$notificationId');
+
     if (actionId == 'done') {
       // Mark reminder as completed
       onNotificationAction?.call(reminderId, 'done');
     } else if (actionId == 'snooze') {
-      // Show snooze options notification
+      // Show snooze options notification, forwarding the original payload so
+      // its action buttons also carry the Hive path for background processing.
       if (notificationId != null) {
-        _showSnoozeOptionsNotification(reminderId, notificationId);
+        _showSnoozeOptionsNotification(reminderId, notificationId, originalPayload: rawPayload);
       }
     } else if (actionId == 'snooze_5min') {
       // Snooze for 5 minutes
@@ -309,7 +322,11 @@ class NotificationService {
     }
   }
 
-  Future<void> _showSnoozeOptionsNotification(String reminderId, int originalNotificationId) async {
+  Future<void> _showSnoozeOptionsNotification(
+    String reminderId,
+    int originalNotificationId, {
+    String? originalPayload,
+  }) async {
       // Create snooze duration action buttons (only 3 options to fit on screen)
       final snoozeActions = <AndroidNotificationAction>[
         const AndroidNotificationAction(
@@ -351,8 +368,20 @@ class NotificationService {
           categoryIdentifier: 'reminder_category',
         ),
       ),
-      payload: reminderId, // Pass reminder ID so actions can find it
+      payload: originalPayload ?? reminderId, // Forward original payload (with Hive path) to snooze actions
     );
+  }
+
+  /// Builds a JSON payload that embeds the Hive directory path alongside the
+  /// notification ID. The background isolate extracts this path and calls
+  /// [Hive.init()] directly, avoiding any platform-channel access.
+  static Future<String> _buildPayload(int notificationId) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      return jsonEncode({'i': notificationId.toString(), 'd': dir.path});
+    } catch (_) {
+      return notificationId.toString(); // fallback: plain numeric ID
+    }
   }
 
   Future<void> scheduleReminderNotification({
@@ -361,6 +390,7 @@ class NotificationService {
     required String body,
     required DateTime scheduledDate,
   }) async {
+    final notifPayload = await _buildPayload(id);
     try {
       final scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
       final nowTZ = tz.TZDateTime.now(tz.local);
@@ -415,7 +445,7 @@ class NotificationService {
               categoryIdentifier: 'reminder_category',
             ),
           ),
-          payload: id.toString(),
+          payload: notifPayload,
         );
         debugPrint('✅ Immediate notification shown');
         return;
@@ -461,7 +491,7 @@ class NotificationService {
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Use exact for alarm clock
-        payload: id.toString(), // Store reminder ID in payload
+        payload: notifPayload, // Store reminder ID + Hive path so background isolate can act
       );
       
       // Now use setAlarmClock() via platform channel for maximum reliability
@@ -531,6 +561,7 @@ class NotificationService {
             ),
           ),
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: notifPayload,
         );
         debugPrint('✅ Fallback scheduling successful');
       } catch (fallbackError) {
@@ -582,7 +613,7 @@ class NotificationService {
                 categoryIdentifier: 'reminder_category',
               ),
             ),
-            payload: id.toString(),
+            payload: notifPayload,
           );
           debugPrint('✅ Immediate notification shown as fallback');
         } catch (immediateError) {
