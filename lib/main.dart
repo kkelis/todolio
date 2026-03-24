@@ -95,10 +95,12 @@ void main() async {
       final action = call.arguments['action'] as String;
       final notificationId = call.arguments['notificationId'] as String;
       debugPrint('📱 Native notification action: $action for notification $notificationId');
-      // Call the handler (it's async but we don't need to await it)
       _handleNotificationAction(notificationId, action, localStorageService);
     }
   });
+
+  // Process notification actions that were persisted while the app was killed
+  await _processPendingNativeActions(platform, localStorageService);
 
   runApp(
     ProviderScope(
@@ -199,6 +201,31 @@ class ToDoLioApp extends ConsumerWidget {
         );
       },
     );
+  }
+}
+
+/// Process notification actions that were persisted by the native
+/// NotificationActionReceiver while the app was killed.
+/// Each entry is "notificationId:action" (e.g. "123456:done").
+Future<void> _processPendingNativeActions(
+  MethodChannel platform,
+  LocalStorageService storageService,
+) async {
+  try {
+    final result = await platform.invokeMethod<List<dynamic>>('getPendingActions');
+    if (result == null || result.isEmpty) return;
+
+    debugPrint('📬 Processing ${result.length} pending native notification actions');
+    for (final entry in result) {
+      final parts = (entry as String).split(':');
+      if (parts.length != 2) continue;
+      final notificationId = parts[0];
+      final action = parts[1];
+      debugPrint('   ↳ $action for notification $notificationId');
+      await _handleNotificationAction(notificationId, action, storageService);
+    }
+  } catch (e) {
+    debugPrint('⚠️ Could not read pending native actions: $e');
   }
 }
 

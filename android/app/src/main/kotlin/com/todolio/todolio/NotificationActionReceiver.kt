@@ -12,9 +12,24 @@ import io.flutter.plugin.common.MethodChannel
 class NotificationActionReceiver : BroadcastReceiver() {
     companion object {
         private var methodChannel: MethodChannel? = null
-        
+        private const val PREFS_NAME = "pending_notification_actions"
+        private const val KEY_ACTIONS = "actions"
+
         fun setMethodChannel(channel: MethodChannel?) {
             methodChannel = channel
+        }
+
+        /**
+         * Persist a notification action so the Flutter side can pick it up on
+         * next app launch. Each entry is stored as "notificationId:action".
+         */
+        private fun persistAction(context: Context, notificationId: Int, action: String) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val existing = prefs.getStringSet(KEY_ACTIONS, mutableSetOf()) ?: mutableSetOf()
+            val updated = existing.toMutableSet()
+            updated.add("$notificationId:$action")
+            prefs.edit().putStringSet(KEY_ACTIONS, updated).apply()
+            Log.d("NotificationActionReceiver", "Persisted pending action: $notificationId:$action")
         }
     }
     
@@ -38,8 +53,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         ))
                         Log.d("NotificationActionReceiver", "Action sent to Flutter: $flutterAction")
                     } catch (e: Exception) {
-                        Log.e("NotificationActionReceiver", "Error sending action to Flutter", e)
+                        Log.e("NotificationActionReceiver", "Error sending action to Flutter, persisting", e)
+                        persistAction(context, notificationId, flutterAction)
                     }
+                } else {
+                    // App is killed — persist so Flutter processes it on next launch
+                    persistAction(context, notificationId, flutterAction)
                 }
                 // Cancel the notification
                 val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
@@ -76,8 +95,11 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 ))
                 Log.d("NotificationActionReceiver", "Snooze action sent to Flutter: $flutterAction")
             } catch (e: Exception) {
-                Log.e("NotificationActionReceiver", "Error sending snooze action to Flutter", e)
+                Log.e("NotificationActionReceiver", "Error sending snooze action to Flutter, persisting", e)
+                persistAction(context, notificationId, flutterAction)
             }
+        } else {
+            persistAction(context, notificationId, flutterAction)
         }
         // Cancel the snooze options notification
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
