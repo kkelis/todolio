@@ -109,6 +109,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unit => 'Unit';
 
   @override
+  String get unitPiece => 'piece';
+
+  @override
+  String get unitLiter => 'liter';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'gram';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'pack';
+
+  @override
+  String get unitBottle => 'bottle';
+
+  @override
+  String get unitBox => 'box';
+
+  @override
+  String get unitBag => 'bag';
+
+  @override
+  String get unitOther => 'other';
+
+  @override
   String get brandSelectionTitle => 'Select Brand';
 
   @override

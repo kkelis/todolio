@@ -254,6 +254,21 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
 
 }
 
+String _unitName(ShoppingUnit unit, AppLocalizations l10n) {
+  switch (unit) {
+    case ShoppingUnit.piece:   return l10n.unitPiece;
+    case ShoppingUnit.liter:   return l10n.unitLiter;
+    case ShoppingUnit.kg:      return l10n.unitKg;
+    case ShoppingUnit.gram:    return l10n.unitGram;
+    case ShoppingUnit.ml:      return l10n.unitMl;
+    case ShoppingUnit.pack:    return l10n.unitPack;
+    case ShoppingUnit.bottle:  return l10n.unitBottle;
+    case ShoppingUnit.box:     return l10n.unitBox;
+    case ShoppingUnit.bag:     return l10n.unitBag;
+    case ShoppingUnit.other:   return l10n.unitOther;
+  }
+}
+
 class _ShoppingListCard extends StatelessWidget {
   final ShoppingList list;
   final VoidCallback onTap;
@@ -588,7 +603,7 @@ class _ShoppingListDetailScreenState
                   const SizedBox(width: 8),
                   // Quantity badge
                   Text(
-                    '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
+                    '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${_unitName(item.unit, AppLocalizations.of(context))}',
                     style: TextStyle(
                       fontSize: 12,
                       color: item.isCompleted
@@ -733,7 +748,7 @@ class _ShoppingListDetailScreenState
                                 ),
                               ),
                               Text(
-                                '${s.quantity.toStringAsFixed(s.quantity.truncateToDouble() == s.quantity ? 0 : 2)} ${s.unit.displayName}',
+                                '${s.quantity.toStringAsFixed(s.quantity.truncateToDouble() == s.quantity ? 0 : 2)} ${_unitName(s.unit, l10n)}',
                                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                               ),
                             ],
@@ -855,7 +870,7 @@ class _ShoppingListDetailScreenState
                 ),
               ),
               child: Text(
-                _selectedUnit.displayName.toUpperCase(),
+                _unitName(_selectedUnit, l10n).toUpperCase(),
                 style: TextStyle(
                   color: primaryColor,
                   fontWeight: FontWeight.bold,
@@ -990,7 +1005,7 @@ class _ShoppingListDetailScreenState
                   children: ShoppingUnit.values
                       .map((unit) => Center(
                             child: Text(
-                              unit.displayName,
+                              _unitName(unit, l10n),
                               style: const TextStyle(
                                 fontSize: 18,
                                 color: Colors.black87,
@@ -1138,7 +1153,7 @@ class _ShoppingListDetailScreenState
                           children: ShoppingUnit.values
                               .map((unit) => Center(
                                     child: Text(
-                                      unit.displayName,
+                                      _unitName(unit, l10n),
                                       style: TextStyle(
                                         fontSize: 18,
                                         color: Colors.black87,

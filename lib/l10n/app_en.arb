@@ -105,6 +105,27 @@
   "unit": "Unit",
   "@unit": { "description": "Section label in shopping_lists_screen unit-roller sheet header and edit-item dialog" },
 
+  "unitPiece": "piece",
+  "@unitPiece": { "description": "ShoppingUnit.piece display name" },
+  "unitLiter": "liter",
+  "@unitLiter": { "description": "ShoppingUnit.liter display name" },
+  "unitKg": "kg",
+  "@unitKg": { "description": "ShoppingUnit.kg display name" },
+  "unitGram": "gram",
+  "@unitGram": { "description": "ShoppingUnit.gram display name" },
+  "unitMl": "ml",
+  "@unitMl": { "description": "ShoppingUnit.ml display name" },
+  "unitPack": "pack",
+  "@unitPack": { "description": "ShoppingUnit.pack display name" },
+  "unitBottle": "bottle",
+  "@unitBottle": { "description": "ShoppingUnit.bottle display name" },
+  "unitBox": "box",
+  "@unitBox": { "description": "ShoppingUnit.box display name" },
+  "unitBag": "bag",
+  "@unitBag": { "description": "ShoppingUnit.bag display name" },
+  "unitOther": "other",
+  "@unitOther": { "description": "ShoppingUnit.other display name" },
+
 
   "@@comment_brand_selection": "=== BRAND SELECTION SCREEN ===",
 

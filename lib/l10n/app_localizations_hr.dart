@@ -109,6 +109,36 @@ class AppLocalizationsHr extends AppLocalizations {
   String get unit => 'Količina';
 
   @override
+  String get unitPiece => 'komad';
+
+  @override
+  String get unitLiter => 'litra';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'gram';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'paket';
+
+  @override
+  String get unitBottle => 'boca';
+
+  @override
+  String get unitBox => 'kutija';
+
+  @override
+  String get unitBag => 'vrećica';
+
+  @override
+  String get unitOther => 'ostalo';
+
+  @override
   String get brandSelectionTitle => 'Odaberi brend';
 
   @override

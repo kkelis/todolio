@@ -298,6 +298,66 @@ abstract class AppLocalizations {
   /// **'Unit'**
   String get unit;
 
+  /// ShoppingUnit.piece display name
+  ///
+  /// In en, this message translates to:
+  /// **'piece'**
+  String get unitPiece;
+
+  /// ShoppingUnit.liter display name
+  ///
+  /// In en, this message translates to:
+  /// **'liter'**
+  String get unitLiter;
+
+  /// ShoppingUnit.kg display name
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// ShoppingUnit.gram display name
+  ///
+  /// In en, this message translates to:
+  /// **'gram'**
+  String get unitGram;
+
+  /// ShoppingUnit.ml display name
+  ///
+  /// In en, this message translates to:
+  /// **'ml'**
+  String get unitMl;
+
+  /// ShoppingUnit.pack display name
+  ///
+  /// In en, this message translates to:
+  /// **'pack'**
+  String get unitPack;
+
+  /// ShoppingUnit.bottle display name
+  ///
+  /// In en, this message translates to:
+  /// **'bottle'**
+  String get unitBottle;
+
+  /// ShoppingUnit.box display name
+  ///
+  /// In en, this message translates to:
+  /// **'box'**
+  String get unitBox;
+
+  /// ShoppingUnit.bag display name
+  ///
+  /// In en, this message translates to:
+  /// **'bag'**
+  String get unitBag;
+
+  /// ShoppingUnit.other display name
+  ///
+  /// In en, this message translates to:
+  /// **'other'**
+  String get unitOther;
+
   /// AppBar title — brand_selection_screen.dart ~line 53
   ///
   /// In en, this message translates to:
