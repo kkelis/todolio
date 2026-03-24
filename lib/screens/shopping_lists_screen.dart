@@ -3,7 +3,6 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_item.dart';
 import '../providers/shopping_lists_provider.dart';
@@ -228,8 +227,11 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   }
 
   void _showCreateDialog() {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
-    final defaultName = 'Shopping – ${DateFormat('d MMM').format(now)}';
+    final existingLists = ref.read(shoppingListsProvider).value ?? [];
+    final number = existingLists.length + 1;
+    final defaultName = l10n.shoppingListDefaultName(number);
 
     final list = ShoppingList(
       id: now.millisecondsSinceEpoch.toString(),

@@ -607,6 +607,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shoppingListsTitle => 'Listes de courses';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Liste de courses $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Importer CSV';
 
   @override

@@ -627,6 +627,12 @@
   "shoppingListsTitle": "Shopping Lists",
   "@shoppingListsTitle": { "description": "AppBar title — shopping_lists_screen.dart ~line 36" },
 
+  "shoppingListDefaultName": "Shopping list {number}",
+  "@shoppingListDefaultName": {
+    "description": "Default name for a new shopping list — shopping_lists_screen.dart",
+    "placeholders": { "number": { "type": "int" } }
+  },
+
   "tooltipImportCsv": "Import CSV",
   "@tooltipImportCsv": { "description": "IconButton tooltip for import button — shopping_lists_screen.dart ~line 48, shopping_unified_screen.dart" },
 

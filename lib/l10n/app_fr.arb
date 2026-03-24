@@ -188,6 +188,7 @@
   "errorRestoringBackup": "Erreur lors de la restauration du backup : {error}",
 
   "shoppingListsTitle": "Listes de courses",
+  "shoppingListDefaultName": "Liste de courses {number}",
   "tooltipImportCsv": "Importer CSV",
   "noShoppingLists": "Aucune liste de courses",
   "importedListSuccess": "\"{name}\" importé avec {itemCount} articles",

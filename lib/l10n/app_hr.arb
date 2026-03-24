@@ -188,6 +188,7 @@
   "errorRestoringBackup": "Greška pri obnovi backupa: {error}",
 
   "shoppingListsTitle": "Liste kupovine",
+  "shoppingListDefaultName": "Popis za kupnju {number}",
   "tooltipImportCsv": "Uvezi CSV",
   "noShoppingLists": "Nema lista kupovine",
   "importedListSuccess": "Uvezeno \"{name}\" s {itemCount} stavki",

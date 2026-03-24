@@ -1180,6 +1180,12 @@ abstract class AppLocalizations {
   /// **'Shopping Lists'**
   String get shoppingListsTitle;
 
+  /// Default name for a new shopping list — shopping_lists_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list {number}'**
+  String shoppingListDefaultName(int number);
+
   /// IconButton tooltip for import button — shopping_lists_screen.dart ~line 48, shopping_unified_screen.dart
   ///
   /// In en, this message translates to:

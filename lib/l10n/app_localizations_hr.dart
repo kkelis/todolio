@@ -601,6 +601,11 @@ class AppLocalizationsHr extends AppLocalizations {
   String get shoppingListsTitle => 'Liste kupovine';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Popis za kupnju $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Uvezi CSV';
 
   @override

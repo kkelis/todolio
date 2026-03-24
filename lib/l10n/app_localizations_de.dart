@@ -606,6 +606,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shoppingListsTitle => 'Einkaufslisten';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Einkaufsliste $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'CSV importieren';
 
   @override
