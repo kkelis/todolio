@@ -228,7 +228,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildAboutSection(context),
+          _buildAboutSection(context, settings),
           const SizedBox(height: 16),
         ],
       ),
@@ -731,8 +731,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAboutSection(BuildContext context) {
+  Widget _buildAboutSection(BuildContext context, AppSettings settings) {
     final l10n = AppLocalizations.of(context);
+    final langSuffix = _legalPageSuffix(settings.languageCode);
+    final privacyUrl = 'https://kkelis.github.io/todolio/privacy$langSuffix.html';
+    final termsUrl = 'https://kkelis.github.io/todolio/terms$langSuffix.html';
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -765,7 +768,7 @@ class SettingsScreen extends ConsumerWidget {
               size: 20,
               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
             ),
-            onTap: () => _launchUrl(context, 'https://kkelis.github.io/todolio/privacy.html'),
+            onTap: () => _launchUrl(context, privacyUrl),
           ),
           const Divider(height: 1),
           // Terms of Service
@@ -786,7 +789,7 @@ class SettingsScreen extends ConsumerWidget {
               size: 20,
               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
             ),
-            onTap: () => _launchUrl(context, 'https://kkelis.github.io/todolio/terms.html'),
+            onTap: () => _launchUrl(context, termsUrl),
           ),
           const Divider(height: 1),
           // Version Info
@@ -818,6 +821,16 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Returns the filename suffix for the legal pages based on the app language.
+  /// null/unsupported language falls back to English (no suffix).
+  static String _legalPageSuffix(String? languageCode) {
+    const supported = {'de', 'es', 'fr', 'hr', 'it'};
+    if (languageCode != null && supported.contains(languageCode)) {
+      return '_$languageCode';
+    }
+    return '';
   }
 
   Future<void> _launchUrl(BuildContext context, String url) async {
