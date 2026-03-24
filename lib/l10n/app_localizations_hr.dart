@@ -106,7 +106,37 @@ class AppLocalizationsHr extends AppLocalizations {
   String get colorNone => 'Bez boje';
 
   @override
-  String get unit => 'Jedinica';
+  String get unit => 'Količina';
+
+  @override
+  String get unitPiece => 'komad';
+
+  @override
+  String get unitLiter => 'litra';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'gram';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'paket';
+
+  @override
+  String get unitBottle => 'boca';
+
+  @override
+  String get unitBox => 'kutija';
+
+  @override
+  String get unitBag => 'vrećica';
+
+  @override
+  String get unitOther => 'ostalo';
 
   @override
   String get brandSelectionTitle => 'Odaberi brend';
@@ -454,7 +484,17 @@ class AppLocalizationsHr extends AppLocalizations {
   String get sectionLoyaltyCards => 'Kartice vjernosti';
 
   @override
-  String get settingsColorSchemeHeader => 'Shema boja';
+  String get settingsDefaultSectionHeader => 'Zadana sekcija';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Odaberite koja se sekcija otvara pri pokretanju aplikacije';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Prva aktivna (automatski)';
+
+  @override
+  String get settingsColorSchemeHeader => 'Izbor teme';
 
   @override
   String get settingsColorSchemeSubtitle => 'Odaberite željenu temu boja';
@@ -591,6 +631,11 @@ class AppLocalizationsHr extends AppLocalizations {
   String get shoppingListsTitle => 'Liste kupovine';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Popis za kupnju $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Uvezi CSV';
 
   @override
@@ -703,6 +748,16 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get addTaskHint => 'Ovdje dodajte zadatak';
+
+  @override
+  String get clearCompletedTasks => 'Obriši dovršene';
+
+  @override
+  String get clearCompletedTasksDialogTitle => 'Obrisati dovršene zadatke?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Svi dovršeni zadaci biti će trajno obrisani. Ova radnja se ne može poništiti.';
 
   @override
   String get taskTypeLabel => 'Vrsta zadatka';

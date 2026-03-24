@@ -69,6 +69,19 @@ class MainActivity : FlutterActivity() {
         
         // Set up notification actions channel for receiving actions from native side
         notificationActionsChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NOTIFICATION_ACTIONS_CHANNEL)
+        notificationActionsChannel!!.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getPendingActions" -> {
+                    val prefs = getSharedPreferences("pending_notification_actions", Context.MODE_PRIVATE)
+                    val actions = prefs.getStringSet("actions", emptySet()) ?: emptySet()
+                    // Clear after reading
+                    prefs.edit().remove("actions").apply()
+                    Log.d("MainActivity", "Returning ${actions.size} pending notification actions")
+                    result.success(actions.toList())
+                }
+                else -> result.notImplemented()
+            }
+        }
         
         // Store reference for NotificationActionReceiver to use
         NotificationActionReceiver.setMethodChannel(notificationActionsChannel)

@@ -75,7 +75,7 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
             },
             color: Theme.of(context).colorScheme.primary,
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.only(top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
               itemCount: guarantees.length,
               itemBuilder: (context, index) {
                 final guarantee = guarantees[index];

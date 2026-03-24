@@ -109,6 +109,36 @@ class AppLocalizationsIt extends AppLocalizations {
   String get unit => 'Unità';
 
   @override
+  String get unitPiece => 'pezzo';
+
+  @override
+  String get unitLiter => 'litro';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'grammo';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'confezione';
+
+  @override
+  String get unitBottle => 'bottiglia';
+
+  @override
+  String get unitBox => 'scatola';
+
+  @override
+  String get unitBag => 'sacchetto';
+
+  @override
+  String get unitOther => 'altro';
+
+  @override
   String get brandSelectionTitle => 'Seleziona marca';
 
   @override
@@ -456,6 +486,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sectionLoyaltyCards => 'Carte fedeltà';
 
   @override
+  String get settingsDefaultSectionHeader => 'Sezione predefinita';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Scegli quale sezione si apre all\'avvio dell\'app';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Prima abilitata (automatico)';
+
+  @override
   String get settingsColorSchemeHeader => 'Schema colori';
 
   @override
@@ -594,6 +634,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get shoppingListsTitle => 'Liste della spesa';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Lista della spesa $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Importa CSV';
 
   @override
@@ -707,6 +752,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get addTaskHint => 'Aggiungi la tua attività qui';
+
+  @override
+  String get clearCompletedTasks => 'Cancella completate';
+
+  @override
+  String get clearCompletedTasksDialogTitle =>
+      'Cancellare le attività completate?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Questo eliminerà definitivamente tutte le attività completate. L\'azione non può essere annullata.';
 
   @override
   String get taskTypeLabel => 'Tipo di attività';

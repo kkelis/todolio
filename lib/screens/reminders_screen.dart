@@ -81,9 +81,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         ),
         body: remindersAsync.when(
         data: (reminders) {
-          // Filter to only show items with effectiveDateTime
+          // Filter to only show items with effectiveDateTime, excluding system reminders
           final remindersWithDate = reminders
-              .where((r) => r.effectiveDateTime != null)
+              .where((r) => r.effectiveDateTime != null && !r.isSystemReminder)
               .toList();
 
           // Apply type filter if selected
@@ -147,7 +147,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             },
             color: Theme.of(context).colorScheme.primary,
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.only(top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
               itemCount: (hasOverdue ? 1 : 0) + grouped.length + (hasCompleted ? 1 : 0),
               itemBuilder: (context, index) {
                 // Show overdue section first

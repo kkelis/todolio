@@ -109,6 +109,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unit => 'Unité';
 
   @override
+  String get unitPiece => 'pièce';
+
+  @override
+  String get unitLiter => 'litre';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'gramme';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'paquet';
+
+  @override
+  String get unitBottle => 'bouteille';
+
+  @override
+  String get unitBox => 'boîte';
+
+  @override
+  String get unitBag => 'sachet';
+
+  @override
+  String get unitOther => 'autre';
+
+  @override
   String get brandSelectionTitle => 'Sélectionner une marque';
 
   @override
@@ -458,6 +488,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sectionLoyaltyCards => 'Cartes de fidélité';
 
   @override
+  String get settingsDefaultSectionHeader => 'Section par défaut';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Choisissez quelle section s\'ouvre au lancement de l\'application';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Première activée (automatique)';
+
+  @override
   String get settingsColorSchemeHeader => 'Schéma de couleurs';
 
   @override
@@ -597,6 +637,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shoppingListsTitle => 'Listes de courses';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Liste de courses $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Importer CSV';
 
   @override
@@ -710,6 +755,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get addTaskHint => 'Ajoutez votre tâche ici';
+
+  @override
+  String get clearCompletedTasks => 'Effacer les terminées';
+
+  @override
+  String get clearCompletedTasksDialogTitle => 'Effacer les tâches terminées ?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Cela supprimera définitivement toutes les tâches terminées. Cette action est irréversible.';
 
   @override
   String get taskTypeLabel => 'Type de tâche';

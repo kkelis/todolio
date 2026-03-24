@@ -298,6 +298,66 @@ abstract class AppLocalizations {
   /// **'Unit'**
   String get unit;
 
+  /// ShoppingUnit.piece display name
+  ///
+  /// In en, this message translates to:
+  /// **'piece'**
+  String get unitPiece;
+
+  /// ShoppingUnit.liter display name
+  ///
+  /// In en, this message translates to:
+  /// **'liter'**
+  String get unitLiter;
+
+  /// ShoppingUnit.kg display name
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// ShoppingUnit.gram display name
+  ///
+  /// In en, this message translates to:
+  /// **'gram'**
+  String get unitGram;
+
+  /// ShoppingUnit.ml display name
+  ///
+  /// In en, this message translates to:
+  /// **'ml'**
+  String get unitMl;
+
+  /// ShoppingUnit.pack display name
+  ///
+  /// In en, this message translates to:
+  /// **'pack'**
+  String get unitPack;
+
+  /// ShoppingUnit.bottle display name
+  ///
+  /// In en, this message translates to:
+  /// **'bottle'**
+  String get unitBottle;
+
+  /// ShoppingUnit.box display name
+  ///
+  /// In en, this message translates to:
+  /// **'box'**
+  String get unitBox;
+
+  /// ShoppingUnit.bag display name
+  ///
+  /// In en, this message translates to:
+  /// **'bag'**
+  String get unitBag;
+
+  /// ShoppingUnit.other display name
+  ///
+  /// In en, this message translates to:
+  /// **'other'**
+  String get unitOther;
+
   /// AppBar title — brand_selection_screen.dart ~line 53
   ///
   /// In en, this message translates to:
@@ -940,6 +1000,24 @@ abstract class AppLocalizations {
   /// **'Loyalty Cards'**
   String get sectionLoyaltyCards;
 
+  /// Label for the default opening section picker — settings_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Default Section'**
+  String get settingsDefaultSectionHeader;
+
+  /// Subtitle for the default section picker — settings_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which section opens when you launch the app'**
+  String get settingsDefaultSectionSubtitle;
+
+  /// Dropdown option meaning no explicit default — settings_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'First enabled (auto)'**
+  String get settingsDefaultSectionAuto;
+
   /// Section title — settings_screen.dart ~line 104
   ///
   /// In en, this message translates to:
@@ -1162,6 +1240,12 @@ abstract class AppLocalizations {
   /// **'Shopping Lists'**
   String get shoppingListsTitle;
 
+  /// Default name for a new shopping list — shopping_lists_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping list {number}'**
+  String shoppingListDefaultName(int number);
+
   /// IconButton tooltip for import button — shopping_lists_screen.dart ~line 48, shopping_unified_screen.dart
   ///
   /// In en, this message translates to:
@@ -1365,6 +1449,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add your task here'**
   String get addTaskHint;
+
+  /// AppBar action button label to delete all completed tasks — tasks_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Completed'**
+  String get clearCompletedTasks;
+
+  /// Confirmation dialog title — tasks_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Clear completed tasks?'**
+  String get clearCompletedTasksDialogTitle;
+
+  /// Confirmation dialog message — tasks_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all completed tasks. This action cannot be undone.'**
+  String get clearCompletedTasksDialogMessage;
 
   /// Section label above type selector — tasks_screen.dart ~line 284
   ///

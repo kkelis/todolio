@@ -109,6 +109,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get unit => 'Einheit';
 
   @override
+  String get unitPiece => 'Stück';
+
+  @override
+  String get unitLiter => 'Liter';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'Gramm';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'Packung';
+
+  @override
+  String get unitBottle => 'Flasche';
+
+  @override
+  String get unitBox => 'Karton';
+
+  @override
+  String get unitBag => 'Tüte';
+
+  @override
+  String get unitOther => 'Sonstiges';
+
+  @override
   String get brandSelectionTitle => 'Marke auswählen';
 
   @override
@@ -457,6 +487,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sectionLoyaltyCards => 'Treuekarten';
 
   @override
+  String get settingsDefaultSectionHeader => 'Standardbereich';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Wählen Sie, welcher Bereich beim Start der App geöffnet wird';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Erster aktivierter (automatisch)';
+
+  @override
   String get settingsColorSchemeHeader => 'Farbschema';
 
   @override
@@ -596,6 +636,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shoppingListsTitle => 'Einkaufslisten';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Einkaufsliste $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'CSV importieren';
 
   @override
@@ -708,6 +753,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get addTaskHint => 'Aufgabe hier hinzufügen';
+
+  @override
+  String get clearCompletedTasks => 'Abgeschlossene löschen';
+
+  @override
+  String get clearCompletedTasksDialogTitle =>
+      'Abgeschlossene Aufgaben löschen?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Alle abgeschlossenen Aufgaben werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
   String get taskTypeLabel => 'Aufgabentyp';

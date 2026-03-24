@@ -23,6 +23,7 @@ class MainNavigation extends ConsumerStatefulWidget {
 class _MainNavigationState extends ConsumerState<MainNavigation> {
   int _currentIndex = 0;
   late PageController _pageController;
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -105,6 +106,21 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         final l10n = AppLocalizations.of(context);
         final screens = _getScreens(settings);
         final destinations = _getDestinations(context, settings);
+
+        // On first load, jump to the user's default section
+        if (!_initialized && screens.isNotEmpty) {
+          _initialized = true;
+          final startIndex = settings.defaultSectionIndex.clamp(0, screens.length - 1);
+          if (startIndex != 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() => _currentIndex = startIndex);
+                _pageController.jumpToPage(startIndex);
+              }
+            });
+          }
+        }
+
         // Ensure current index is valid
         if (_currentIndex >= screens.length) {
           WidgetsBinding.instance.addPostFrameCallback((_) {

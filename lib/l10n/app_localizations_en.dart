@@ -109,6 +109,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unit => 'Unit';
 
   @override
+  String get unitPiece => 'piece';
+
+  @override
+  String get unitLiter => 'liter';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'gram';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'pack';
+
+  @override
+  String get unitBottle => 'bottle';
+
+  @override
+  String get unitBox => 'box';
+
+  @override
+  String get unitBag => 'bag';
+
+  @override
+  String get unitOther => 'other';
+
+  @override
   String get brandSelectionTitle => 'Select Brand';
 
   @override
@@ -454,6 +484,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionLoyaltyCards => 'Loyalty Cards';
 
   @override
+  String get settingsDefaultSectionHeader => 'Default Section';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Choose which section opens when you launch the app';
+
+  @override
+  String get settingsDefaultSectionAuto => 'First enabled (auto)';
+
+  @override
   String get settingsColorSchemeHeader => 'Color Scheme';
 
   @override
@@ -591,6 +631,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingListsTitle => 'Shopping Lists';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Shopping list $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Import CSV';
 
   @override
@@ -703,6 +748,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTaskHint => 'Add your task here';
+
+  @override
+  String get clearCompletedTasks => 'Clear Completed';
+
+  @override
+  String get clearCompletedTasksDialogTitle => 'Clear completed tasks?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'This will permanently delete all completed tasks. This action cannot be undone.';
 
   @override
   String get taskTypeLabel => 'Task type';

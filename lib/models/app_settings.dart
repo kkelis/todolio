@@ -1,6 +1,14 @@
 import 'color_scheme.dart';
 import 'reminder.dart';
 
+enum AppSection {
+  tasks,
+  shopping,
+  loyaltyCards,
+  guarantees,
+  notes,
+}
+
 class AppSettings {
   final bool remindersEnabled;
   final bool todosEnabled;
@@ -22,6 +30,9 @@ class AppSettings {
   final bool backupReminderEnabled;
   final int backupReminderFrequencyDays; // 7, 14, or 30 days
 
+  /// The section to open when the app launches. null = first enabled section.
+  final AppSection? defaultSection;
+
   // Computed: the Tasks tab is visible when either reminders or todos is enabled
   bool get tasksEnabled => remindersEnabled || todosEnabled;
 
@@ -38,6 +49,7 @@ class AppSettings {
     this.lastBackupDate,
     this.backupReminderEnabled = false,
     this.backupReminderFrequencyDays = 14,
+    this.defaultSection,
   });
 
   Map<String, dynamic> toMap() {
@@ -54,6 +66,7 @@ class AppSettings {
       'lastBackupDate': lastBackupDate?.toIso8601String(),
       'backupReminderEnabled': backupReminderEnabled,
       'backupReminderFrequencyDays': backupReminderFrequencyDays,
+      'defaultSection': defaultSection?.name,
     };
   }
 
@@ -80,6 +93,12 @@ class AppSettings {
           : null,
       backupReminderEnabled: map['backupReminderEnabled'] ?? false,
       backupReminderFrequencyDays: map['backupReminderFrequencyDays'] ?? 14,
+      defaultSection: map['defaultSection'] != null
+          ? AppSection.values.firstWhere(
+              (e) => e.name == map['defaultSection'],
+              orElse: () => AppSection.tasks,
+            )
+          : null,
     );
   }
 
@@ -97,6 +116,7 @@ class AppSettings {
     DateTime? lastBackupDate,
     bool? backupReminderEnabled,
     int? backupReminderFrequencyDays,
+    Object? defaultSection = _sentinel,
   }) {
     return AppSettings(
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
@@ -111,7 +131,30 @@ class AppSettings {
       lastBackupDate: lastBackupDate ?? this.lastBackupDate,
       backupReminderEnabled: backupReminderEnabled ?? this.backupReminderEnabled,
       backupReminderFrequencyDays: backupReminderFrequencyDays ?? this.backupReminderFrequencyDays,
+      defaultSection: identical(defaultSection, _sentinel)
+          ? this.defaultSection
+          : defaultSection as AppSection?,
     );
+  }
+
+  static const Object _sentinel = Object();
+
+  /// Returns the enabled sections in display order (matches _getScreens in MainNavigation).
+  List<AppSection> getEnabledSections() {
+    final sections = <AppSection>[];
+    if (tasksEnabled) sections.add(AppSection.tasks);
+    if (shoppingEnabled) sections.add(AppSection.shopping);
+    if (loyaltyCardsEnabled) sections.add(AppSection.loyaltyCards);
+    if (guaranteesEnabled) sections.add(AppSection.guarantees);
+    if (notesEnabled) sections.add(AppSection.notes);
+    return sections;
+  }
+
+  /// Returns the navigation tab index for [defaultSection], or 0 if not set / not enabled.
+  int get defaultSectionIndex {
+    if (defaultSection == null) return 0;
+    final idx = getEnabledSections().indexOf(defaultSection!);
+    return idx >= 0 ? idx : 0;
   }
 
   // Get list of enabled section indices

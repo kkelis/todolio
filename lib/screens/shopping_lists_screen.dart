@@ -3,7 +3,6 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../models/shopping_list.dart';
 import '../models/shopping_item.dart';
 import '../providers/shopping_lists_provider.dart';
@@ -83,7 +82,7 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.only(top: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
                 itemCount: lists.length,
                 itemBuilder: (context, index) {
                   final list = lists[index];
@@ -228,8 +227,11 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
   }
 
   void _showCreateDialog() {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
-    final defaultName = 'Shopping – ${DateFormat('d MMM').format(now)}';
+    final existingLists = ref.read(shoppingListsProvider).value ?? [];
+    final number = existingLists.length + 1;
+    final defaultName = l10n.shoppingListDefaultName(number);
 
     final list = ShoppingList(
       id: now.millisecondsSinceEpoch.toString(),
@@ -250,6 +252,21 @@ class _ShoppingListsScreenState extends ConsumerState<ShoppingListsScreen> {
     );
   }
 
+}
+
+String _unitName(ShoppingUnit unit, AppLocalizations l10n) {
+  switch (unit) {
+    case ShoppingUnit.piece:   return l10n.unitPiece;
+    case ShoppingUnit.liter:   return l10n.unitLiter;
+    case ShoppingUnit.kg:      return l10n.unitKg;
+    case ShoppingUnit.gram:    return l10n.unitGram;
+    case ShoppingUnit.ml:      return l10n.unitMl;
+    case ShoppingUnit.pack:    return l10n.unitPack;
+    case ShoppingUnit.bottle:  return l10n.unitBottle;
+    case ShoppingUnit.box:     return l10n.unitBox;
+    case ShoppingUnit.bag:     return l10n.unitBag;
+    case ShoppingUnit.other:   return l10n.unitOther;
+  }
 }
 
 class _ShoppingListCard extends StatelessWidget {
@@ -584,15 +601,34 @@ class _ShoppingListDetailScreenState
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Quantity badge
-                  Text(
-                    '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${item.unit.displayName}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: item.isCompleted
-                          ? Colors.white.withValues(alpha: 0.8)
-                          : Colors.grey[500],
-                      fontWeight: FontWeight.w500,
+                  // Quantity + unit pill (tappable)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _showQuantityUnitSheet(context, item),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: item.isCompleted
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : theme.colorScheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: item.isCompleted
+                              ? Colors.white.withValues(alpha: 0.4)
+                              : theme.colorScheme.primary.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${_unitName(item.unit, AppLocalizations.of(context))}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: item.isCompleted
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                   // Delete button
@@ -731,7 +767,7 @@ class _ShoppingListDetailScreenState
                                 ),
                               ),
                               Text(
-                                '${s.quantity.toStringAsFixed(s.quantity.truncateToDouble() == s.quantity ? 0 : 2)} ${s.unit.displayName}',
+                                '${s.quantity.toStringAsFixed(s.quantity.truncateToDouble() == s.quantity ? 0 : 2)} ${_unitName(s.unit, l10n)}',
                                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                               ),
                             ],
@@ -853,7 +889,7 @@ class _ShoppingListDetailScreenState
                 ),
               ),
               child: Text(
-                _selectedUnit.displayName.toUpperCase(),
+                _unitName(_selectedUnit, l10n).toUpperCase(),
                 style: TextStyle(
                   color: primaryColor,
                   fontWeight: FontWeight.bold,
@@ -926,6 +962,139 @@ class _ShoppingListDetailScreenState
     _itemNameFocus.requestFocus();
   }
 
+  static const List<double> _quantityValues = [
+    0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0,
+    8.0, 10.0, 12.0, 15.0, 20.0, 25.0, 50.0, 100.0,
+  ];
+
+  String _formatQty(double v) =>
+      v.truncateToDouble() == v ? v.toInt().toString() : v.toString();
+
+  void _showQuantityUnitSheet(BuildContext context, ShoppingItem item) {
+    final l10n = AppLocalizations.of(context);
+    final navBarHeight = MediaQuery.of(context).viewPadding.bottom;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    // Find nearest index in quantity list
+    int qtyIndex = _quantityValues.indexWhere((v) => v >= item.quantity);
+    if (qtyIndex < 0) qtyIndex = _quantityValues.length - 1;
+    int unitIndex = ShoppingUnit.values.indexOf(item.unit);
+
+    double tempQty = _quantityValues[qtyIndex];
+    ShoppingUnit tempUnit = item.unit;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return Container(
+          color: Colors.white,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    child: Text(l10n.cancel),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                  Text(
+                    l10n.quantityLabel,
+                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  CupertinoButton(
+                    child: Text(
+                      l10n.done,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      final updatedItems = _currentList.items.map((i) {
+                        if (i.id == item.id) {
+                          return i.copyWith(quantity: tempQty, unit: tempUnit);
+                        }
+                        return i;
+                      }).toList();
+                      setState(() {
+                        _currentList = _currentList.copyWith(items: updatedItems);
+                      });
+                      ref
+                          .read(shoppingListsNotifierProvider.notifier)
+                          .updateShoppingList(_currentList);
+                    },
+                  ),
+                ],
+              ),
+              const Divider(height: 1),
+              // Two side-by-side pickers
+              SizedBox(
+                height: 180,
+                child: Row(
+                  children: [
+                    // Quantity picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(
+                          initialItem: qtyIndex,
+                        ),
+                        itemExtent: 44,
+                        onSelectedItemChanged: (index) {
+                          tempQty = _quantityValues[index];
+                        },
+                        children: _quantityValues
+                            .map((v) => Center(
+                                  child: Text(
+                                    _formatQty(v),
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                    Container(width: 1, color: Colors.grey.shade200),
+                    // Unit picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(
+                          initialItem: unitIndex,
+                        ),
+                        itemExtent: 44,
+                        onSelectedItemChanged: (index) {
+                          tempUnit = ShoppingUnit.values[index];
+                        },
+                        children: ShoppingUnit.values
+                            .map((u) => Center(
+                                  child: Text(
+                                    _unitName(u, l10n),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: navBarHeight),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _updateListName(String name) {
     if (name.trim().isEmpty) return;
     setState(() {
@@ -988,7 +1157,7 @@ class _ShoppingListDetailScreenState
                   children: ShoppingUnit.values
                       .map((unit) => Center(
                             child: Text(
-                              unit.displayName,
+                              _unitName(unit, l10n),
                               style: const TextStyle(
                                 fontSize: 18,
                                 color: Colors.black87,
@@ -1136,7 +1305,7 @@ class _ShoppingListDetailScreenState
                           children: ShoppingUnit.values
                               .map((unit) => Center(
                                     child: Text(
-                                      unit.displayName,
+                                      _unitName(unit, l10n),
                                       style: TextStyle(
                                         fontSize: 18,
                                         color: Colors.black87,

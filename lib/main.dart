@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,6 +15,52 @@ import 'providers/settings_provider.dart';
 import 'models/reminder.dart';
 import 'models/color_scheme.dart';
 
+/// Top-level background notification handler — runs in a separate Android isolate
+/// when the app is completely killed.
+/// Must be a top-level function with @pragma('vm:entry-point') to survive tree-shaking.
+/// Crucially, it must NOT call Hive.initFlutter() (which uses path_provider via platform
+/// channels that are unavailable in this isolate). Instead, the Hive directory path is
+/// embedded in the notification payload and extracted here.
+@pragma('vm:entry-point')
+Future<void> _onBackgroundNotificationAction(NotificationResponse response) async {
+  final rawPayload = response.payload;
+  final notificationId = response.id;
+  final actionId = response.actionId;
+
+  if (actionId == null) return;
+
+  // Parse payload — new format: JSON {"i": reminderId, "d": hiveDir}; old: plain ID string
+  String reminderId;
+  String? hiveDir;
+  if (rawPayload != null) {
+    try {
+      final decoded = jsonDecode(rawPayload) as Map<String, dynamic>;
+      reminderId = (decoded['i'] as String?) ?? rawPayload;
+      hiveDir = decoded['d'] as String?;
+    } catch (_) {
+      reminderId = rawPayload; // backward compat: old notifications stored plain ID
+    }
+  } else {
+    reminderId = notificationId?.toString() ?? '';
+  }
+
+  if (reminderId.isEmpty) return;
+
+  // Initialise Hive using the embedded path — does NOT require platform channels.
+  // Falls back to Hive.initFlutter() for old-format notifications (still works when
+  // the background isolate can access path_provider, which happens on some devices).
+  if (hiveDir != null) {
+    Hive.init(hiveDir);
+  } else {
+    await Hive.initFlutter();
+  }
+
+  final storageService = LocalStorageService();
+  await storageService.init();
+
+  await _handleNotificationAction(reminderId, actionId, storageService);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -23,7 +71,7 @@ void main() async {
 
   // Initialize notifications
   final notificationService = NotificationService();
-  await notificationService.initialize();
+  await notificationService.initialize(backgroundHandler: _onBackgroundNotificationAction);
   
   // Request notification permissions
   await notificationService.requestPermissions();
@@ -31,8 +79,8 @@ void main() async {
   // Request exact alarm permissions for Android (required for exact notifications)
   await notificationService.requestExactAlarmPermission();
   
-  // Check if backup reminder is due
-  await _checkBackupReminder(localStorageService, notificationService);
+  // Migrate from the old on-open backup reminder to a scheduled system reminder
+  await _migrateBackupReminder(localStorageService, notificationService);
 
   // Set up notification action handler
   notificationService.onNotificationAction = (reminderId, action) {
@@ -47,10 +95,12 @@ void main() async {
       final action = call.arguments['action'] as String;
       final notificationId = call.arguments['notificationId'] as String;
       debugPrint('📱 Native notification action: $action for notification $notificationId');
-      // Call the handler (it's async but we don't need to await it)
       _handleNotificationAction(notificationId, action, localStorageService);
     }
   });
+
+  // Process notification actions that were persisted while the app was killed
+  await _processPendingNativeActions(platform, localStorageService);
 
   runApp(
     ProviderScope(
@@ -154,42 +204,90 @@ class ToDoLioApp extends ConsumerWidget {
   }
 }
 
-// Check if backup reminder is due
-Future<void> _checkBackupReminder(
+/// Process notification actions that were persisted by the native
+/// NotificationActionReceiver while the app was killed.
+/// Each entry is "notificationId:action" (e.g. "123456:done").
+Future<void> _processPendingNativeActions(
+  MethodChannel platform,
+  LocalStorageService storageService,
+) async {
+  try {
+    final result = await platform.invokeMethod<List<dynamic>>('getPendingActions');
+    if (result == null || result.isEmpty) return;
+
+    debugPrint('📬 Processing ${result.length} pending native notification actions');
+    for (final entry in result) {
+      final parts = (entry as String).split(':');
+      if (parts.length != 2) continue;
+      final notificationId = parts[0];
+      final action = parts[1];
+      debugPrint('   ↳ $action for notification $notificationId');
+      await _handleNotificationAction(notificationId, action, storageService);
+    }
+  } catch (e) {
+    debugPrint('⚠️ Could not read pending native actions: $e');
+  }
+}
+
+// Migrate: replace the old on-open backup notification with a scheduled system reminder.
+// On first startup after upgrade the legacy static notification (id 9999) is cancelled and
+// a proper system reminder is seeded via the same logic RemindersNotifier uses.
+Future<void> _migrateBackupReminder(
   LocalStorageService storageService,
   NotificationService notificationService,
 ) async {
   try {
+    // Cancel any leftover legacy backup notification (static id 9999)
+    await notificationService.cancelNotification(9999);
+
     final settings = await storageService.getAppSettings();
-    
-    // Check if backup reminders are enabled
-    if (!settings.backupReminderEnabled) {
-      return;
+    if (!settings.backupReminderEnabled) return;
+
+    // If a system reminder already exists, nothing to do
+    final reminders = await storageService.getReminders().first;
+    final hasSystem = reminders.any((r) => r.isSystemReminder);
+    if (hasSystem) return;
+
+    // Seed the initial scheduled backup reminder
+    final base = settings.lastBackupDate ?? DateTime.now();
+    var target = DateTime(
+      base.year, base.month, base.day + settings.backupReminderFrequencyDays, 10, 0,
+    );
+    if (target.isBefore(DateTime.now())) {
+      final now = DateTime.now();
+      target = DateTime(
+        now.year, now.month, now.day + settings.backupReminderFrequencyDays, 10, 0,
+      );
     }
-    
-    // Check if reminder is due
-    final now = DateTime.now();
-    if (settings.lastBackupDate == null) {
-      // Never backed up - show reminder immediately
-      await notificationService.showBackupReminderNotification();
-      debugPrint('📱 Backup reminder shown: Never backed up');
-    } else {
-      final daysSinceLastBackup = now.difference(settings.lastBackupDate!).inDays;
-      if (daysSinceLastBackup >= settings.backupReminderFrequencyDays) {
-        // Reminder is due
-        await notificationService.showBackupReminderNotification();
-        debugPrint('📱 Backup reminder shown: $daysSinceLastBackup days since last backup');
-      } else {
-        debugPrint('✅ Backup reminder not due: $daysSinceLastBackup days since last backup (frequency: ${settings.backupReminderFrequencyDays} days)');
-      }
-    }
+
+    const systemId = 'backup_reminder_system';
+    final reminder = Reminder(
+      id: systemId,
+      title: 'Backup Reminder',
+      description: 'Time to create a backup of your data.',
+      originalDateTime: target,
+      dateTime: target,
+      type: ReminderType.other,
+      repeatType: RepeatType.none,
+      isCompleted: false,
+      isSystemReminder: true,
+      createdAt: DateTime.now(),
+    );
+    await storageService.createReminder(reminder);
+    await notificationService.scheduleReminderNotification(
+      id: reminder.id.hashCode,
+      title: reminder.title,
+      body: reminder.description ?? 'Reminder',
+      scheduledDate: target,
+    );
+    debugPrint('📅 Backup system reminder seeded for $target');
   } catch (e) {
-    debugPrint('❌ Error checking backup reminder: $e');
+    debugPrint('❌ Error migrating backup reminder: $e');
   }
 }
 
 // Handle notification actions (called from background or foreground)
-void _handleNotificationAction(String reminderId, String action, LocalStorageService storageService) async {
+Future<void> _handleNotificationAction(String reminderId, String action, LocalStorageService storageService) async {
   try {
     debugPrint('🔔 Handling notification action: reminderId=$reminderId, action=$action');
     final reminders = await storageService.getReminders().first;
@@ -224,9 +322,47 @@ void _handleNotificationAction(String reminderId, String action, LocalStorageSer
     final notificationService = NotificationService();
     
     if (action == 'done') {
-      // Mark as completed
-      await storageService.updateReminder(reminder.copyWith(isCompleted: true));
+      // Cancel notification first
       await notificationService.cancelNotification(reminder.id.hashCode);
+
+      if (reminder.isSystemReminder) {
+        // For the backup system reminder: delete the old one and schedule the next occurrence
+        await storageService.deleteReminder(reminder.id);
+        debugPrint('✅ Backup system reminder acknowledged');
+
+        final settings = await storageService.getAppSettings();
+        if (settings.backupReminderEnabled) {
+          final now = DateTime.now();
+          final nextTarget = DateTime(
+            now.year, now.month, now.day + settings.backupReminderFrequencyDays, 10, 0,
+          );
+          const nextId = 'backup_reminder_system';
+          final nextReminder = Reminder(
+            id: nextId,
+            title: 'Backup Reminder',
+            description: 'Time to create a backup of your data.',
+            originalDateTime: nextTarget,
+            dateTime: nextTarget,
+            type: ReminderType.other,
+            repeatType: RepeatType.none,
+            isCompleted: false,
+            isSystemReminder: true,
+            createdAt: DateTime.now(),
+          );
+          await storageService.createReminder(nextReminder);
+          await notificationService.scheduleReminderNotification(
+            id: nextReminder.id.hashCode,
+            title: nextReminder.title,
+            body: nextReminder.description ?? 'Reminder',
+            scheduledDate: nextTarget,
+          );
+          debugPrint('📅 Next backup reminder scheduled for $nextTarget');
+        }
+        return;
+      }
+
+      // Normal reminder: mark as completed
+      await storageService.updateReminder(reminder.copyWith(isCompleted: true));
       debugPrint('✅ Reminder marked as done: ${reminder.title}');
       
       // If reminder has repeat, create next occurrence

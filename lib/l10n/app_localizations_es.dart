@@ -109,6 +109,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get unit => 'Unidad';
 
   @override
+  String get unitPiece => 'pieza';
+
+  @override
+  String get unitLiter => 'litro';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitGram => 'gramo';
+
+  @override
+  String get unitMl => 'ml';
+
+  @override
+  String get unitPack => 'paquete';
+
+  @override
+  String get unitBottle => 'botella';
+
+  @override
+  String get unitBox => 'caja';
+
+  @override
+  String get unitBag => 'bolsa';
+
+  @override
+  String get unitOther => 'otro';
+
+  @override
   String get brandSelectionTitle => 'Seleccionar marca';
 
   @override
@@ -458,6 +488,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sectionLoyaltyCards => 'Tarjetas de fidelización';
 
   @override
+  String get settingsDefaultSectionHeader => 'Sección predeterminada';
+
+  @override
+  String get settingsDefaultSectionSubtitle =>
+      'Elige qué sección se abre al iniciar la app';
+
+  @override
+  String get settingsDefaultSectionAuto => 'Primera habilitada (automático)';
+
+  @override
   String get settingsColorSchemeHeader => 'Esquema de colores';
 
   @override
@@ -595,6 +635,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get shoppingListsTitle => 'Listas de compras';
 
   @override
+  String shoppingListDefaultName(int number) {
+    return 'Lista de compras $number';
+  }
+
+  @override
   String get tooltipImportCsv => 'Importar CSV';
 
   @override
@@ -709,6 +754,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addTaskHint => 'Añade tu tarea aquí';
+
+  @override
+  String get clearCompletedTasks => 'Limpiar completadas';
+
+  @override
+  String get clearCompletedTasksDialogTitle => '¿Limpiar tareas completadas?';
+
+  @override
+  String get clearCompletedTasksDialogMessage =>
+      'Esto eliminará permanentemente todas las tareas completadas. Esta acción no se puede deshacer.';
 
   @override
   String get taskTypeLabel => 'Tipo de tarea';
