@@ -601,15 +601,34 @@ class _ShoppingListDetailScreenState
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Quantity badge
-                  Text(
-                    '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${_unitName(item.unit, AppLocalizations.of(context))}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: item.isCompleted
-                          ? Colors.white.withValues(alpha: 0.8)
-                          : Colors.grey[500],
-                      fontWeight: FontWeight.w500,
+                  // Quantity + unit pill (tappable)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _showQuantityUnitSheet(context, item),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: item.isCompleted
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : theme.colorScheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: item.isCompleted
+                              ? Colors.white.withValues(alpha: 0.4)
+                              : theme.colorScheme.primary.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${item.quantity.toStringAsFixed(item.quantity.truncateToDouble() == item.quantity ? 0 : 2)} ${_unitName(item.unit, AppLocalizations.of(context))}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: item.isCompleted
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                   // Delete button
@@ -941,6 +960,139 @@ class _ShoppingListDetailScreenState
 
     ref.read(shoppingListsNotifierProvider.notifier).updateShoppingList(_currentList);
     _itemNameFocus.requestFocus();
+  }
+
+  static const List<double> _quantityValues = [
+    0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0,
+    8.0, 10.0, 12.0, 15.0, 20.0, 25.0, 50.0, 100.0,
+  ];
+
+  String _formatQty(double v) =>
+      v.truncateToDouble() == v ? v.toInt().toString() : v.toString();
+
+  void _showQuantityUnitSheet(BuildContext context, ShoppingItem item) {
+    final l10n = AppLocalizations.of(context);
+    final navBarHeight = MediaQuery.of(context).viewPadding.bottom;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    // Find nearest index in quantity list
+    int qtyIndex = _quantityValues.indexWhere((v) => v >= item.quantity);
+    if (qtyIndex < 0) qtyIndex = _quantityValues.length - 1;
+    int unitIndex = ShoppingUnit.values.indexOf(item.unit);
+
+    double tempQty = _quantityValues[qtyIndex];
+    ShoppingUnit tempUnit = item.unit;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return Container(
+          color: Colors.white,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CupertinoButton(
+                    child: Text(l10n.cancel),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                  Text(
+                    l10n.quantityLabel,
+                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  CupertinoButton(
+                    child: Text(
+                      l10n.done,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      final updatedItems = _currentList.items.map((i) {
+                        if (i.id == item.id) {
+                          return i.copyWith(quantity: tempQty, unit: tempUnit);
+                        }
+                        return i;
+                      }).toList();
+                      setState(() {
+                        _currentList = _currentList.copyWith(items: updatedItems);
+                      });
+                      ref
+                          .read(shoppingListsNotifierProvider.notifier)
+                          .updateShoppingList(_currentList);
+                    },
+                  ),
+                ],
+              ),
+              const Divider(height: 1),
+              // Two side-by-side pickers
+              SizedBox(
+                height: 180,
+                child: Row(
+                  children: [
+                    // Quantity picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(
+                          initialItem: qtyIndex,
+                        ),
+                        itemExtent: 44,
+                        onSelectedItemChanged: (index) {
+                          tempQty = _quantityValues[index];
+                        },
+                        children: _quantityValues
+                            .map((v) => Center(
+                                  child: Text(
+                                    _formatQty(v),
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                    Container(width: 1, color: Colors.grey.shade200),
+                    // Unit picker
+                    Expanded(
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(
+                          initialItem: unitIndex,
+                        ),
+                        itemExtent: 44,
+                        onSelectedItemChanged: (index) {
+                          tempUnit = ShoppingUnit.values[index];
+                        },
+                        children: ShoppingUnit.values
+                            .map((u) => Center(
+                                  child: Text(
+                                    _unitName(u, l10n),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: navBarHeight),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _updateListName(String name) {
