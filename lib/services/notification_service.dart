@@ -31,7 +31,7 @@ class NotificationService {
     );
 
     await _notifications.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
       onDidReceiveBackgroundNotificationResponse:
           backgroundHandler ?? _onBackgroundNotificationTapped,
@@ -237,10 +237,10 @@ class NotificationService {
   /// Test notification - shows immediately for testing
   Future<void> showTestNotification() async {
     await _notifications.show(
-      999,
-      'Test Notification',
-      'Notifications are working! 🎉',
-      const NotificationDetails(
+      id: 999,
+      title: 'Test Notification',
+      body: 'Notifications are working! 🎉',
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'reminders',
           'Reminders',
@@ -348,10 +348,10 @@ class NotificationService {
 
     // Show a new notification with snooze options
     await _notifications.show(
-      originalNotificationId + 2000, // Different ID to avoid conflicts
-      'Snooze Reminder',
-      'Select snooze duration',
-      NotificationDetails(
+      id: originalNotificationId + 2000, // Different ID to avoid conflicts
+      title: 'Snooze Reminder',
+      body: 'Select snooze duration',
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'reminders',
           'Reminders',
@@ -423,10 +423,10 @@ class NotificationService {
       if (timeUntilNotification.isNegative || timeUntilNotification.inSeconds <= 0) {
         debugPrint('⚠️ Notification time is in the past or immediate, showing now...');
         await _notifications.show(
-          id,
-          title,
-          body,
-          NotificationDetails(
+          id: id,
+          title: title,
+          body: body,
+          notificationDetails: NotificationDetails(
             android: AndroidNotificationDetails(
               'reminders',
               'Reminders',
@@ -463,11 +463,11 @@ class NotificationService {
       // First, schedule the notification using zonedSchedule
       // Then use setAlarmClock() to ensure it fires reliably
       await _notifications.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduledTZ,
-        NotificationDetails(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduledTZ,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             'reminders',
             'Reminders',
@@ -541,11 +541,11 @@ class NotificationService {
         debugPrint('🔄 Attempting fallback with inexact scheduling...');
         final scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
         await _notifications.zonedSchedule(
-          id,
-          title,
-          body,
-          scheduledTZ,
-          const NotificationDetails(
+          id: id,
+          title: title,
+          body: body,
+          scheduledDate: scheduledTZ,
+          notificationDetails: const NotificationDetails(
             android: AndroidNotificationDetails(
               'reminders',
               'Reminders',
@@ -593,10 +593,10 @@ class NotificationService {
             ),
           ];
           await _notifications.show(
-            id,
-            title,
-            body,
-            NotificationDetails(
+            id: id,
+            title: title,
+            body: body,
+            notificationDetails: NotificationDetails(
               android: AndroidNotificationDetails(
                 'reminders',
                 'Reminders',
@@ -632,11 +632,11 @@ class NotificationService {
   }) async {
     // Use inexact scheduling for better reliability
     await _notifications.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      const NotificationDetails(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'guarantees',
           'Guarantee Expiries',
@@ -656,7 +656,7 @@ class NotificationService {
   }
 
   Future<void> cancelNotification(int id) async {
-    await _notifications.cancel(id);
+    await _notifications.cancel(id: id);
     
     // Also cancel the alarm clock
     try {
@@ -697,10 +697,10 @@ class NotificationService {
   /// Show backup reminder notification
   Future<void> showBackupReminderNotification() async {
     await _notifications.show(
-      9999, // Special ID for backup reminders
-      '🔔 Time to backup your data!',
-      'Don\'t forget to backup your Todolio data. Tap to open settings.',
-      const NotificationDetails(
+      id: 9999, // Special ID for backup reminders
+      title: '🔔 Time to backup your data!',
+      body: 'Don\'t forget to backup your Todolio data. Tap to open settings.',
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'reminders',
           'Reminders',
