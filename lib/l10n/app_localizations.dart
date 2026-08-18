@@ -670,6 +670,24 @@ abstract class AppLocalizations {
   /// **'No barcode or QR code – enter manually'**
   String get noBarcodeManualEntryLabel;
 
+  /// Option label in add-card chooser sheet for scanning — loyalty_cards_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Scan barcode or QR code'**
+  String get scanBarcodeOptionLabel;
+
+  /// Option label in add-card chooser sheet, and title of the manual entry sheet — loyalty_cards_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Enter number manually'**
+  String get enterManuallyOptionLabel;
+
+  /// Validation message shown when saving a manually-entered card with an empty number — loyalty_cards_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a card number'**
+  String get pleaseEnterCardNumber;
+
   /// Validation SnackBar when saving loyalty card without required fields — loyalty_cards_screen.dart ~line 634
   ///
   /// In en, this message translates to:

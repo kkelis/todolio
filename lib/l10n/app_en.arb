@@ -303,6 +303,15 @@
   "noBarcodeManualEntryLabel": "No barcode or QR code – enter manually",
   "@noBarcodeManualEntryLabel": { "description": "Switch label to toggle manual (text-only) card number entry — loyalty_cards_screen.dart" },
 
+  "scanBarcodeOptionLabel": "Scan barcode or QR code",
+  "@scanBarcodeOptionLabel": { "description": "Option label in add-card chooser sheet for scanning — loyalty_cards_screen.dart" },
+
+  "enterManuallyOptionLabel": "Enter number manually",
+  "@enterManuallyOptionLabel": { "description": "Option label in add-card chooser sheet, and title of the manual entry sheet — loyalty_cards_screen.dart" },
+
+  "pleaseEnterCardNumber": "Please enter a card number",
+  "@pleaseEnterCardNumber": { "description": "Validation message shown when saving a manually-entered card with an empty number — loyalty_cards_screen.dart" },
+
   "fillInCardNameAndBarcode": "Please fill in card name and barcode number",
   "@fillInCardNameAndBarcode": { "description": "Validation SnackBar when saving loyalty card without required fields — loyalty_cards_screen.dart ~line 634" },
 

@@ -304,6 +304,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin código de barras ni QR: introducir manualmente';
 
   @override
+  String get scanBarcodeOptionLabel => 'Escanear código de barras o QR';
+
+  @override
+  String get enterManuallyOptionLabel => 'Introducir número manualmente';
+
+  @override
+  String get pleaseEnterCardNumber =>
+      'Por favor, introduce un número de tarjeta';
+
+  @override
   String get fillInCardNameAndBarcode =>
       'Por favor, rellena el nombre de la tarjeta y el código de barras';
 

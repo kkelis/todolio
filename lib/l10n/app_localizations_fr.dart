@@ -304,6 +304,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas de code-barres ni de QR code – saisie manuelle';
 
   @override
+  String get scanBarcodeOptionLabel => 'Scanner le code-barres ou le QR code';
+
+  @override
+  String get enterManuallyOptionLabel => 'Saisir le numéro manuellement';
+
+  @override
+  String get pleaseEnterCardNumber => 'Veuillez saisir un numéro de carte';
+
+  @override
   String get fillInCardNameAndBarcode =>
       'Veuillez renseigner le nom de la carte et le numéro de code-barres';
 

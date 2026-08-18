@@ -304,6 +304,15 @@ class AppLocalizationsHr extends AppLocalizations {
       'Nema crtičnog ili QR koda – ručni unos';
 
   @override
+  String get scanBarcodeOptionLabel => 'Skeniraj crtični ili QR kod';
+
+  @override
+  String get enterManuallyOptionLabel => 'Unesi broj ručno';
+
+  @override
+  String get pleaseEnterCardNumber => 'Molimo unesite broj kartice';
+
+  @override
   String get fillInCardNameAndBarcode =>
       'Molimo ispunite naziv kartice i broj barkoda';
 
