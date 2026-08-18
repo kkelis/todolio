@@ -193,6 +193,15 @@ class AppLocalizationsHr extends AppLocalizations {
   String get receiptPhotoButton => 'Račun';
 
   @override
+  String get pickImageSourceTitle => 'Dodaj fotografiju';
+
+  @override
+  String get takePhotoOption => 'Snimi fotografiju';
+
+  @override
+  String get chooseFromGalleryOption => 'Odaberi iz galerije';
+
+  @override
   String get warrantyPhotoCaptured => 'Fotografija garancije snimljena';
 
   @override

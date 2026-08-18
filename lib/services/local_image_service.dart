@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -7,7 +9,7 @@ class LocalImageService {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final imagesDir = Directory(path.join(directory.path, 'images'));
-      
+
       if (!await imagesDir.exists()) {
         await imagesDir.create(recursive: true);
       }
@@ -45,9 +47,24 @@ class LocalImageService {
     }
   }
 
-  Future<String> generateFileName(String prefix) async {
+  Future<String> generateFileName(
+    String prefix, {
+    String extension = '.jpg',
+  }) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return '$prefix$timestamp.jpg';
+    final normalizedExtension =
+        extension.startsWith('.') ? extension : '.$extension';
+    return '$prefix$timestamp$normalizedExtension';
+  }
+
+  Future<bool> saveToGallery(File imageFile) async {
+    try {
+      await Gal.putImage(imageFile.path, album: 'Todolio');
+      return true;
+    } on GalException catch (error, stackTrace) {
+      debugPrint('Could not save image to the Todolio gallery album: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      return false;
+    }
   }
 }
-

@@ -186,6 +186,15 @@
   "receiptPhotoButton": "Receipt",
   "@receiptPhotoButton": { "description": "ElevatedButton.icon label for capturing receipt photo — guarantees_screen.dart ~line 283" },
 
+  "pickImageSourceTitle": "Add Photo",
+  "@pickImageSourceTitle": { "description": "Title of the camera/gallery picker bottom sheet — guarantees_screen.dart" },
+
+  "takePhotoOption": "Take Photo",
+  "@takePhotoOption": { "description": "Camera option in the camera/gallery picker bottom sheet — guarantees_screen.dart" },
+
+  "chooseFromGalleryOption": "Choose from Gallery",
+  "@chooseFromGalleryOption": { "description": "Gallery option in the camera/gallery picker bottom sheet — guarantees_screen.dart" },
+
   "warrantyPhotoCaptured": "Warranty photo captured",
   "@warrantyPhotoCaptured": { "description": "Status text shown after warranty photo is taken — guarantees_screen.dart ~line 299" },
 

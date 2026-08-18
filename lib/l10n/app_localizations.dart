@@ -466,6 +466,24 @@ abstract class AppLocalizations {
   /// **'Receipt'**
   String get receiptPhotoButton;
 
+  /// Title of the camera/gallery picker bottom sheet — guarantees_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photo'**
+  String get pickImageSourceTitle;
+
+  /// Camera option in the camera/gallery picker bottom sheet — guarantees_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhotoOption;
+
+  /// Gallery option in the camera/gallery picker bottom sheet — guarantees_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGalleryOption;
+
   /// Status text shown after warranty photo is taken — guarantees_screen.dart ~line 299
   ///
   /// In en, this message translates to:

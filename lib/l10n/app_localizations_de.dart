@@ -193,6 +193,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get receiptPhotoButton => 'Kassenbon';
 
   @override
+  String get pickImageSourceTitle => 'Foto hinzufügen';
+
+  @override
+  String get takePhotoOption => 'Foto aufnehmen';
+
+  @override
+  String get chooseFromGalleryOption => 'Aus Galerie wählen';
+
+  @override
   String get warrantyPhotoCaptured => 'Garantiefoto aufgenommen';
 
   @override
