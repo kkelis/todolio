@@ -387,6 +387,7 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
     final cardNameController = TextEditingController(text: card?.cardName ?? '');
     final barcodeNumberController = TextEditingController(text: card?.barcodeNumber ?? '');
     loyalty_card.BarcodeType barcodeType = card?.barcodeType ?? loyalty_card.BarcodeType.ean13;
+    bool isManualEntry = card?.barcodeType == loyalty_card.BarcodeType.manual;
     bool isPinned = card?.isPinned ?? false;
     Brand? selectedBrand = card?.brandId != null
         ? BrandDatabase.getBrandById(card!.brandId!)
@@ -604,26 +605,49 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            if (!isManualEntry) ...[
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                ),
+                                onPressed: () => _showBarcodeScanner(
+                                  context,
+                                  (barcode, type) {
+                                    setState(() {
+                                      barcodeNumberController.text = barcode;
+                                      barcodeType = type;
+                                    });
+                                  },
+                                ),
+                                icon: const Icon(Icons.qr_code_scanner),
+                                label: Text(l10n.scanButtonLabel),
                               ),
-                              onPressed: () => _showBarcodeScanner(
-                                context,
-                                (barcode, type) {
-                                  setState(() {
-                                    barcodeNumberController.text = barcode;
-                                    barcodeType = type;
-                                  });
-                                },
-                              ),
-                              icon: const Icon(Icons.qr_code_scanner),
-                              label: Text(l10n.scanButtonLabel),
-                            ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            l10n.noBarcodeManualEntryLabel,
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          trailing: Switch(
+                            value: isManualEntry,
+                            onChanged: (value) => setState(() {
+                              isManualEntry = value;
+                              barcodeType = value
+                                  ? loyalty_card.BarcodeType.manual
+                                  : loyalty_card.BarcodeType.ean13;
+                            }),
+                            activeTrackColor: Theme.of(context).colorScheme.primary,
+                            activeThumbColor: Colors.white,
+                            inactiveTrackColor: Colors.grey.shade300,
+                            inactiveThumbColor: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         ListTile(
                           title: Text(
                             l10n.pinned,

@@ -13,6 +13,14 @@ class NotificationService {
   // Callback for handling notification actions
   Function(String reminderId, String action)? onNotificationAction;
 
+  // Callback fired when the user taps (not an action button) the backup
+  // reminder notification — used to navigate straight to the backup settings.
+  VoidCallback? onBackupNotificationTapped;
+
+  // Notification id used for the recurring system backup reminder.
+  // Mirrors `'backup_reminder_system'.hashCode` used when scheduling it.
+  static final int backupReminderNotificationId = 'backup_reminder_system'.hashCode;
+
   Future<void> initialize({
     void Function(NotificationResponse)? backgroundHandler,
   }) async {
@@ -317,8 +325,10 @@ class NotificationService {
       onNotificationAction?.call(reminderId, 'snooze_1h');
     } else if (actionId == null) {
       // Notification was tapped (not an action button)
-      // Could navigate to the reminder screen
       debugPrint('📱 Notification tapped: $reminderId');
+      if (notificationId == backupReminderNotificationId) {
+        onBackupNotificationTapped?.call();
+      }
     }
   }
 

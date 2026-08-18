@@ -300,6 +300,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get scanButtonLabel => 'Skeniraj';
 
   @override
+  String get noBarcodeManualEntryLabel =>
+      'Nema crtičnog ili QR koda – ručni unos';
+
+  @override
   String get fillInCardNameAndBarcode =>
       'Molimo ispunite naziv kartice i broj barkoda';
 

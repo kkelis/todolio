@@ -26,6 +26,26 @@ class BarcodeDisplayWidget extends StatelessWidget {
     final fgColor = foregroundColor ?? Colors.black;
     final bgColor = backgroundColor ?? Colors.white;
 
+    if (barcodeType == loyalty_card.BarcodeType.manual) {
+      return Container(
+        width: width,
+        height: height,
+        color: bgColor,
+        padding: const EdgeInsets.all(16),
+        alignment: Alignment.center,
+        child: SelectableText(
+          barcodeNumber,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: fgColor,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+      );
+    }
+
     if (barcodeType == loyalty_card.BarcodeType.qrCode) {
       return Container(
         width: width,
@@ -78,6 +98,9 @@ class BarcodeDisplayWidget extends StatelessWidget {
         barcode = Barcode.upcA();
         break;
       case loyalty_card.BarcodeType.qrCode:
+        // Already handled above
+        break;
+      case loyalty_card.BarcodeType.manual:
         // Already handled above
         break;
     }

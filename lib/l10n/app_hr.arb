@@ -97,6 +97,7 @@
   "genericCardFallback": "Generička kartica",
   "barcodeNumberLabel": "Broj barkoda",
   "scanButtonLabel": "Skeniraj",
+  "noBarcodeManualEntryLabel": "Nema crtičnog ili QR koda – ručni unos",
   "fillInCardNameAndBarcode": "Molimo ispunite naziv kartice i broj barkoda",
   "scanBarcodeTitle": "Skenirajte barkod",
   "tooltipPickFromGallery": "Odaberi iz galerije",

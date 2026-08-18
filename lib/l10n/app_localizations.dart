@@ -664,6 +664,12 @@ abstract class AppLocalizations {
   /// **'Scan'**
   String get scanButtonLabel;
 
+  /// Switch label to toggle manual (text-only) card number entry — loyalty_cards_screen.dart
+  ///
+  /// In en, this message translates to:
+  /// **'No barcode or QR code – enter manually'**
+  String get noBarcodeManualEntryLabel;
+
   /// Validation SnackBar when saving loyalty card without required fields — loyalty_cards_screen.dart ~line 634
   ///
   /// In en, this message translates to:
