@@ -60,46 +60,21 @@ class CsvService {
   /// Import shopping list from CSV file
   Future<ShoppingList?> importShoppingList() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['csv', 'txt'], // Allow txt as well in case CSV extension is missing
-        withData: true, // Request file data
-        withReadStream: false, // Don't use stream for simplicity
       );
 
-      if (result == null || result.files.isEmpty) {
+      if (file == null) {
         return null;
       }
 
-      final file = result.files.first;
+      final fileBytes = await file.readAsBytes();
       String csvContent;
-
-      // Try to read from bytes first (works on most platforms)
-      if (file.bytes != null && file.bytes!.isNotEmpty) {
-        try {
-          csvContent = utf8.decode(file.bytes!);
-        } catch (e) {
-          // If UTF-8 fails, try latin1 (some systems use this)
-          csvContent = const Latin1Codec().decode(file.bytes!);
-        }
-      } 
-      // If bytes are null or empty, try to read from path (works on mobile when file is saved)
-      else if (file.path != null && file.path!.isNotEmpty) {
-        final fileHandle = File(file.path!);
-        if (await fileHandle.exists()) {
-          try {
-            csvContent = await fileHandle.readAsString(encoding: utf8);
-          } catch (e) {
-            // Try latin1 if UTF-8 fails
-            csvContent = await fileHandle.readAsString(encoding: const Latin1Codec());
-          }
-        } else {
-          throw Exception('File not found at path: ${file.path}');
-        }
-      } 
-      // If both fail
-      else {
-        throw Exception('Unable to read file. File has no bytes or valid path. File name: ${file.name}');
+      try {
+        csvContent = utf8.decode(fileBytes);
+      } catch (_) {
+        csvContent = const Latin1Codec().decode(fileBytes);
       }
 
       if (csvContent.trim().isEmpty) {
@@ -236,4 +211,3 @@ class CsvService {
     return fields;
   }
 }
-

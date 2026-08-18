@@ -98,17 +98,14 @@ class BackupService {
   Future<bool> importBackup(BackupImportMode mode) async {
     try {
       // Pick backup file
-      final result = await FilePicker.platform.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['zip'],
-        withData: true,
       );
 
-      if (result == null || result.files.isEmpty) {
+      if (file == null) {
         return false; // User cancelled
       }
-
-      final file = result.files.first;
 
       // Create temporary directory for extraction
       final tempDir = await getTemporaryDirectory();
@@ -118,15 +115,7 @@ class BackupService {
       await extractDir.create(recursive: true);
 
       // Read ZIP file
-      List<int> zipBytes;
-      if (file.bytes != null && file.bytes!.isNotEmpty) {
-        zipBytes = file.bytes!;
-      } else if (file.path != null && file.path!.isNotEmpty) {
-        final fileHandle = File(file.path!);
-        zipBytes = await fileHandle.readAsBytes();
-      } else {
-        throw Exception('Unable to read backup file');
-      }
+      final zipBytes = await file.readAsBytes();
 
       // Extract ZIP
       final archive = ZipDecoder().decodeBytes(zipBytes);
