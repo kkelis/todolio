@@ -97,6 +97,7 @@
   "genericCardFallback": "Carte générique",
   "barcodeNumberLabel": "Numéro de code-barres",
   "scanButtonLabel": "Scanner",
+  "noBarcodeManualEntryLabel": "Pas de code-barres ni de QR code – saisie manuelle",
   "fillInCardNameAndBarcode": "Veuillez renseigner le nom de la carte et le numéro de code-barres",
   "scanBarcodeTitle": "Scanner le code-barres",
   "tooltipPickFromGallery": "Choisir dans la galerie",

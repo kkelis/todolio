@@ -300,6 +300,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get scanButtonLabel => 'Scannen';
 
   @override
+  String get noBarcodeManualEntryLabel =>
+      'Kein Barcode oder QR-Code – manuell eingeben';
+
+  @override
   String get fillInCardNameAndBarcode =>
       'Bitte Kartenname und Barcode-Nummer ausfüllen';
 

@@ -14,11 +14,44 @@ import '../services/backup_service.dart';
 import '../widgets/gradient_background.dart';
 import '../l10n/app_localizations.dart';
 
-class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+class SettingsScreen extends ConsumerStatefulWidget {
+  final bool scrollToBackup;
+
+  const SettingsScreen({super.key, this.scrollToBackup = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  final _scrollController = ScrollController();
+  final _backupSectionKey = GlobalKey();
+  bool _scrolledToBackup = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _maybeScrollToBackup() {
+    if (_scrolledToBackup || !widget.scrollToBackup) return;
+    _scrolledToBackup = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = _backupSectionKey.currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          alignment: 0.1,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settingsAsync = ref.watch(appSettingsProvider);
 
@@ -29,7 +62,10 @@ class SettingsScreen extends ConsumerWidget {
           title: Text(l10n.settingsTitle),
         ),
         body: settingsAsync.when(
-          data: (settings) => _buildSettingsContent(context, ref, settings),
+          data: (settings) {
+            _maybeScrollToBackup();
+            return _buildSettingsContent(context, ref, settings);
+          },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
             child: Column(
@@ -52,6 +88,7 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
+      controller: _scrollController,
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,6 +188,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 32),
           // Backup & Restore Section
           Text(
+            key: _backupSectionKey,
             l10n.settingsBackupHeader,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Colors.white,

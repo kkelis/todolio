@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/main_navigation.dart';
+import 'screens/settings_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/notification_service.dart';
 import 'services/local_storage_service.dart';
@@ -14,6 +15,10 @@ import 'providers/reminders_provider.dart';
 import 'providers/settings_provider.dart';
 import 'models/reminder.dart';
 import 'models/color_scheme.dart';
+
+/// Global navigator key so services (e.g. notification taps) can push routes
+/// without a BuildContext.
+final navigatorKey = GlobalKey<NavigatorState>();
 
 /// Top-level background notification handler — runs in a separate Android isolate
 /// when the app is completely killed.
@@ -87,6 +92,16 @@ void main() async {
     // This will be handled by the provider after the app starts
     _handleNotificationAction(reminderId, action, localStorageService);
   };
+
+  // Navigate to Settings (scrolled to the backup section) when the user taps
+  // the backup reminder notification itself (not an action button).
+  notificationService.onBackupNotificationTapped = () {
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(scrollToBackup: true),
+      ),
+    );
+  };
   
   // Set up method channel for native notification actions
   const platform = MethodChannel('com.todolio.todolio/notification_actions');
@@ -134,6 +149,7 @@ class ToDoLioApp extends ConsumerWidget {
         debugPrint('   Theme ElevatedButton backgroundColor: ${theme.elevatedButtonTheme.style?.backgroundColor}');
         
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'ToDoLio',
           locale: settings.languageCode != null
               ? Locale(settings.languageCode!)
@@ -153,6 +169,7 @@ class ToDoLioApp extends ConsumerWidget {
         );
       },
       loading: () => MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'ToDoLio',
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -172,6 +189,7 @@ class ToDoLioApp extends ConsumerWidget {
       error: (error, stack) {
         debugPrint('❌ Error loading settings: $error');
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'ToDoLio',
           localizationsDelegates: const [
             AppLocalizations.delegate,

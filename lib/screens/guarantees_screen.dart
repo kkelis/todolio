@@ -218,6 +218,49 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
     }
   }
 
+  /// Small thumbnail preview of a picked warranty/receipt image with a
+  /// delete (X) button overlay, used inside the add/edit dialog.
+  Widget _buildImageThumbnail(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required String imagePath,
+    required VoidCallback onRemove,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            File(imagePath),
+            height: 80,
+            width: 80,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          top: -8,
+          right: -8,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showEditDialog(Guarantee? guarantee) async {
     final productNameController =
         TextEditingController(text: guarantee?.productName ?? '');
@@ -435,10 +478,33 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   ),
                   if (warrantyImagePath != null || receiptImagePath != null)
                     const SizedBox(height: 16),
-                  if (warrantyImagePath != null)
-                    Text(l10n.warrantyPhotoCaptured, style: TextStyle(color: Colors.green[700])),
-                  if (receiptImagePath != null)
-                    Text(l10n.receiptPhotoCaptured, style: TextStyle(color: Colors.green[700])),
+                  if (warrantyImagePath != null || receiptImagePath != null)
+                    Row(
+                      children: [
+                        if (warrantyImagePath != null)
+                          _buildImageThumbnail(
+                            context,
+                            l10n,
+                            imagePath: warrantyImagePath!,
+                            onRemove: () async {
+                              await _imageService.deleteImage(warrantyImagePath!);
+                              setState(() => warrantyImagePath = null);
+                            },
+                          ),
+                        if (warrantyImagePath != null && receiptImagePath != null)
+                          const SizedBox(width: 12),
+                        if (receiptImagePath != null)
+                          _buildImageThumbnail(
+                            context,
+                            l10n,
+                            imagePath: receiptImagePath!,
+                            onRemove: () async {
+                              await _imageService.deleteImage(receiptImagePath!);
+                              setState(() => receiptImagePath = null);
+                            },
+                          ),
+                      ],
+                    ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: notesController,

@@ -300,6 +300,9 @@
   "scanButtonLabel": "Scan",
   "@scanButtonLabel": { "description": "Label on scan barcode ElevatedButton.icon — loyalty_cards_screen.dart ~line 594" },
 
+  "noBarcodeManualEntryLabel": "No barcode or QR code – enter manually",
+  "@noBarcodeManualEntryLabel": { "description": "Switch label to toggle manual (text-only) card number entry — loyalty_cards_screen.dart" },
+
   "fillInCardNameAndBarcode": "Please fill in card name and barcode number",
   "@fillInCardNameAndBarcode": { "description": "Validation SnackBar when saving loyalty card without required fields — loyalty_cards_screen.dart ~line 634" },
 

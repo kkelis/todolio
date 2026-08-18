@@ -3,6 +3,7 @@ enum BarcodeType {
   code128,
   qrCode,
   upcA,
+  manual,
 }
 
 extension BarcodeTypeExtension on BarcodeType {
@@ -16,6 +17,8 @@ extension BarcodeTypeExtension on BarcodeType {
         return 'QR Code';
       case BarcodeType.upcA:
         return 'UPC-A';
+      case BarcodeType.manual:
+        return 'Manual / No code';
     }
   }
 
@@ -29,6 +32,8 @@ extension BarcodeTypeExtension on BarcodeType {
         return 'qrCode';
       case BarcodeType.upcA:
         return 'upcA';
+      case BarcodeType.manual:
+        return 'manual';
     }
   }
 
@@ -42,6 +47,8 @@ extension BarcodeTypeExtension on BarcodeType {
         return BarcodeType.qrCode;
       case 'upcA':
         return BarcodeType.upcA;
+      case 'manual':
+        return BarcodeType.manual;
       default:
         return BarcodeType.ean13;
     }
