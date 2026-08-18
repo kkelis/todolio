@@ -193,6 +193,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get receiptPhotoButton => 'Scontrino';
 
   @override
+  String get pickImageSourceTitle => 'Aggiungi foto';
+
+  @override
+  String get takePhotoOption => 'Scatta foto';
+
+  @override
+  String get chooseFromGalleryOption => 'Scegli dalla galleria';
+
+  @override
   String get warrantyPhotoCaptured => 'Foto garanzia acquisita';
 
   @override

@@ -193,6 +193,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get receiptPhotoButton => 'Recibo';
 
   @override
+  String get pickImageSourceTitle => 'Añadir foto';
+
+  @override
+  String get takePhotoOption => 'Tomar foto';
+
+  @override
+  String get chooseFromGalleryOption => 'Elegir de la galería';
+
+  @override
   String get warrantyPhotoCaptured => 'Foto de garantía capturada';
 
   @override

@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path/path.dart' as path;
 import '../models/guarantee.dart';
 import '../providers/guarantees_provider.dart';
 import '../providers/settings_provider.dart';
@@ -22,6 +25,7 @@ class GuaranteesScreen extends ConsumerStatefulWidget {
 
 class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
   final _imageService = LocalImageService();
+  final _imagePicker = ImagePicker();
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +137,85 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
       ),
       ),
     );
+  }
+
+  Future<XFile?> _pickImage(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.pickImageSourceTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(l10n.takePhotoOption),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(l10n.chooseFromGalleryOption),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return null;
+    return _imagePicker.pickImage(source: source);
+  }
+
+  Future<String?> _pickAndSaveImage(
+    BuildContext context,
+    String prefix,
+  ) async {
+    final image = await _pickImage(context);
+    if (image == null) return null;
+
+    final extension = path.extension(image.path);
+    final fileName = await _imageService.generateFileName(
+      prefix,
+      extension: extension.isEmpty ? '.jpg' : extension,
+    );
+    final savedPath = await _imageService.saveImage(
+      File(image.path),
+      fileName,
+    );
+    await _imageService.saveToGallery(File(savedPath));
+    return savedPath;
+  }
+
+  Future<void> _openImage(BuildContext context, String imagePath) async {
+    try {
+      final result = await OpenFilex.open(imagePath, type: 'image/*');
+      if (!context.mounted || result.type == ResultType.done) return;
+
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.errorWithDetails(result.message))),
+      );
+    } on PlatformException catch (error, stackTrace) {
+      debugPrint('Could not open guarantee image: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!context.mounted) return;
+
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.errorWithDetails(error.message ?? error.code))),
+      );
+    }
   }
 
   void _showEditDialog(Guarantee? guarantee) async {
@@ -323,15 +406,8 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                             // Let theme handle backgroundColor and foregroundColor
                           ),
                           onPressed: () async {
-                            final image = await ImagePicker().pickImage(
-                              source: ImageSource.camera,
-                            );
-                            if (image != null) {
-                              final fileName = await _imageService.generateFileName('warranty');
-                              final path = await _imageService.saveImage(
-                                File(image.path),
-                                fileName,
-                              );
+                            final path = await _pickAndSaveImage(context, 'warranty');
+                            if (path != null && context.mounted) {
                               setState(() => warrantyImagePath = path);
                             }
                           },
@@ -346,15 +422,8 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                             // Let theme handle backgroundColor and foregroundColor
                           ),
                           onPressed: () async {
-                            final image = await ImagePicker().pickImage(
-                              source: ImageSource.camera,
-                            );
-                            if (image != null) {
-                              final fileName = await _imageService.generateFileName('receipt');
-                              final path = await _imageService.saveImage(
-                                File(image.path),
-                                fileName,
-                              );
+                            final path = await _pickAndSaveImage(context, 'receipt');
+                            if (path != null && context.mounted) {
                               setState(() => receiptImagePath = path);
                             }
                           },
@@ -604,7 +673,10 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Image.file(File(guarantee.warrantyImagePath!), height: 200),
+                GestureDetector(
+                  onTap: () => _openImage(context, guarantee.warrantyImagePath!),
+                  child: Image.file(File(guarantee.warrantyImagePath!), height: 200),
+                ),
               ],
               if (guarantee.receiptImagePath != null) ...[
                 const SizedBox(height: 16),
@@ -616,7 +688,10 @@ class _GuaranteesScreenState extends ConsumerState<GuaranteesScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Image.file(File(guarantee.receiptImagePath!), height: 200),
+                GestureDetector(
+                  onTap: () => _openImage(context, guarantee.receiptImagePath!),
+                  child: Image.file(File(guarantee.receiptImagePath!), height: 200),
+                ),
               ],
             ],
           ),
@@ -798,4 +873,3 @@ class _GuaranteeCard extends StatelessWidget {
     );
   }
 }
-
