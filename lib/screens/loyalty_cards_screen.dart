@@ -341,46 +341,152 @@ class _LoyaltyCardsScreenState extends ConsumerState<LoyaltyCardsScreen> {
           onBrandSelected: (brand) {
             // Cancel/back should just close the selector, not start scanning.
             if (brand == null) return;
-            _showBarcodeScannerWithBrand(context, brand);
+            _showAddCardMethodChooser(context, brand);
           },
         ),
       ),
     );
   }
 
-  void _showBarcodeScannerWithBrand(BuildContext context, Brand? brand) {
+  /// Lets the user choose how to add the new card: by scanning its
+  /// barcode/QR code, or by typing the number in manually (for cards that
+  /// only print a number with no scannable code).
+  void _showAddCardMethodChooser(BuildContext context, Brand? brand) {
     final l10n = AppLocalizations.of(context);
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.qr_code_scanner),
+              title: Text(l10n.scanBarcodeOptionLabel),
+              onTap: () {
+                Navigator.pop(context);
+                _showBarcodeScannerWithBrand(context, brand);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.keyboard),
+              title: Text(l10n.enterManuallyOptionLabel),
+              onTap: () {
+                Navigator.pop(context);
+                _showManualCardEntrySheet(context, brand);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBarcodeScannerWithBrand(BuildContext context, Brand? brand) {
     _showBarcodeScanner(
       context,
-      (barcode, type) {
-        // Create card with brand info
-        final newCard = LoyaltyCard(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          cardName: brand?.name ?? l10n.defaultLoyaltyCardName,
-          barcodeNumber: barcode,
-          barcodeType: type,
-          cardImagePath: null,
-          notes: null,
-          createdAt: DateTime.now(),
-          isPinned: false,
-          brandId: brand?.id,
-          brandPrimaryColor: brand?.primaryColor.toARGB32(),
-          brandLogoAssetPath: brand?.logoAssetPath,
-        );
-
-        final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
-        notifier.createLoyaltyCard(newCard);
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.cardAddedSuccess(newCard.cardName)),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      },
+      (barcode, type) => _createAndSaveCard(context, brand, barcode, type),
     );
+  }
+
+  /// Bottom sheet with a single text field for manually typing a card
+  /// number when the card has no scannable barcode/QR code.
+  void _showManualCardEntrySheet(BuildContext context, Brand? brand) {
+    final numberController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Builder(
+          builder: (context) {
+            final l10n = AppLocalizations.of(context);
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    l10n.enterManuallyOptionLabel,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: numberController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: l10n.barcodeNumberLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (numberController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.pleaseEnterCardNumber)),
+                        );
+                        return;
+                      }
+                      Navigator.pop(context);
+                      _createAndSaveCard(
+                        context,
+                        brand,
+                        numberController.text.trim(),
+                        loyalty_card.BarcodeType.manual,
+                      );
+                    },
+                    child: Text(l10n.save),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Creates and persists a new loyalty card from the given brand + number,
+  /// shared by both the scan flow and the manual-entry flow.
+  void _createAndSaveCard(
+    BuildContext context,
+    Brand? brand,
+    String barcodeNumber,
+    loyalty_card.BarcodeType type,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final newCard = LoyaltyCard(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      cardName: brand?.name ?? l10n.defaultLoyaltyCardName,
+      barcodeNumber: barcodeNumber,
+      barcodeType: type,
+      cardImagePath: null,
+      notes: null,
+      createdAt: DateTime.now(),
+      isPinned: false,
+      brandId: brand?.id,
+      brandPrimaryColor: brand?.primaryColor.toARGB32(),
+      brandLogoAssetPath: brand?.logoAssetPath,
+    );
+
+    final notifier = ref.read(loyaltyCardsNotifierProvider.notifier);
+    notifier.createLoyaltyCard(newCard);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.cardAddedSuccess(newCard.cardName)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _showEditDialog(LoyaltyCard? card) async {
