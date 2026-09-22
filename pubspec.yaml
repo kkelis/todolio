@@ -18,7 +18,7 @@ dependencies:
   # Image Handling
   image_picker: ^1.2.1
   path_provider: ^2.1.5
-  file_picker: ^12.0.0
+  file_picker: ^13.1.0
 
   # Notifications
   flutter_local_notifications: ^22.3.0
@@ -37,14 +37,14 @@ dependencies:
   # Barcode & QR Code
   barcode_widget: ^2.0.2
   qr_flutter: ^4.1.0
-  mobile_scanner: ^7.1.4
+  mobile_scanner: ^7.4.2
 
   # UI
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.10
   
   # Backup/Restore
-  archive: ^4.0.7
+  archive: ^4.3.0
   
   # URL Launcher
   url_launcher: ^6.2.5
