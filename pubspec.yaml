@@ -16,9 +16,9 @@ dependencies:
   flutter_riverpod: ^3.4.3
 
   # Image Handling
-  image_picker: ^1.2.1
+  image_picker: ^1.2.4
   path_provider: ^2.1.5
-  file_picker: ^12.0.0
+  file_picker: ^13.3.0
 
   # Notifications
   flutter_local_notifications: ^22.3.0
@@ -29,26 +29,26 @@ dependencies:
 
   # Utilities
   intl: ^0.20.3
-  share_plus: ^13.3.0
-  timezone: ^0.11.0
+  share_plus: ^13.3.1
+  timezone: ^0.11.2
   path: ^1.9.1
-  package_info_plus: ^10.2.1
+  package_info_plus: ^10.2.2
 
   # Barcode & QR Code
   barcode_widget: ^2.0.2
   qr_flutter: ^4.1.0
-  mobile_scanner: ^7.1.4
+  mobile_scanner: ^7.4.2
 
   # UI
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   flutter_svg: ^2.0.10
   
   # Backup/Restore
-  archive: ^4.0.7
+  archive: ^4.5.2
   
   # URL Launcher
-  url_launcher: ^6.2.5
-  open_filex: ^4.7.0
+  url_launcher: ^6.3.3
+  open_filex: ^5.0.0
   gal: ^2.3.3
 
 dev_dependencies:
