@@ -37,14 +37,14 @@ dependencies:
   # Barcode & QR Code
   barcode_widget: ^2.0.2
   qr_flutter: ^4.1.0
-  mobile_scanner: ^7.4.2
+  mobile_scanner: ^7.5.0
 
   # UI
   cupertino_icons: ^2.0.0
   flutter_svg: ^2.0.10
   
   # Backup/Restore
-  archive: ^4.5.2
+  archive: ^4.6.0
   
   # URL Launcher
   url_launcher: ^6.3.3
